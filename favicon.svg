@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="RW05">
+  <rect width="64" height="64" rx="14" fill="#063d2a"/>
+  <rect x="5" y="5" width="54" height="54" rx="10" fill="none" stroke="#e2a328" stroke-width="3"/>
+  <text x="32" y="29" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="800" fill="#ffffff">RW</text>
+  <text x="32" y="47" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="800" fill="#f1c766">05</text>
+</svg>

@@ -1,0 +1,25 @@
+{
+  "name": "RW 05 Desa Citeureup",
+  "short_name": "RW 05",
+  "description": "Portal informasi, layanan, dan aspirasi warga RW 05 Desa Citeureup.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fbf8f2",
+  "theme_color": "#143b2c",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/assets/logo-rw05.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/logo-rw05.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
