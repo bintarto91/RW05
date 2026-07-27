@@ -6,7 +6,7 @@ ServerSignature Off
     RewriteEngine On
 
     RewriteRule ^(app|system|vendor|writable|tests)(/.*)?$ - [F,L]
-    RewriteRule ^(\.env|composer\.(json|lock)|spark|preload\.php|phpunit\.dist\.xml)$ - [F,L]
+    RewriteRule ^(\.env|\.user\.ini|composer\.(json|lock)|spark|preload\.php|phpunit\.dist\.xml)$ - [F,L]
 
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
