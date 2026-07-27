@@ -3999,6 +3999,123 @@ textarea:focus {
   width: 100%;
 }
 
+.poster-modal-open {
+  overflow: hidden;
+}
+
+.education-poster-modal[hidden] {
+  display: none;
+}
+
+.education-poster-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.education-poster-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: rgba(3, 24, 20, 0.82);
+  cursor: pointer;
+}
+
+.education-poster-dialog {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: min(960px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 18px;
+  background: var(--white);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+}
+
+.education-poster-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #dce8e2;
+}
+
+.education-poster-header span {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--blue-700);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.education-poster-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.education-poster-close {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid #d5e2dc;
+  border-radius: 50%;
+  color: var(--green-900);
+  background: #f4f8f6;
+  font-size: 1.7rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.education-poster-close:hover,
+.education-poster-close:focus-visible {
+  border-color: var(--green-700);
+  background: var(--soft-green);
+}
+
+.education-poster-canvas {
+  min-height: 240px;
+  padding: 18px;
+  overflow: auto;
+  background: #e8efec;
+}
+
+.education-poster-canvas img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: calc(100vh - 240px);
+  margin: 0 auto;
+  border-radius: 8px;
+  object-fit: contain;
+  box-shadow: 0 10px 30px rgba(6, 41, 35, 0.18);
+}
+
+.education-poster-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid #dce8e2;
+}
+
+.education-poster-actions .btn {
+  min-width: 160px;
+}
+
 .education-resource-unavailable {
   display: block;
   padding: 12px;
@@ -4359,6 +4476,37 @@ textarea:focus {
 
   .education-back-link {
     margin-bottom: 0;
+  }
+
+  .education-poster-modal {
+    padding: 10px;
+  }
+
+  .education-poster-dialog {
+    max-height: calc(100vh - 20px);
+    border-radius: 14px;
+  }
+
+  .education-poster-header {
+    padding: 14px;
+  }
+
+  .education-poster-canvas {
+    padding: 10px;
+  }
+
+  .education-poster-canvas img {
+    max-height: calc(100vh - 230px);
+  }
+
+  .education-poster-actions {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 12px 14px;
+  }
+
+  .education-poster-actions .btn {
+    width: 100%;
   }
 
   .btn,

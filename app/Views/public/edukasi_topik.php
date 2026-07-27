@@ -70,7 +70,13 @@
               <?php if (! empty($meta)): ?><small><?= rw_esc(implode(' • ', $meta)) ?></small><?php endif; ?>
             </div>
             <?php if ($materialUrl !== ''): ?>
-              <a href="<?= rw_esc($materialUrl) ?>" class="btn primary education-resource-action" target="_blank" rel="noopener noreferrer">
+              <a
+                href="<?= rw_esc($materialUrl) ?>"
+                class="btn primary education-resource-action<?= $type === 'poster' ? ' education-poster-trigger' : '' ?>"
+                target="_blank"
+                rel="noopener noreferrer"
+                <?php if ($type === 'poster'): ?>data-poster-title="<?= rw_esc($material['judul'] ?? 'Poster Edukasi') ?>" aria-haspopup="dialog"<?php endif; ?>
+              >
                 <?= rw_esc(edukasi_material_action_label($type, $hasFile)) ?>
               </a>
             <?php else: ?>
@@ -88,6 +94,72 @@
     <?php endif; ?>
   </div>
 </section>
+
+<div class="education-poster-modal" id="educationPosterModal" hidden aria-hidden="true">
+  <button type="button" class="education-poster-backdrop" data-poster-close aria-label="Tutup tampilan poster"></button>
+  <div class="education-poster-dialog" role="dialog" aria-modal="true" aria-labelledby="educationPosterTitle">
+    <header class="education-poster-header">
+      <div>
+        <span>Poster edukasi</span>
+        <h2 id="educationPosterTitle">Poster Edukasi</h2>
+      </div>
+      <button type="button" class="education-poster-close" data-poster-close aria-label="Tutup poster">×</button>
+    </header>
+    <div class="education-poster-canvas">
+      <img src="" alt="" data-poster-image>
+    </div>
+    <div class="education-poster-actions">
+      <a href="#" class="btn primary" target="_blank" rel="noopener noreferrer" data-poster-full>Buka Ukuran Penuh</a>
+      <button type="button" class="btn secondary" data-poster-close>Tutup</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const modal = document.getElementById('educationPosterModal');
+  const image = modal?.querySelector('[data-poster-image]');
+  const title = document.getElementById('educationPosterTitle');
+  const fullLink = modal?.querySelector('[data-poster-full]');
+  const closeButton = modal?.querySelector('.education-poster-close');
+  const triggers = document.querySelectorAll('.education-poster-trigger');
+  let lastTrigger = null;
+
+  if (!modal || !image || !title || !fullLink || !closeButton || triggers.length === 0) return;
+
+  const closePoster = () => {
+    modal.hidden = true;
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('poster-modal-open');
+    image.src = '';
+    if (lastTrigger) lastTrigger.focus();
+  };
+
+  triggers.forEach((trigger) => {
+    trigger.addEventListener('click', (event) => {
+      event.preventDefault();
+      const posterTitle = trigger.dataset.posterTitle || 'Poster Edukasi';
+      lastTrigger = trigger;
+      title.textContent = posterTitle;
+      image.src = trigger.href;
+      image.alt = `Poster ${posterTitle}`;
+      fullLink.href = trigger.href;
+      modal.hidden = false;
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('poster-modal-open');
+      closeButton.focus();
+    });
+  });
+
+  modal.querySelectorAll('[data-poster-close]').forEach((button) => {
+    button.addEventListener('click', closePoster);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !modal.hidden) closePoster();
+  });
+})();
+</script>
 
 <section class="section education-note-section">
   <div class="container">
