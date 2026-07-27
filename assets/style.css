@@ -4087,10 +4087,25 @@ textarea:focus {
 }
 
 .education-poster-canvas {
+  display: grid;
+  place-items: center;
   min-height: 240px;
   padding: 18px;
   overflow: auto;
   background: #e8efec;
+}
+
+.education-poster-canvas.is-video {
+  background: #071713;
+}
+
+.education-poster-canvas.is-document {
+  padding: 0;
+  background: #dfe7e3;
+}
+
+.education-poster-canvas.is-info {
+  background: linear-gradient(180deg, #edf6f2 0%, #f8fbfa 100%);
 }
 
 .education-poster-canvas img {
@@ -4102,6 +4117,85 @@ textarea:focus {
   border-radius: 8px;
   object-fit: contain;
   box-shadow: 0 10px 30px rgba(6, 41, 35, 0.18);
+}
+
+.education-poster-canvas [hidden] {
+  display: none;
+}
+
+.education-poster-canvas video,
+.education-poster-canvas iframe {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: #000;
+}
+
+.education-poster-canvas video {
+  max-height: calc(100vh - 240px);
+}
+
+.education-poster-canvas iframe {
+  aspect-ratio: 16 / 9;
+  min-height: 360px;
+}
+
+.education-poster-canvas iframe.is-document {
+  height: calc(100vh - 218px);
+  min-height: 440px;
+  aspect-ratio: auto;
+  border-radius: 0;
+  background: var(--white);
+}
+
+.education-media-info {
+  width: min(620px, 100%);
+  padding: 30px;
+  border: 1px solid #d3e2dc;
+  border-radius: 16px;
+  background: var(--white);
+  box-shadow: 0 16px 38px rgba(8, 47, 42, 0.1);
+}
+
+.education-media-info > span {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: var(--blue-700);
+  background: var(--soft-blue);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.education-media-info h3 {
+  margin: 16px 0 10px;
+  color: var(--green-900);
+  font-size: 1.45rem;
+}
+
+.education-media-info p {
+  color: var(--muted);
+}
+
+.education-media-info strong,
+.education-media-info small {
+  display: block;
+}
+
+.education-media-info strong {
+  margin-top: 18px;
+  color: var(--green-900);
+}
+
+.education-media-info small {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #dce8e2;
+  color: var(--muted);
+  line-height: 1.55;
 }
 
 .education-poster-actions {
@@ -4497,6 +4591,19 @@ textarea:focus {
 
   .education-poster-canvas img {
     max-height: calc(100vh - 230px);
+  }
+
+  .education-poster-canvas iframe {
+    min-height: 210px;
+  }
+
+  .education-poster-canvas iframe.is-document {
+    height: calc(100vh - 250px);
+    min-height: 300px;
+  }
+
+  .education-media-info {
+    padding: 20px;
   }
 
   .education-poster-actions {
