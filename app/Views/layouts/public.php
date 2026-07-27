@@ -14,6 +14,7 @@ $navItems = [
 $popularServices = [
     ['label' => 'Layanan Warga', 'href' => site_url('layanan')],
     ['label' => 'Kesehatan Warga', 'href' => site_url('kesehatan')],
+    ['label' => 'Edukasi Kesehatan', 'href' => site_url('edukasi-kesehatan')],
     ['label' => 'Ajukan Surat', 'href' => site_url('layanan-online')],
     ['label' => 'Laporan Keuangan', 'href' => site_url('keuangan')],
     ['label' => 'Surat Pengantar', 'href' => site_url('layanan') . '#surat-pengantar'],
@@ -38,7 +39,7 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/style.css') ?>?v=smart-rw-portal-20260723a">
+  <link rel="stylesheet" href="<?= base_url('assets/style.css') ?>?v=smart-rw-portal-20260727a">
 </head>
 <body>
 <header class="topbar">

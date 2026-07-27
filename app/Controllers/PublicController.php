@@ -34,6 +34,14 @@ class PublicController extends BaseController
         ]);
     }
 
+    public function edukasiKesehatan(): string
+    {
+        return $this->renderPublic('public/edukasi_kesehatan', [
+            'currentPage' => 'kesehatan',
+            'pageTitle' => 'Edukasi Kesehatan',
+        ]);
+    }
+
     public function keuangan()
     {
         $db = db_connect();

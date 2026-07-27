@@ -7,6 +7,7 @@ $routes->get('/', 'PublicController::index');
 $routes->get('profil', 'PublicController::profil');
 $routes->get('layanan', 'PublicController::layanan');
 $routes->get('kesehatan', 'PublicController::kesehatan');
+$routes->get('edukasi-kesehatan', 'PublicController::edukasiKesehatan');
 $routes->get('keuangan', 'PublicController::keuangan');
 $routes->get('layanan-online', 'PublicController::layananOnline');
 $routes->post('layanan-online', 'PublicController::submitLayananOnline');
