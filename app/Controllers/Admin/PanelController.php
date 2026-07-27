@@ -12,6 +12,8 @@ class PanelController extends BaseController
     private const PENGURUS_STRUCTURE_IMAGE = 'struktur-organisasi';
     private const PENGURUS_STRUCTURE_IMAGE_EXTENSIONS = ['webp', 'jpg', 'jpeg', 'png'];
     private const PENGURUS_STRUCTURE_DESCRIPTION = 'struktur-organisasi.txt';
+    private const EDUKASI_UPLOAD_DIRECTORY = 'assets/uploads/edukasi';
+    private const EDUKASI_MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
     private function db()
     {
@@ -216,6 +218,265 @@ class PanelController extends BaseController
             ],
             'columns' => ['urutan' => 'Urutan', 'icon' => 'Icon', 'nama' => 'Nama Layanan', 'status' => 'Status'],
         ]);
+    }
+
+    public function edukasi()
+    {
+        $db = $this->db();
+        $tableReady = ensure_edukasi_materi_table($db);
+        $id = (int) $this->request->getGet('id');
+
+        if (! $tableReady) {
+            return view('admin/edukasi', [
+                'currentPage' => 'edukasi',
+                'tableReady' => false,
+                'rows' => [],
+                'edit' => null,
+                'filters' => ['kategori' => '', 'jenis' => '', 'status' => ''],
+                'categoryOptions' => edukasi_category_options(),
+                'typeOptions' => edukasi_type_options(),
+                'statusOptions' => edukasi_status_options(),
+                'summary' => ['total' => 0, 'publish' => 0, 'draft' => 0, 'poster' => 0, 'video' => 0, 'artikel' => 0],
+                'error' => 'Penyimpanan materi edukasi belum siap. Coba muat ulang atau hubungi pengelola hosting.',
+                'success' => '',
+            ]);
+        }
+
+        if ($this->request->getMethod() === 'POST') {
+            $postedId = (int) $this->request->getPost('id');
+            $existing = $postedId > 0
+                ? $db->table('edukasi_materi')->where('id', $postedId)->get()->getRowArray()
+                : null;
+            $redirectUrl = $postedId > 0
+                ? site_url('admin/edukasi?action=edit&id=' . $postedId)
+                : site_url('admin/edukasi');
+
+            if ($postedId > 0 && ! $existing) {
+                return redirect()->to(site_url('admin/edukasi'))->with('error', 'Materi yang akan diedit tidak ditemukan.');
+            }
+
+            $kategori = trim((string) $this->request->getPost('kategori'));
+            $jenis = trim((string) $this->request->getPost('jenis'));
+            $judul = trim((string) $this->request->getPost('judul'));
+            $ringkasan = trim((string) $this->request->getPost('ringkasan'));
+            $penulis = trim((string) $this->request->getPost('penulis'));
+            $institusi = trim((string) $this->request->getPost('institusi'));
+            $tahun = trim((string) $this->request->getPost('tahun'));
+            $tautan = trim((string) $this->request->getPost('tautan'));
+            $status = trim((string) $this->request->getPost('status'));
+            $urutan = max(0, min(9999, (int) $this->request->getPost('urutan')));
+
+            $validationError = '';
+            if (! array_key_exists($kategori, edukasi_category_options())) {
+                $validationError = 'Pilih kategori edukasi yang tersedia.';
+            } elseif (! array_key_exists($jenis, edukasi_type_options())) {
+                $validationError = 'Pilih jenis materi: Poster, Video, atau Artikel.';
+            } elseif ($judul === '' || strlen($judul) > 180) {
+                $validationError = 'Judul wajib diisi dan maksimal 180 karakter.';
+            } elseif ($penulis === '' || strlen($penulis) > 160) {
+                $validationError = 'Nama dosen/penulis wajib diisi dan maksimal 160 karakter.';
+            } elseif (strlen($institusi) > 160) {
+                $validationError = 'Nama institusi maksimal 160 karakter.';
+            } elseif (strlen($ringkasan) > 1000) {
+                $validationError = 'Ringkasan maksimal 1000 karakter.';
+            } elseif ($tahun !== '' && ! preg_match('/^(19|20)\d{2}$/', $tahun)) {
+                $validationError = 'Tahun harus berupa empat angka, misalnya 2026.';
+            } elseif (! array_key_exists($status, edukasi_status_options())) {
+                $validationError = 'Pilih status Draft atau Tayang.';
+            } elseif ($tautan !== '' && ! $this->isAllowedEducationUrl($tautan)) {
+                $validationError = 'Tautan harus berupa alamat http atau https yang valid.';
+            }
+
+            if ($validationError !== '') {
+                return redirect()->to($redirectUrl)->withInput()->with('error', $validationError);
+            }
+
+            $currentFilePath = $existing && (string) ($existing['jenis'] ?? '') === $jenis
+                ? trim((string) ($existing['file_path'] ?? ''))
+                : '';
+            $filePath = $currentFilePath;
+            $newFilePath = '';
+            $upload = $this->request->getFile('materi_file');
+            $hasUpload = $upload && $upload->getError() !== UPLOAD_ERR_NO_FILE;
+
+            if ($jenis === 'video' && $hasUpload) {
+                return redirect()->to($redirectUrl)->withInput()->with('error', 'Materi video menggunakan tautan, bukan upload file.');
+            }
+
+            if ($hasUpload) {
+                if (! $upload->isValid()) {
+                    return redirect()->to($redirectUrl)->withInput()->with('error', 'File gagal diupload. Silakan pilih ulang file.');
+                }
+                if ($upload->getSize() > self::EDUKASI_MAX_UPLOAD_BYTES) {
+                    return redirect()->to($redirectUrl)->withInput()->with('error', 'Ukuran file maksimal 5 MB.');
+                }
+
+                $extension = strtolower($upload->getClientExtension());
+                $mimeType = strtolower((string) $upload->getMimeType());
+                $allowed = $jenis === 'poster'
+                    ? [
+                        'jpg' => ['image/jpeg'],
+                        'jpeg' => ['image/jpeg'],
+                        'png' => ['image/png'],
+                        'webp' => ['image/webp'],
+                    ]
+                    : ['pdf' => ['application/pdf', 'application/x-pdf']];
+
+                if (! isset($allowed[$extension]) || ! in_array($mimeType, $allowed[$extension], true)) {
+                    $message = $jenis === 'poster'
+                        ? 'Poster harus berupa JPG, PNG, atau WebP.'
+                        : 'File artikel harus berupa PDF.';
+
+                    return redirect()->to($redirectUrl)->withInput()->with('error', $message);
+                }
+
+                $targetDirectory = rtrim(FCPATH, DIRECTORY_SEPARATOR)
+                    . DIRECTORY_SEPARATOR
+                    . str_replace('/', DIRECTORY_SEPARATOR, self::EDUKASI_UPLOAD_DIRECTORY);
+                if (! is_dir($targetDirectory) && ! mkdir($targetDirectory, 0755, true) && ! is_dir($targetDirectory)) {
+                    return redirect()->to($redirectUrl)->withInput()->with('error', 'Folder upload materi tidak dapat dibuat.');
+                }
+
+                $targetExtension = $extension === 'jpeg' ? 'jpg' : $extension;
+                $fileName = date('YmdHis') . '-' . bin2hex(random_bytes(6)) . '.' . $targetExtension;
+                try {
+                    $upload->move($targetDirectory, $fileName);
+                } catch (\Throwable $exception) {
+                    log_message('error', 'Gagal memindahkan file materi edukasi: ' . $exception->getMessage());
+
+                    return redirect()->to($redirectUrl)->withInput()->with('error', 'File belum dapat disimpan. Silakan coba kembali.');
+                }
+                $newFilePath = self::EDUKASI_UPLOAD_DIRECTORY . '/' . $fileName;
+                $filePath = $newFilePath;
+            }
+
+            if ($jenis === 'poster') {
+                $tautan = '';
+                if ($filePath === '') {
+                    return redirect()->to($redirectUrl)->withInput()->with('error', 'Upload file poster terlebih dahulu.');
+                }
+            } elseif ($jenis === 'video') {
+                $filePath = '';
+                if ($tautan === '') {
+                    return redirect()->to($redirectUrl)->withInput()->with('error', 'Masukkan tautan video terlebih dahulu.');
+                }
+            } elseif ($tautan === '' && $filePath === '') {
+                return redirect()->to($redirectUrl)->withInput()->with('error', 'Artikel memerlukan tautan atau file PDF.');
+            }
+
+            $data = [
+                'kategori' => $kategori,
+                'jenis' => $jenis,
+                'judul' => $judul,
+                'ringkasan' => $ringkasan,
+                'penulis' => $penulis,
+                'institusi' => $institusi,
+                'tahun' => $tahun,
+                'tautan' => $tautan,
+                'file_path' => $filePath,
+                'urutan' => $urutan,
+                'status' => $status,
+            ];
+
+            try {
+                if ($postedId > 0) {
+                    $db->table('edukasi_materi')->where('id', $postedId)->update($data);
+                } else {
+                    $db->table('edukasi_materi')->insert($data);
+                }
+            } catch (\Throwable $exception) {
+                if ($newFilePath !== '') {
+                    $this->removeManagedEducationFile($newFilePath);
+                }
+                log_message('error', 'Gagal menyimpan materi edukasi: ' . $exception->getMessage());
+
+                return redirect()->to($redirectUrl)->withInput()->with('error', 'Materi belum dapat disimpan. Silakan coba kembali.');
+            }
+
+            $oldFilePath = trim((string) ($existing['file_path'] ?? ''));
+            if ($oldFilePath !== '' && $oldFilePath !== $filePath) {
+                $this->removeManagedEducationFile($oldFilePath);
+            }
+
+            return redirect()->to(site_url('admin/edukasi'))
+                ->with('success', $postedId > 0 ? 'Materi edukasi berhasil diperbarui.' : 'Materi edukasi berhasil ditambahkan.');
+        }
+
+        $edit = null;
+        if ($this->request->getGet('action') === 'edit' && $id > 0) {
+            $edit = $db->table('edukasi_materi')->where('id', $id)->get()->getRowArray();
+        }
+
+        $filters = [
+            'kategori' => trim((string) $this->request->getGet('kategori')),
+            'jenis' => trim((string) $this->request->getGet('jenis')),
+            'status' => trim((string) $this->request->getGet('status')),
+        ];
+        if (! array_key_exists($filters['kategori'], edukasi_category_options())) {
+            $filters['kategori'] = '';
+        }
+        if (! array_key_exists($filters['jenis'], edukasi_type_options())) {
+            $filters['jenis'] = '';
+        }
+        if (! array_key_exists($filters['status'], edukasi_status_options())) {
+            $filters['status'] = '';
+        }
+
+        $rowsBuilder = $db->table('edukasi_materi');
+        foreach ($filters as $field => $value) {
+            if ($value !== '') {
+                $rowsBuilder->where($field, $value);
+            }
+        }
+        $rows = $rowsBuilder
+            ->orderBy('kategori', 'ASC')
+            ->orderBy('urutan', 'ASC')
+            ->orderBy('id', 'DESC')
+            ->get()
+            ->getResultArray();
+
+        $summary = ['total' => 0, 'publish' => 0, 'draft' => 0, 'poster' => 0, 'video' => 0, 'artikel' => 0];
+        foreach ($db->table('edukasi_materi')->select('jenis, status')->get()->getResultArray() as $row) {
+            $summary['total']++;
+            if (isset($summary[$row['status']])) {
+                $summary[$row['status']]++;
+            }
+            if (isset($summary[$row['jenis']])) {
+                $summary[$row['jenis']]++;
+            }
+        }
+
+        return view('admin/edukasi', [
+            'currentPage' => 'edukasi',
+            'tableReady' => true,
+            'rows' => $rows,
+            'edit' => $edit,
+            'filters' => $filters,
+            'categoryOptions' => edukasi_category_options(),
+            'typeOptions' => edukasi_type_options(),
+            'statusOptions' => edukasi_status_options(),
+            'summary' => $summary,
+            'error' => session()->getFlashdata('error') ?: '',
+            'success' => session()->getFlashdata('success') ?: '',
+        ]);
+    }
+
+    public function deleteEdukasi(int $id)
+    {
+        $db = $this->db();
+        if (! ensure_edukasi_materi_table($db)) {
+            return redirect()->to(site_url('admin/edukasi'))->with('error', 'Penyimpanan materi edukasi belum siap.');
+        }
+
+        $row = $db->table('edukasi_materi')->where('id', $id)->get()->getRowArray();
+        if (! $row) {
+            return redirect()->to(site_url('admin/edukasi'))->with('error', 'Materi edukasi tidak ditemukan.');
+        }
+
+        $db->table('edukasi_materi')->where('id', $id)->delete();
+        $this->removeManagedEducationFile((string) ($row['file_path'] ?? ''));
+
+        return redirect()->to(site_url('admin/edukasi'))->with('success', 'Materi edukasi berhasil dihapus.');
     }
 
     public function pengajuanSurat()
@@ -1142,6 +1403,30 @@ class PanelController extends BaseController
             'edit' => $edit,
             'rows' => $rowsBuilder->get()->getResultArray(),
         ]);
+    }
+
+    private function isAllowedEducationUrl(string $url): bool
+    {
+        if (! filter_var($url, FILTER_VALIDATE_URL)) {
+            return false;
+        }
+
+        return in_array(strtolower((string) parse_url($url, PHP_URL_SCHEME)), ['http', 'https'], true);
+    }
+
+    private function removeManagedEducationFile(string $relativePath): void
+    {
+        $relativePath = ltrim(str_replace('\\', '/', trim($relativePath)), '/');
+        if (! preg_match('#^assets/uploads/edukasi/[a-zA-Z0-9._-]+$#', $relativePath)) {
+            return;
+        }
+
+        $absolutePath = rtrim(FCPATH, DIRECTORY_SEPARATOR)
+            . DIRECTORY_SEPARATOR
+            . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+        if (is_file($absolutePath)) {
+            unlink($absolutePath);
+        }
     }
 
     private function pengurusStructureImageUrl(): string

@@ -128,7 +128,7 @@ $healthContactExternal = ! empty($waLink);
 
     <div class="health-program-grid">
       <?php foreach ($healthPrograms as $program): ?>
-        <a href="<?= site_url('edukasi-kesehatan') ?>#<?= rw_esc($program['id']) ?>" class="health-program-card" id="<?= rw_esc($program['id']) ?>" aria-label="Buka edukasi <?= rw_esc($program['title']) ?>" data-reveal>
+        <a href="<?= site_url('edukasi-kesehatan/' . $program['id']) ?>" class="health-program-card" id="<?= rw_esc($program['id']) ?>" aria-label="Buka edukasi <?= rw_esc($program['title']) ?>" data-reveal>
           <div class="health-program-head">
             <span><?= rw_esc($program['number']) ?></span>
             <h3><?= rw_esc($program['title']) ?></h3>

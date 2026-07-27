@@ -27,3 +27,7 @@ writable/session/*
 !writable/session/index.html
 writable/uploads/*
 !writable/uploads/index.html
+
+# Materi edukasi yang diunggah dari panel admin
+assets/uploads/edukasi/*
+!assets/uploads/edukasi/index.html

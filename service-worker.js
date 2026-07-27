@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rw05-pwa-v5';
+const CACHE_NAME = 'rw05-pwa-v6';
 const APP_SHELL = [
   '/',
   '/assets/style.css',

@@ -6,6 +6,7 @@ $navItems = [
     'program' => ['label' => 'Program Kerja', 'href' => site_url('admin/program')],
     'kegiatan' => ['label' => 'Kegiatan', 'href' => site_url('admin/kegiatan')],
     'layanan' => ['label' => 'Layanan', 'href' => site_url('admin/layanan')],
+    'edukasi' => ['label' => 'Materi Edukasi', 'href' => site_url('admin/edukasi')],
     'pengajuan-surat' => ['label' => 'Pengajuan Surat', 'href' => site_url('admin/pengajuan-surat')],
     'pengurus' => ['label' => 'Pengurus', 'href' => site_url('admin/pengurus')],
     'warga' => ['label' => 'Data Warga', 'href' => site_url('admin/warga')],
@@ -38,7 +39,7 @@ $notificationTotal = array_sum($notificationCounts);
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=pengurus-structure-20260707">
+  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=edukasi-dinamis-20260727">
 </head>
 <body class="admin-body">
   <div class="admin-shell">

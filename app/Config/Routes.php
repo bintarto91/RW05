@@ -8,6 +8,7 @@ $routes->get('profil', 'PublicController::profil');
 $routes->get('layanan', 'PublicController::layanan');
 $routes->get('kesehatan', 'PublicController::kesehatan');
 $routes->get('edukasi-kesehatan', 'PublicController::edukasiKesehatan');
+$routes->get('edukasi-kesehatan/(:segment)', 'PublicController::edukasiKesehatanTopik/$1');
 $routes->get('keuangan', 'PublicController::keuangan');
 $routes->get('layanan-online', 'PublicController::layananOnline');
 $routes->post('layanan-online', 'PublicController::submitLayananOnline');
@@ -28,6 +29,8 @@ $routes->group('admin', ['filter' => 'adminauth'], static function ($routes) {
     $routes->match(['get', 'post'], 'program', 'Admin\PanelController::program');
     $routes->match(['get', 'post'], 'kegiatan', 'Admin\PanelController::kegiatan');
     $routes->match(['get', 'post'], 'layanan', 'Admin\PanelController::layanan');
+    $routes->match(['get', 'post'], 'edukasi', 'Admin\PanelController::edukasi');
+    $routes->post('edukasi/delete/(:num)', 'Admin\PanelController::deleteEdukasi/$1');
     $routes->match(['get', 'post'], 'pengajuan-surat', 'Admin\PanelController::pengajuanSurat');
     $routes->match(['get', 'post'], 'pengurus', 'Admin\PanelController::pengurus');
     $routes->post('pengurus/struktur-gambar', 'Admin\PanelController::uploadPengurusStructureImage');

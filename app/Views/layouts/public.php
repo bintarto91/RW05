@@ -39,7 +39,7 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/style.css') ?>?v=smart-rw-portal-20260727c">
+  <link rel="stylesheet" href="<?= base_url('assets/style.css') ?>?v=edukasi-dinamis-20260727">
 </head>
 <body>
 <header class="topbar">

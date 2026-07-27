@@ -1069,6 +1069,309 @@ if (! function_exists('warga_option_label')) {
     }
 }
 
+if (! function_exists('edukasi_topic_definitions')) {
+    function edukasi_topic_definitions(): array
+    {
+        return [
+            'ibu-anak' => [
+                'number' => '01',
+                'title' => 'Posyandu, Ibu & Anak',
+                'description' => 'Materi untuk mendampingi kesehatan ibu, bayi, balita, dan pemantauan tumbuh kembang bersama kader Posyandu.',
+                'items' => ['Kesehatan ibu sejak masa kehamilan', 'Peran Posyandu dan pemantauan pertumbuhan', 'Dukungan keluarga untuk ibu dan anak'],
+            ],
+            'gizi-stunting' => [
+                'number' => '02',
+                'title' => 'Gizi Keluarga & Stunting',
+                'description' => 'Panduan awal untuk memahami peran pola asuh, makanan bergizi, dan pemantauan pertumbuhan anak.',
+                'items' => ['Pola asuh yang mendukung tumbuh kembang', 'Kebiasaan makan bergizi dalam keluarga', 'Pentingnya pemantauan pertumbuhan'],
+            ],
+            'lansia' => [
+                'number' => '03',
+                'title' => 'Lansia & Posbindu',
+                'description' => 'Materi pendampingan untuk membantu warga lanjut usia tetap aktif, terhubung, dan memperoleh informasi kesehatan yang tepat.',
+                'items' => ['Aktivitas sehat bagi lansia', 'Dukungan keluarga dan lingkungan', 'Pemanfaatan kegiatan Posbindu'],
+            ],
+            'remaja' => [
+                'number' => '04',
+                'title' => 'Remaja & Kesehatan Mental',
+                'description' => 'Edukasi untuk membangun kepedulian, komunikasi yang sehat, dan dukungan keluarga bagi remaja.',
+                'items' => ['Mengenali pentingnya kesehatan mental', 'Membangun komunikasi yang saling menghargai', 'Mengetahui kapan perlu mencari bantuan'],
+            ],
+            'hidup-sehat' => [
+                'number' => '05',
+                'title' => 'Pola Hidup Sehat',
+                'description' => 'Inspirasi kebiasaan sederhana untuk bergerak aktif serta menjaga kesehatan diri dan lingkungan.',
+                'items' => ['Aktivitas fisik sesuai kemampuan', 'Kebiasaan hidup bersih dan sehat', 'Pemeriksaan kesehatan secara berkala'],
+            ],
+            'rokok-narkoba' => [
+                'number' => '06',
+                'title' => 'Pencegahan Rokok & Narkoba',
+                'description' => 'Materi keluarga untuk membangun lingkungan yang saling menjaga dari rokok dan penyalahgunaan narkoba.',
+                'items' => ['Risiko rokok bagi diri dan keluarga', 'Pencegahan sejak usia remaja', 'Peran keluarga dan lingkungan bebas asap rokok'],
+            ],
+        ];
+    }
+}
+
+if (! function_exists('edukasi_category_options')) {
+    function edukasi_category_options(): array
+    {
+        $options = [];
+        foreach (edukasi_topic_definitions() as $key => $topic) {
+            $options[$key] = $topic['number'] . ' — ' . $topic['title'];
+        }
+
+        return $options;
+    }
+}
+
+if (! function_exists('edukasi_type_options')) {
+    function edukasi_type_options(): array
+    {
+        return [
+            'poster' => 'Poster',
+            'video' => 'Video',
+            'artikel' => 'Artikel',
+        ];
+    }
+}
+
+if (! function_exists('edukasi_status_options')) {
+    function edukasi_status_options(): array
+    {
+        return [
+            'publish' => 'Tayang',
+            'draft' => 'Draft',
+        ];
+    }
+}
+
+if (! function_exists('edukasi_material_public_url')) {
+    function edukasi_material_public_url(array $material): string
+    {
+        $filePath = trim((string) ($material['file_path'] ?? ''));
+        if ($filePath !== '') {
+            return base_url(ltrim(str_replace('\\', '/', $filePath), '/'));
+        }
+
+        $url = trim((string) ($material['tautan'] ?? ''));
+
+        return filter_var($url, FILTER_VALIDATE_URL) ? $url : '';
+    }
+}
+
+if (! function_exists('edukasi_material_action_label')) {
+    function edukasi_material_action_label($type, bool $hasFile = false): string
+    {
+        return match ((string) $type) {
+            'poster' => 'Lihat Poster',
+            'video' => 'Tonton Video',
+            'artikel' => $hasFile ? 'Buka Artikel PDF' : 'Baca Artikel',
+            default => 'Buka Materi',
+        };
+    }
+}
+
+if (! function_exists('ensure_edukasi_materi_table')) {
+    function ensure_edukasi_materi_table($db = null): bool
+    {
+        $db = $db ?: db_connect();
+
+        try {
+            $tableExisted = $db->tableExists('edukasi_materi');
+            $db->query(
+                "CREATE TABLE IF NOT EXISTS edukasi_materi (
+                    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                    kategori VARCHAR(40) NOT NULL,
+                    jenis VARCHAR(20) NOT NULL,
+                    judul VARCHAR(180) NOT NULL,
+                    ringkasan TEXT NULL,
+                    penulis VARCHAR(160) NOT NULL,
+                    institusi VARCHAR(160) NULL,
+                    tahun VARCHAR(10) NULL,
+                    tautan VARCHAR(500) NULL,
+                    file_path VARCHAR(255) NULL,
+                    urutan INT UNSIGNED NOT NULL DEFAULT 0,
+                    status VARCHAR(20) NOT NULL DEFAULT 'draft',
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    KEY kategori_status (kategori, status),
+                    KEY jenis (jenis),
+                    KEY urutan (urutan),
+                    KEY created_at (created_at)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"
+            );
+
+            if (! $tableExisted && $db->table('edukasi_materi')->countAllResults() === 0) {
+                $seedRows = [
+                    [
+                        'kategori' => 'ibu-anak',
+                        'jenis' => 'artikel',
+                        'judul' => '1000 Hari Pertama Kehidupan',
+                        'ringkasan' => 'Materi kesehatan ibu, bayi, dan balita dari Ayo Sehat.',
+                        'penulis' => 'Kementerian Kesehatan RI',
+                        'institusi' => 'Kementerian Kesehatan RI',
+                        'tautan' => 'https://ayosehat.kemkes.go.id/1000-hari-pertama-kehidupan',
+                        'urutan' => 10,
+                        'status' => 'publish',
+                    ],
+                    [
+                        'kategori' => 'ibu-anak',
+                        'jenis' => 'video',
+                        'judul' => 'Video Posyandu, Ibu & Anak',
+                        'ringkasan' => 'Pilihan video edukasi pada kanal resmi Kementerian Kesehatan RI.',
+                        'penulis' => 'Kementerian Kesehatan RI',
+                        'institusi' => 'Kementerian Kesehatan RI',
+                        'tautan' => 'https://www.youtube.com/@KementerianKesehatanRI/search?query=posyandu%20ibu%20dan%20anak',
+                        'urutan' => 20,
+                        'status' => 'publish',
+                    ],
+                    [
+                        'kategori' => 'ibu-anak',
+                        'jenis' => 'poster',
+                        'judul' => 'Dukung Tumbuh Kembang Anak',
+                        'ringkasan' => 'Poster edukasi untuk mendukung pertumbuhan dan perkembangan anak.',
+                        'penulis' => 'Rai Nurani, S.Kep., Ners., M.Kep.',
+                        'institusi' => 'STIKes Dharma Husada',
+                        'file_path' => 'assets/poster-tumbuh-kembang-anak.png',
+                        'urutan' => 30,
+                        'status' => 'publish',
+                    ],
+                    [
+                        'kategori' => 'gizi-stunting',
+                        'jenis' => 'artikel',
+                        'judul' => 'Cegah Stunting dengan Pola Asuh yang Baik',
+                        'ringkasan' => 'Materi pola asuh dan pencegahan stunting dari Ayo Sehat.',
+                        'penulis' => 'Kementerian Kesehatan RI',
+                        'institusi' => 'Kementerian Kesehatan RI',
+                        'tautan' => 'https://ayosehat.kemkes.go.id/cegah-stunting-dengan-pola-asuh-yang-baik',
+                        'urutan' => 10,
+                        'status' => 'publish',
+                    ],
+                    [
+                        'kategori' => 'gizi-stunting',
+                        'jenis' => 'video',
+                        'judul' => 'Video Gizi Anak & Stunting',
+                        'ringkasan' => 'Pilihan video edukasi pada kanal resmi Kementerian Kesehatan RI.',
+                        'penulis' => 'Kementerian Kesehatan RI',
+                        'institusi' => 'Kementerian Kesehatan RI',
+                        'tautan' => 'https://www.youtube.com/@KementerianKesehatanRI/search?query=stunting%20gizi%20anak',
+                        'urutan' => 20,
+                        'status' => 'publish',
+                    ],
+                    [
+                        'kategori' => 'lansia',
+                        'jenis' => 'artikel',
+                        'judul' => 'Hari Lanjut Usia Nasional',
+                        'ringkasan' => 'Informasi dan edukasi kesehatan lansia dari Ayo Sehat.',
+                        'penulis' => 'Kementerian Kesehatan RI',
+                        'institusi' => 'Kementerian Kesehatan RI',
+                        'tautan' => 'https://ayosehat.kemkes.go.id/agenda-kegiatan/hari-lanjut-usia-nasional',
+                        'urutan' => 10,
+                        'status' => 'publish',
+                    ],
+                    [
+                        'kategori' => 'lansia',
+                        'jenis' => 'video',
+                        'judul' => 'Video Lansia & Posbindu',
+                        'ringkasan' => 'Pilihan video edukasi pada kanal resmi Kementerian Kesehatan RI.',
+                        'penulis' => 'Kementerian Kesehatan RI',
+                        'institusi' => 'Kementerian Kesehatan RI',
+                        'tautan' => 'https://www.youtube.com/@KementerianKesehatanRI/search?query=lansia%20posbindu',
+                        'urutan' => 20,
+                        'status' => 'publish',
+                    ],
+                    [
+                        'kategori' => 'remaja',
+                        'jenis' => 'artikel',
+                        'judul' => 'Gangguan Kesehatan Mental',
+                        'ringkasan' => 'Materi pengenalan kesehatan mental dari Ayo Sehat.',
+                        'penulis' => 'Kementerian Kesehatan RI',
+                        'institusi' => 'Kementerian Kesehatan RI',
+                        'tautan' => 'https://ayosehat.kemkes.go.id/gangguan-kesehatan-mental',
+                        'urutan' => 10,
+                        'status' => 'publish',
+                    ],
+                    [
+                        'kategori' => 'remaja',
+                        'jenis' => 'video',
+                        'judul' => 'Video Kesehatan Mental Remaja',
+                        'ringkasan' => 'Pilihan video edukasi pada kanal resmi Kementerian Kesehatan RI.',
+                        'penulis' => 'Kementerian Kesehatan RI',
+                        'institusi' => 'Kementerian Kesehatan RI',
+                        'tautan' => 'https://www.youtube.com/@KementerianKesehatanRI/search?query=kesehatan%20mental%20remaja',
+                        'urutan' => 20,
+                        'status' => 'publish',
+                    ],
+                    [
+                        'kategori' => 'hidup-sehat',
+                        'jenis' => 'artikel',
+                        'judul' => 'Menjaga Kesehatan Jantung dengan Aktivitas Fisik',
+                        'ringkasan' => 'Materi aktivitas fisik dan kesehatan jantung dari Ayo Sehat.',
+                        'penulis' => 'Kementerian Kesehatan RI',
+                        'institusi' => 'Kementerian Kesehatan RI',
+                        'tautan' => 'https://ayosehat.kemkes.go.id/cara-menjaga-kesehatan-jantung',
+                        'urutan' => 10,
+                        'status' => 'publish',
+                    ],
+                    [
+                        'kategori' => 'hidup-sehat',
+                        'jenis' => 'video',
+                        'judul' => 'Video GERMAS & Aktivitas Fisik',
+                        'ringkasan' => 'Pilihan video edukasi pada kanal resmi Kementerian Kesehatan RI.',
+                        'penulis' => 'Kementerian Kesehatan RI',
+                        'institusi' => 'Kementerian Kesehatan RI',
+                        'tautan' => 'https://www.youtube.com/@KementerianKesehatanRI/search?query=GERMAS%20aktivitas%20fisik',
+                        'urutan' => 20,
+                        'status' => 'publish',
+                    ],
+                    [
+                        'kategori' => 'rokok-narkoba',
+                        'jenis' => 'artikel',
+                        'judul' => 'Rokok Membuat Hidup Jadi Redup',
+                        'ringkasan' => 'Materi pencegahan dampak rokok dari Ayo Sehat.',
+                        'penulis' => 'Kementerian Kesehatan RI',
+                        'institusi' => 'Kementerian Kesehatan RI',
+                        'tautan' => 'https://ayosehat.kemkes.go.id/rokok-membuat-hidup-jadi-redup',
+                        'urutan' => 10,
+                        'status' => 'publish',
+                    ],
+                    [
+                        'kategori' => 'rokok-narkoba',
+                        'jenis' => 'video',
+                        'judul' => 'Video Pencegahan Rokok & Narkoba',
+                        'ringkasan' => 'Pilihan video edukasi pada kanal resmi Kementerian Kesehatan RI.',
+                        'penulis' => 'Kementerian Kesehatan RI',
+                        'institusi' => 'Kementerian Kesehatan RI',
+                        'tautan' => 'https://www.youtube.com/@KementerianKesehatanRI/search?query=rokok%20narkoba',
+                        'urutan' => 20,
+                        'status' => 'publish',
+                    ],
+                ];
+                $seedDefaults = [
+                    'ringkasan' => '',
+                    'institusi' => '',
+                    'tahun' => '',
+                    'tautan' => '',
+                    'file_path' => '',
+                    'urutan' => 0,
+                    'status' => 'draft',
+                ];
+                $db->table('edukasi_materi')->insertBatch(array_map(
+                    static fn (array $row): array => array_merge($seedDefaults, $row),
+                    $seedRows
+                ));
+            }
+
+            return true;
+        } catch (Throwable $exception) {
+            log_message('error', 'Gagal menyiapkan tabel edukasi_materi: ' . $exception->getMessage());
+
+            return false;
+        }
+    }
+}
+
 if (! function_exists('ensure_pengajuan_surat_table')) {
     function ensure_pengajuan_surat_table($db = null): bool
     {

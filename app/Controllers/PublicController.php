@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use CodeIgniter\Exceptions\PageNotFoundException;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
@@ -36,9 +37,69 @@ class PublicController extends BaseController
 
     public function edukasiKesehatan(): string
     {
+        $db = db_connect();
+        $topics = edukasi_topic_definitions();
+        $materialsByCategory = array_fill_keys(array_keys($topics), []);
+
+        if (ensure_edukasi_materi_table($db)) {
+            foreach ($db->table('edukasi_materi')
+                ->where('status', 'publish')
+                ->orderBy('kategori', 'ASC')
+                ->orderBy('urutan', 'ASC')
+                ->orderBy('id', 'DESC')
+                ->get()
+                ->getResultArray() as $material) {
+                $category = (string) ($material['kategori'] ?? '');
+                if (isset($materialsByCategory[$category])) {
+                    $materialsByCategory[$category][] = $material;
+                }
+            }
+        }
+
         return $this->renderPublic('public/edukasi_kesehatan', [
             'currentPage' => 'kesehatan',
             'pageTitle' => 'Edukasi Kesehatan',
+            'educationTopics' => $topics,
+            'materialsByCategory' => $materialsByCategory,
+        ]);
+    }
+
+    public function edukasiKesehatanTopik(string $category): string
+    {
+        $topics = edukasi_topic_definitions();
+        if (! isset($topics[$category])) {
+            throw PageNotFoundException::forPageNotFound();
+        }
+
+        $selectedType = trim((string) $this->request->getGet('jenis'));
+        if (! array_key_exists($selectedType, edukasi_type_options())) {
+            $selectedType = '';
+        }
+
+        $materials = [];
+        $db = db_connect();
+        if (ensure_edukasi_materi_table($db)) {
+            $builder = $db->table('edukasi_materi')
+                ->where('kategori', $category)
+                ->where('status', 'publish');
+            if ($selectedType !== '') {
+                $builder->where('jenis', $selectedType);
+            }
+            $materials = $builder
+                ->orderBy('urutan', 'ASC')
+                ->orderBy('id', 'DESC')
+                ->get()
+                ->getResultArray();
+        }
+
+        return $this->renderPublic('public/edukasi_topik', [
+            'currentPage' => 'kesehatan',
+            'pageTitle' => $topics[$category]['title'],
+            'category' => $category,
+            'topic' => $topics[$category],
+            'materials' => $materials,
+            'selectedType' => $selectedType,
+            'typeOptions' => edukasi_type_options(),
         ]);
     }
 
