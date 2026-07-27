@@ -3764,84 +3764,17 @@ textarea:focus {
   color: var(--green-700);
 }
 
-.education-poster {
-  margin: 0;
-  padding: 12px;
-  border: 1px solid #cfe0ee;
-  border-radius: var(--radius);
-  background: linear-gradient(135deg, #f4f9ff 0%, #f7fbf8 100%);
-}
-
-.education-poster > a {
-  display: grid;
-  grid-template-columns: 104px minmax(0, 1fr);
-  gap: 14px;
-  align-items: center;
-}
-
-.education-poster img {
-  width: 104px;
-  aspect-ratio: 2 / 3;
-  border: 1px solid #c7d8e5;
-  border-radius: 6px;
-  background: var(--white);
-  box-shadow: 0 8px 18px rgba(40, 95, 145, 0.12);
-  object-fit: cover;
-}
-
-.education-poster span {
-  display: grid;
-  gap: 5px;
-}
-
-.education-poster strong {
-  color: var(--green-900);
-  font-size: 1.02rem;
-}
-
-.education-poster small {
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.education-poster b {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  margin-top: 4px;
-  color: var(--blue-700);
-  font-size: 0.92rem;
-}
-
-.education-poster i {
-  font-style: normal;
-  transition: transform 160ms ease;
-}
-
-.education-poster > a:hover i,
-.education-poster > a:focus-visible i {
-  transform: translateX(4px);
-}
-
-.education-poster figcaption {
-  margin-top: 9px;
-  padding-top: 9px;
-  border-top: 1px solid #d8e5ed;
-  color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.45;
-}
-
 .education-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
   margin-top: auto;
 }
 
 .education-actions .btn {
-  flex: 1 1 190px;
   min-height: 50px;
+  padding-right: 12px;
+  padding-left: 12px;
 }
 
 .education-note-section {
@@ -4217,7 +4150,7 @@ textarea:focus {
   }
 
   .education-actions {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .hero-visual-panel,

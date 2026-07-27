@@ -9,7 +9,6 @@ $educationTopics = [
         'articleUrl' => 'https://ayosehat.kemkes.go.id/1000-hari-pertama-kehidupan',
         'videoUrl' => 'https://www.youtube.com/@KementerianKesehatanRI/search?query=posyandu%20ibu%20dan%20anak',
         'poster' => 'assets/poster-tumbuh-kembang-anak.png',
-        'posterAlt' => 'Poster dukung tumbuh kembang anak dari STIKes Dharma Husada',
     ],
     [
         'number' => '02',
@@ -116,22 +115,12 @@ $educationTopics = [
             <?php endforeach; ?>
           </ul>
         </div>
-        <?php if (! empty($topic['poster'])): ?>
-          <figure class="education-poster">
-            <a href="<?= base_url($topic['poster']) ?>" target="_blank" rel="noopener noreferrer" aria-label="Buka poster Dukung Tumbuh Kembang Anak ukuran penuh">
-              <img src="<?= base_url($topic['poster']) ?>" alt="<?= rw_esc($topic['posterAlt']) ?>" width="1024" height="1536" loading="lazy" decoding="async">
-              <span>
-                <strong>Poster: Dukung Tumbuh Kembang Anak</strong>
-                <small>Klik untuk membaca poster ukuran penuh.</small>
-                <b>Lihat poster <i aria-hidden="true">→</i></b>
-              </span>
-            </a>
-            <figcaption>Materi edukasi STIKes Dharma Husada oleh Rai Nurani, S.Kep., Ners., M.Kep.</figcaption>
-          </figure>
-        <?php endif; ?>
         <div class="education-actions">
           <a href="<?= rw_esc($topic['articleUrl']) ?>" class="btn primary" target="_blank" rel="noopener noreferrer">Baca Artikel Resmi</a>
           <a href="<?= rw_esc($topic['videoUrl']) ?>" class="btn secondary" target="_blank" rel="noopener noreferrer">Tonton Video Kemenkes</a>
+          <?php if (! empty($topic['poster'])): ?>
+            <a href="<?= base_url($topic['poster']) ?>" class="btn tertiary" target="_blank" rel="noopener noreferrer">Lihat Poster</a>
+          <?php endif; ?>
         </div>
       </article>
     <?php endforeach; ?>
