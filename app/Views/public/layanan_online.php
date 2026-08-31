@@ -25,7 +25,7 @@ $oldSuratData = is_array($oldSuratData) ? $oldSuratData : [];
 
 <section class="section white-section">
   <div class="container online-service-layout">
-    <aside class="online-service-panel" data-reveal>
+    <aside class="online-service-panel" id="cek-status" data-reveal>
       <p class="eyebrow">Cara kerja</p>
       <h2>Pengajuan masuk dulu, baru diproses pengurus.</h2>
       <ol class="online-flow">
@@ -52,7 +52,7 @@ $oldSuratData = is_array($oldSuratData) ? $oldSuratData : [];
       </form>
     </aside>
 
-    <form method="post" action="<?= site_url('layanan-online') ?>" class="aspirasi-form online-request-form" data-reveal>
+    <form method="post" action="<?= site_url('layanan-online') ?>" class="aspirasi-form online-request-form" id="ajukan-surat" data-reveal>
       <?php if (! empty($successCode)): ?>
         <div class="alert success">
           Pengajuan berhasil dikirim. Simpan kode ini untuk cek status: <strong><?= rw_esc($successCode) ?></strong><br>

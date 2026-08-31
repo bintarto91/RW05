@@ -1,5 +1,6 @@
 const menuBtn = document.getElementById('menuBtn');
 const menu = document.getElementById('menu');
+const mobileMenuTrigger = document.querySelector('[data-mobile-menu-trigger]');
 const topbar = document.querySelector('.topbar');
 const navLinks = Array.from(document.querySelectorAll('.menu a[href^="#"]'));
 const sections = Array.from(document.querySelectorAll('main section[id]'));
@@ -29,7 +30,9 @@ if (menuBtn && menu) {
 			return;
 		}
 
-		if (!menu.contains(event.target) && !menuBtn.contains(event.target)) {
+		if (!menu.contains(event.target)
+			&& !menuBtn.contains(event.target)
+			&& !mobileMenuTrigger?.contains(event.target)) {
 			setMenuState(false);
 		}
 	});
@@ -96,8 +99,63 @@ if ('IntersectionObserver' in window) {
 	revealItems.forEach((item) => item.classList.add('visible'));
 }
 
+if (mobileMenuTrigger && menu) {
+	mobileMenuTrigger.addEventListener('click', () => {
+		setMenuState(true);
+		menuBtn?.focus();
+	});
+}
+
 if ('serviceWorker' in navigator) {
 	window.addEventListener('load', () => {
 		navigator.serviceWorker.register('/service-worker.js').catch(() => {});
 	});
+}
+
+const serviceSearch = document.getElementById('serviceSearch');
+const serviceSearchClear = document.getElementById('serviceSearchClear');
+const serviceSearchResult = document.getElementById('serviceSearchResult');
+const serviceItems = Array.from(document.querySelectorAll('[data-service-item]'));
+
+const filterServices = () => {
+	if (!serviceSearch || !serviceItems.length) {
+		return;
+	}
+
+	const query = serviceSearch.value.trim().toLocaleLowerCase('id');
+	let visibleCount = 0;
+
+	serviceItems.forEach((item) => {
+		const searchableText = (item.dataset.serviceName || item.textContent || '').toLocaleLowerCase('id');
+		const isVisible = query === '' || searchableText.includes(query);
+		item.hidden = !isVisible;
+		if (isVisible) {
+			visibleCount += 1;
+		}
+	});
+
+	if (serviceSearchResult) {
+		serviceSearchResult.textContent = visibleCount > 0
+			? `${visibleCount} jenis layanan ditemukan. Ketuk layanan untuk melihat detail.`
+			: 'Layanan belum ditemukan. Coba kata yang lebih umum atau tanyakan kepada pengurus.';
+	}
+};
+
+if (serviceSearch) {
+	serviceSearch.addEventListener('input', filterServices);
+}
+
+if (serviceSearchClear && serviceSearch) {
+	serviceSearchClear.addEventListener('click', () => {
+		serviceSearch.value = '';
+		filterServices();
+		serviceSearch.focus();
+	});
+}
+
+if (window.location.hash) {
+	const hashTarget = document.querySelector(window.location.hash);
+	if (hashTarget instanceof HTMLDetailsElement) {
+		hashTarget.open = true;
+	}
 }

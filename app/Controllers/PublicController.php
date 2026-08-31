@@ -107,7 +107,33 @@ class PublicController extends BaseController
     {
         $db = db_connect();
         $tableReady = ensure_keuangan_transaksi_table($db);
-        $selectedMonth = trim((string) ($this->request->getGet('bulan') ?: date('Y-m')));
+        $selectedUnit = keuangan_normalize_unit_filter($this->request->getGet('unit'));
+        $legacySelectedRt = normalize_rt_code($this->request->getGet('rt'));
+        if ($selectedUnit === '' && $legacySelectedRt !== '') {
+            $selectedUnit = 'rt:' . $legacySelectedRt;
+        }
+
+        $requestedMonth = trim((string) $this->request->getGet('bulan'));
+        $hasExplicitPeriod = $requestedMonth !== ''
+            || trim((string) $this->request->getGet('start')) !== ''
+            || trim((string) $this->request->getGet('end')) !== '';
+        $selectedMonth = $requestedMonth !== '' ? $requestedMonth : date('Y-m');
+
+        if ($tableReady && ! $hasExplicitPeriod) {
+            $latestBuilder = $db->table('keuangan_transaksi')->selectMax('tanggal', 'latest_date');
+            $selectedScope = keuangan_unit_filter_scope($selectedUnit);
+            $selectedRtForLatest = keuangan_unit_filter_rt($selectedUnit);
+            if ($selectedScope !== '') {
+                $latestBuilder->where('lingkup', $selectedScope);
+            } elseif ($selectedRtForLatest !== '') {
+                $latestBuilder->where('lingkup', 'rt')->where('rt', $selectedRtForLatest);
+            }
+            $latestDate = (string) ($latestBuilder->get()->getRowArray()['latest_date'] ?? '');
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $latestDate)) {
+                $selectedMonth = substr($latestDate, 0, 7);
+            }
+        }
+
         if (! preg_match('/^\d{4}-\d{2}$/', $selectedMonth)) {
             $selectedMonth = date('Y-m');
         }
@@ -116,11 +142,6 @@ class PublicController extends BaseController
             $this->request->getGet('end'),
             $selectedMonth
         );
-        $selectedUnit = keuangan_normalize_unit_filter($this->request->getGet('unit'));
-        $legacySelectedRt = normalize_rt_code($this->request->getGet('rt'));
-        if ($selectedUnit === '' && $legacySelectedRt !== '') {
-            $selectedUnit = 'rt:' . $legacySelectedRt;
-        }
         $selectedRt = keuangan_unit_filter_rt($selectedUnit);
 
         if (! $tableReady) {
@@ -651,6 +672,7 @@ class PublicController extends BaseController
                 'rwRows' => $rwRows,
                 'rtRows' => $rtRows,
             'rows' => $rows,
+            'lastUpdatedAt' => (string) ($rows[0]['tanggal'] ?? ''),
             'rtOptions' => $rtOptions,
             'unitOptions' => keuangan_unit_options($rtOptions),
         ];

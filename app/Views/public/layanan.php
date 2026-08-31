@@ -95,51 +95,50 @@ $kebutuhanRw = [
       <a href="<?= site_url('layanan-online') ?>" class="btn primary">Ajukan Surat Online</a>
     </div>
 
-    <div class="home-summary service-online-summary" data-reveal>
-      <article class="summary-card accent">
-        <p class="eyebrow">Surat Online</p>
-        <h2>Form surat digabung ke halaman layanan.</h2>
-        <p>Supaya menu publik tetap ringkas, pengajuan surat tidak dibuat sebagai menu utama terpisah. Warga cukup masuk dari halaman layanan ini untuk mengurus surat dan administrasi lainnya.</p>
-        <a href="<?= site_url('layanan-online') ?>" class="text-link">Buka Form Surat</a>
-      </article>
-      <article class="summary-card">
-        <p class="eyebrow">Cek Pengajuan</p>
-        <h2>Status dan unduh PDF tetap di tempat yang sama.</h2>
-        <p>Setelah mengirim form, warga menerima kode pengajuan untuk cek status, melihat catatan admin, dan mengunduh PDF surat saat sudah disetujui.</p>
-        <a href="<?= site_url('layanan-online') ?>" class="text-link">Cek Status Surat</a>
-      </article>
+    <div class="service-search-panel" data-reveal>
+      <label for="serviceSearch">Cari jenis surat atau keperluan</label>
+      <div class="service-search-control">
+        <input type="search" id="serviceSearch" placeholder="Contoh: domisili, undangan, atau permohonan" autocomplete="off">
+        <button type="button" id="serviceSearchClear" class="btn tertiary">Hapus</button>
+      </div>
+      <p id="serviceSearchResult" aria-live="polite"><?= rw_esc((string) count($kebutuhanRw)) ?> jenis layanan tersedia. Ketuk salah satu untuk melihat syarat dan alurnya.</p>
     </div>
 
-    <div class="rw-service-grid">
+    <div class="rw-service-grid rw-service-accordion-list" id="serviceList">
       <?php foreach ($kebutuhanRw as $item): ?>
-        <article class="rw-service-card" id="<?= rw_esc($item['id']) ?>" data-reveal>
-          <div class="rw-service-head">
+        <details class="rw-service-card rw-service-accordion" id="<?= rw_esc($item['id']) ?>" data-service-item data-service-name="<?= rw_esc(strtolower($item['nama'] . ' ' . $item['ringkas'] . ' ' . implode(' ', $item['syarat']))) ?>" data-reveal>
+          <summary class="rw-service-summary">
+            <span class="rw-service-head">
             <span class="service-badge"><?= rw_esc($item['kode']) ?></span>
-            <div>
-              <h2><?= rw_esc($item['nama']) ?></h2>
-              <p><?= rw_esc($item['ringkas']) ?></p>
+              <span>
+                <strong class="rw-service-title"><?= rw_esc($item['nama']) ?></strong>
+                <span class="rw-service-description"><?= rw_esc($item['ringkas']) ?></span>
+              </span>
+            </span>
+            <span class="service-toggle" aria-hidden="true">Lihat detail</span>
+          </summary>
+          <div class="rw-service-body">
+            <div class="service-detail-grid">
+              <div>
+                <strong>Syarat awal</strong>
+                <ul class="requirement-list">
+                  <?php foreach ($item['syarat'] as $syarat): ?>
+                    <li><?= rw_esc($syarat) ?></li>
+                  <?php endforeach; ?>
+                </ul>
+              </div>
+              <div>
+                <strong>Alur singkat</strong>
+                <ol class="service-flow">
+                  <?php foreach ($item['alur'] as $alur): ?>
+                    <li><?= rw_esc($alur) ?></li>
+                  <?php endforeach; ?>
+                </ol>
+              </div>
             </div>
+            <a href="<?= site_url('layanan-online') ?>#ajukan-surat" class="btn primary">Ajukan surat ini</a>
           </div>
-          <div class="service-detail-grid">
-            <div>
-              <strong>Syarat awal</strong>
-              <ul class="requirement-list">
-                <?php foreach ($item['syarat'] as $syarat): ?>
-                  <li><?= rw_esc($syarat) ?></li>
-                <?php endforeach; ?>
-              </ul>
-            </div>
-            <div>
-              <strong>Alur singkat</strong>
-              <ol class="service-flow">
-                <?php foreach ($item['alur'] as $alur): ?>
-                  <li><?= rw_esc($alur) ?></li>
-                <?php endforeach; ?>
-              </ol>
-            </div>
-          </div>
-          <a href="<?= site_url('layanan-online') ?>" class="text-link">Ajukan online</a>
-        </article>
+        </details>
       <?php endforeach; ?>
     </div>
   </div>

@@ -1,16 +1,19 @@
 <?php
 $currentPage = $currentPage ?? 'home';
 $pageTitle = $pageTitle ?? ($siteName ?? 'RW 05 Desa Citeureup');
-$navItems = [
+$primaryNavItems = [
     'home' => ['label' => 'Beranda', 'href' => site_url('/')],
-    'profil' => ['label' => 'Profil', 'href' => site_url('profil')],
     'layanan' => ['label' => 'Layanan', 'href' => site_url('layanan')],
     'kesehatan' => ['label' => 'Kesehatan', 'href' => site_url('kesehatan')],
-    'keuangan' => ['label' => 'Keuangan', 'href' => site_url('keuangan')],
+    'keuangan' => ['label' => 'Transparansi', 'href' => site_url('keuangan')],
     'kegiatan' => ['label' => 'Kegiatan', 'href' => site_url('kegiatan')],
+];
+$secondaryNavItems = [
+    'profil' => ['label' => 'Profil RW', 'href' => site_url('profil')],
     'pengurus' => ['label' => 'Pengurus', 'href' => site_url('pengurus')],
     'aspirasi' => ['label' => 'Aspirasi', 'href' => site_url('aspirasi')],
 ];
+$navItems = $primaryNavItems + $secondaryNavItems;
 $popularServices = [
     ['label' => 'Layanan Warga', 'href' => site_url('layanan')],
     ['label' => 'Kesehatan Warga', 'href' => site_url('kesehatan')],
@@ -39,7 +42,7 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/style.css') ?>?v=media-popup-20260727">
+  <link rel="stylesheet" href="<?= base_url('assets/style.css') ?>?v=ux-refresh-20260831">
 </head>
 <body>
 <header class="topbar">
@@ -67,10 +70,18 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
     </a>
     <button class="menu-btn" id="menuBtn" type="button" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="menu">Menu</button>
     <nav class="menu" id="menu" aria-label="Menu utama">
-      <?php foreach ($navItems as $key => $item): ?>
+      <?php foreach ($primaryNavItems as $key => $item): ?>
         <a href="<?= rw_esc($item['href']) ?>" class="<?= $currentPage === $key ? 'is-active' : '' ?>"><?= rw_esc($item['label']) ?></a>
       <?php endforeach; ?>
-      <a href="<?= rw_esc($adminEntryUrl ?? site_url('admin/login')) ?>" class="menu-admin"><?= rw_esc($adminEntryLabel ?? 'Login Admin') ?></a>
+      <details class="menu-more">
+        <summary class="<?= array_key_exists($currentPage, $secondaryNavItems) ? 'is-active' : '' ?>">Lainnya</summary>
+        <div class="menu-more-panel">
+          <?php foreach ($secondaryNavItems as $key => $item): ?>
+            <a href="<?= rw_esc($item['href']) ?>" class="<?= $currentPage === $key ? 'is-active' : '' ?>"><?= rw_esc($item['label']) ?></a>
+          <?php endforeach; ?>
+          <a href="<?= rw_esc($adminEntryUrl ?? site_url('admin/login')) ?>" class="menu-admin"><?= rw_esc($adminEntryLabel ?? 'Login Admin') ?></a>
+        </div>
+      </details>
     </nav>
   </div>
 </header>
@@ -119,6 +130,17 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
     </div>
   </div>
 </footer>
-<script src="<?= base_url('assets/script.js') ?>"></script>
+<nav class="mobile-quick-nav" aria-label="Akses cepat dari ponsel">
+  <a href="<?= site_url('/') ?>" class="<?= $currentPage === 'home' ? 'is-active' : '' ?>"><span aria-hidden="true">⌂</span>Beranda</a>
+  <a href="<?= site_url('layanan-online') ?>#ajukan-surat"><span aria-hidden="true">＋</span>Surat</a>
+  <a href="<?= site_url('layanan-online') ?>#cek-status"><span aria-hidden="true">✓</span>Status</a>
+  <?php if (! empty($waLink)): ?>
+    <a href="<?= rw_esc($waLink) ?>" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">WA</span>WhatsApp</a>
+  <?php else: ?>
+    <a href="<?= site_url('aspirasi') ?>"><span aria-hidden="true">✉</span>Aspirasi</a>
+  <?php endif; ?>
+  <button type="button" data-mobile-menu-trigger aria-label="Buka menu utama"><span aria-hidden="true">☰</span>Menu</button>
+</nav>
+<script src="<?= base_url('assets/script.js') ?>?v=ux-refresh-20260831"></script>
 </body>
 </html>
