@@ -22,6 +22,50 @@ $selectedStatus = old('status', $edit['status'] ?? 'aktif');
 <section class="panel">
   <div class="section-heading">
     <div>
+      <h2>Kegiatan Hari Ini</h2>
+      <p class="muted">Pilih layanan dan tanggal. Peserta aktif akan muncul otomatis untuk dicentang hadir.</p>
+    </div>
+    <a href="<?= site_url('admin/kesehatan-data?print=1&jenis_kegiatan=' . rawurlencode($activityJenis) . '&tanggal_kegiatan=' . rawurlencode($activityDate)) ?>" target="_blank" rel="noopener noreferrer">Preview / Cetak</a>
+  </div>
+  <form method="get" action="<?= site_url('admin/kesehatan-data') ?>" class="grid-form">
+    <label>Jenis Kegiatan
+      <select name="jenis_kegiatan">
+        <?php foreach ($participantTypeOptions as $value => $label): ?><option value="<?= rw_esc($value) ?>" <?= is_selected($activityJenis, $value) ?>><?= rw_esc($label) ?></option><?php endforeach; ?>
+      </select>
+    </label>
+    <label>Tanggal Kegiatan
+      <input type="date" name="tanggal_kegiatan" value="<?= rw_esc($activityDate) ?>" required>
+    </label>
+    <div class="form-actions"><button type="submit">Tampilkan Daftar</button></div>
+  </form>
+  <form method="post" action="<?= site_url('admin/kesehatan-data') ?>">
+    <input type="hidden" name="action" value="save_attendance">
+    <input type="hidden" name="jenis_kegiatan" value="<?= rw_esc($activityJenis) ?>">
+    <input type="hidden" name="tanggal_kegiatan" value="<?= rw_esc($activityDate) ?>">
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>Hadir</th><th>Peserta</th><th>RT</th><th>Catatan Hari Ini</th></tr></thead>
+        <tbody>
+          <?php foreach ($attendanceParticipants as $participant): ?>
+            <?php $attendance = $attendanceMap[(int) $participant['id']] ?? null; ?>
+            <tr>
+              <td><input type="checkbox" name="hadir[<?= (int) $participant['id'] ?>]" value="1" <?= ($attendance['hadir'] ?? '') === 'ya' ? 'checked' : '' ?> aria-label="Hadir: <?= rw_esc($participant['nama']) ?>"></td>
+              <td><strong><?= rw_esc($participant['nama']) ?></strong><?= ! empty($participant['nama_wali']) ? '<br><small>Wali: ' . rw_esc($participant['nama_wali']) . '</small>' : '' ?></td>
+              <td><?= rw_esc($participant['rt'] ?? '-') ?></td>
+              <td><?= ! empty($attendance['catatan']) ? rw_esc($attendance['catatan']) : '-' ?></td>
+            </tr>
+          <?php endforeach; ?>
+          <?php if (empty($attendanceParticipants)): ?><tr><td colspan="4" class="table-empty">Belum ada peserta aktif untuk jenis layanan ini.</td></tr><?php endif; ?>
+        </tbody>
+      </table>
+    </div>
+    <div class="form-actions"><button type="submit"<?= empty($attendanceParticipants) ? ' disabled' : '' ?>>Simpan Daftar Hadir</button></div>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="section-heading">
+    <div>
       <h2><?= $isEditing ? 'Edit Peserta' : 'Daftarkan Peserta' ?></h2>
       <p class="muted">Simpan data minimum yang diperlukan untuk pelaksanaan kegiatan dan tindak lanjut kader.</p>
     </div>

@@ -573,6 +573,14 @@ class PanelController extends BaseController
         $statusOptions = ['aktif' => 'Aktif', 'nonaktif' => 'Arsip'];
         $filterJenis = trim((string) $this->request->getGet('jenis'));
         $filterSearch = trim((string) $this->request->getGet('q'));
+        $activityJenis = trim((string) $this->request->getGet('jenis_kegiatan'));
+        $activityDate = trim((string) $this->request->getGet('tanggal_kegiatan'));
+        if (! isset($participantTypeOptions[$activityJenis])) {
+            $activityJenis = 'posyandu';
+        }
+        if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $activityDate) || ! strtotime($activityDate)) {
+            $activityDate = date('Y-m-d');
+        }
 
         if (! $tableReady) {
             return view('admin/kesehatan_data', [
@@ -587,6 +595,10 @@ class PanelController extends BaseController
                 'statusOptions' => $statusOptions,
                 'filterJenis' => $filterJenis,
                 'filterSearch' => $filterSearch,
+                'activityJenis' => $activityJenis,
+                'activityDate' => $activityDate,
+                'attendanceParticipants' => [],
+                'attendanceMap' => [],
                 'error' => 'Penyimpanan data kader belum siap. Coba muat ulang atau hubungi pengelola hosting.',
                 'success' => '',
             ]);
@@ -594,6 +606,48 @@ class PanelController extends BaseController
 
         if ($this->request->getMethod() === 'POST') {
             $action = (string) $this->request->getPost('action');
+
+            if ($action === 'save_attendance') {
+                $jenis = trim((string) $this->request->getPost('jenis_kegiatan'));
+                $tanggal = trim((string) $this->request->getPost('tanggal_kegiatan'));
+                $hadir = $this->request->getPost('hadir');
+                $hadir = is_array($hadir) ? $hadir : [];
+
+                if (! isset($participantTypeOptions[$jenis]) || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggal) || ! strtotime($tanggal)) {
+                    return redirect()->to(site_url('admin/kesehatan-data'))->with('error', 'Jenis layanan atau tanggal kegiatan belum valid.');
+                }
+
+                $participantsForAttendance = $db->table('kesehatan_peserta')
+                    ->where('jenis', $jenis)
+                    ->where('status', 'aktif')
+                    ->get()
+                    ->getResultArray();
+                foreach ($participantsForAttendance as $participant) {
+                    $participantId = (int) $participant['id'];
+                    $visit = $db->table('kesehatan_kunjungan')
+                        ->where('peserta_id', $participantId)
+                        ->where('tanggal', $tanggal)
+                        ->get()
+                        ->getRowArray();
+                    $data = [
+                        'peserta_id' => $participantId,
+                        'tanggal' => $tanggal,
+                        'hadir' => isset($hadir[$participantId]) ? 'ya' : 'tidak',
+                        'dicatat_oleh' => (int) session('admin_id'),
+                    ];
+                    if ($visit) {
+                        $db->table('kesehatan_kunjungan')->where('id', (int) $visit['id'])->update([
+                            'hadir' => $data['hadir'],
+                            'dicatat_oleh' => $data['dicatat_oleh'],
+                        ]);
+                    } else {
+                        $db->table('kesehatan_kunjungan')->insert($data);
+                    }
+                }
+
+                return redirect()->to(site_url('admin/kesehatan-data?jenis_kegiatan=' . rawurlencode($jenis) . '&tanggal_kegiatan=' . rawurlencode($tanggal)))
+                    ->with('success', 'Daftar hadir kegiatan berhasil disimpan.');
+            }
 
             if ($action === 'save_participant') {
                 $participantId = (int) $this->request->getPost('id');
@@ -687,7 +741,7 @@ class PanelController extends BaseController
                         ->with('error', $error);
                 }
 
-                $db->table('kesehatan_kunjungan')->insert([
+                $visitData = [
                     'peserta_id' => $participantId,
                     'tanggal' => $tanggal,
                     'hadir' => $hadir,
@@ -698,7 +752,17 @@ class PanelController extends BaseController
                     'gula_darah' => $glucose !== '' ? (float) $glucose : null,
                     'catatan' => $catatan,
                     'dicatat_oleh' => (int) session('admin_id'),
-                ]);
+                ];
+                $existingVisit = $db->table('kesehatan_kunjungan')
+                    ->where('peserta_id', $participantId)
+                    ->where('tanggal', $tanggal)
+                    ->get()
+                    ->getRowArray();
+                if ($existingVisit) {
+                    $db->table('kesehatan_kunjungan')->where('id', (int) $existingVisit['id'])->update($visitData);
+                } else {
+                    $db->table('kesehatan_kunjungan')->insert($visitData);
+                }
 
                 return redirect()->to(site_url('admin/kesehatan-data?peserta_id=' . $participantId))->with('success', 'Kunjungan peserta berhasil dicatat.');
             }
@@ -711,6 +775,25 @@ class PanelController extends BaseController
             $db->transComplete();
 
             return redirect()->to(site_url('admin/kesehatan-data'))->with('success', 'Data peserta dan kunjungannya berhasil dihapus.');
+        }
+
+        if ($this->request->getGet('print') === '1') {
+            $reportRows = $db->table('kesehatan_peserta peserta')
+                ->select('peserta.*, kunjungan.hadir, kunjungan.berat_kg, kunjungan.tinggi_cm, kunjungan.tekanan_sistolik, kunjungan.tekanan_diastolik, kunjungan.gula_darah, kunjungan.catatan AS catatan_kunjungan')
+                ->join('kesehatan_kunjungan kunjungan', "kunjungan.peserta_id = peserta.id AND kunjungan.tanggal = " . $db->escape($activityDate), 'left')
+                ->where('peserta.jenis', $activityJenis)
+                ->where('peserta.status', 'aktif')
+                ->orderBy('peserta.rt', 'ASC')
+                ->orderBy('peserta.nama', 'ASC')
+                ->get()
+                ->getResultArray();
+
+            return view('admin/kesehatan_print', [
+                'reportRows' => $reportRows,
+                'reportType' => $participantTypeOptions[$activityJenis],
+                'reportDate' => $activityDate,
+                'autoPrint' => false,
+            ]);
         }
 
         $edit = null;
@@ -738,6 +821,24 @@ class PanelController extends BaseController
             ->limit(40)
             ->get()
             ->getResultArray();
+        $attendanceParticipants = $db->table('kesehatan_peserta')
+            ->where('jenis', $activityJenis)
+            ->where('status', 'aktif')
+            ->orderBy('rt', 'ASC')
+            ->orderBy('nama', 'ASC')
+            ->get()
+            ->getResultArray();
+        $attendanceMap = [];
+        if ($attendanceParticipants) {
+            $attendanceRows = $db->table('kesehatan_kunjungan')
+                ->where('tanggal', $activityDate)
+                ->whereIn('peserta_id', array_map(static fn (array $row): int => (int) $row['id'], $attendanceParticipants))
+                ->get()
+                ->getResultArray();
+            foreach ($attendanceRows as $attendanceRow) {
+                $attendanceMap[(int) $attendanceRow['peserta_id']] = $attendanceRow;
+            }
+        }
 
         return view('admin/kesehatan_data', [
             'currentPage' => 'kesehatan-data',
@@ -751,6 +852,10 @@ class PanelController extends BaseController
             'statusOptions' => $statusOptions,
             'filterJenis' => $filterJenis,
             'filterSearch' => $filterSearch,
+            'activityJenis' => $activityJenis,
+            'activityDate' => $activityDate,
+            'attendanceParticipants' => $attendanceParticipants,
+            'attendanceMap' => $attendanceMap,
             'error' => session()->getFlashdata('error') ?: '',
             'success' => session()->getFlashdata('success') ?: '',
         ]);
