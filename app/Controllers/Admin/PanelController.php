@@ -563,6 +563,199 @@ class PanelController extends BaseController
         ]);
     }
 
+    public function kesehatanData()
+    {
+        $db = $this->db();
+        $tableReady = ensure_kesehatan_data_tables($db);
+        $id = (int) $this->request->getGet('id');
+        $participantTypeOptions = kesehatan_participant_type_options();
+        $genderOptions = kesehatan_gender_options();
+        $statusOptions = ['aktif' => 'Aktif', 'nonaktif' => 'Arsip'];
+        $filterJenis = trim((string) $this->request->getGet('jenis'));
+        $filterSearch = trim((string) $this->request->getGet('q'));
+
+        if (! $tableReady) {
+            return view('admin/kesehatan_data', [
+                'currentPage' => 'kesehatan-data',
+                'tableReady' => false,
+                'participants' => [],
+                'visits' => [],
+                'edit' => null,
+                'selectedParticipant' => null,
+                'participantTypeOptions' => $participantTypeOptions,
+                'genderOptions' => $genderOptions,
+                'statusOptions' => $statusOptions,
+                'filterJenis' => $filterJenis,
+                'filterSearch' => $filterSearch,
+                'error' => 'Penyimpanan data kader belum siap. Coba muat ulang atau hubungi pengelola hosting.',
+                'success' => '',
+            ]);
+        }
+
+        if ($this->request->getMethod() === 'POST') {
+            $action = (string) $this->request->getPost('action');
+
+            if ($action === 'save_participant') {
+                $participantId = (int) $this->request->getPost('id');
+                $jenis = trim((string) $this->request->getPost('jenis'));
+                $nama = trim((string) $this->request->getPost('nama'));
+                $tanggalLahir = trim((string) $this->request->getPost('tanggal_lahir'));
+                $jenisKelamin = trim((string) $this->request->getPost('jenis_kelamin'));
+                $namaWali = trim((string) $this->request->getPost('nama_wali'));
+                $rt = normalize_rt_code($this->request->getPost('rt'));
+                $noHp = trim((string) $this->request->getPost('no_hp'));
+                $alamat = trim((string) $this->request->getPost('alamat'));
+                $status = trim((string) $this->request->getPost('status'));
+                $catatan = trim((string) $this->request->getPost('catatan'));
+                $error = '';
+
+                if (! isset($participantTypeOptions[$jenis])) {
+                    $error = 'Pilih jenis peserta Posyandu atau Posbindu.';
+                } elseif ($nama === '' || strlen($nama) > 160) {
+                    $error = 'Nama peserta wajib diisi dan maksimal 160 karakter.';
+                } elseif ($tanggalLahir !== '' && (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggalLahir) || ! strtotime($tanggalLahir))) {
+                    $error = 'Tanggal lahir belum valid.';
+                } elseif ($jenisKelamin !== '' && ! isset($genderOptions[$jenisKelamin])) {
+                    $error = 'Jenis kelamin belum valid.';
+                } elseif (strlen($namaWali) > 160 || strlen($noHp) > 40 || strlen($alamat) > 255 || strlen($catatan) > 2000) {
+                    $error = 'Salah satu data peserta terlalu panjang.';
+                } elseif (! isset($statusOptions[$status])) {
+                    $error = 'Status peserta belum valid.';
+                }
+
+                if ($error !== '') {
+                    return redirect()->to(site_url('admin/kesehatan-data' . ($participantId > 0 ? '?action=edit&id=' . $participantId : '')))
+                        ->withInput()
+                        ->with('error', $error);
+                }
+
+                $data = [
+                    'jenis' => $jenis,
+                    'nama' => substr($nama, 0, 160),
+                    'tanggal_lahir' => $tanggalLahir !== '' ? $tanggalLahir : null,
+                    'jenis_kelamin' => $jenisKelamin !== '' ? $jenisKelamin : null,
+                    'nama_wali' => substr($namaWali, 0, 160),
+                    'rt' => $rt !== '' ? substr($rt, 0, 20) : null,
+                    'no_hp' => substr($noHp, 0, 40),
+                    'alamat' => substr($alamat, 0, 255),
+                    'status' => $status,
+                    'catatan' => $catatan,
+                ];
+
+                if ($participantId > 0) {
+                    $db->table('kesehatan_peserta')->where('id', $participantId)->update($data);
+                    $message = 'Data peserta berhasil diperbarui.';
+                } else {
+                    $db->table('kesehatan_peserta')->insert($data);
+                    $message = 'Data peserta berhasil ditambahkan.';
+                }
+
+                return redirect()->to(site_url('admin/kesehatan-data'))->with('success', $message);
+            }
+
+            if ($action === 'save_visit') {
+                $participantId = (int) $this->request->getPost('peserta_id');
+                $tanggal = trim((string) $this->request->getPost('tanggal'));
+                $hadir = (string) $this->request->getPost('hadir') === 'tidak' ? 'tidak' : 'ya';
+                $weight = trim((string) $this->request->getPost('berat_kg'));
+                $height = trim((string) $this->request->getPost('tinggi_cm'));
+                $systolic = trim((string) $this->request->getPost('tekanan_sistolik'));
+                $diastolic = trim((string) $this->request->getPost('tekanan_diastolik'));
+                $glucose = trim((string) $this->request->getPost('gula_darah'));
+                $catatan = trim((string) $this->request->getPost('catatan_kunjungan'));
+                $participant = $participantId > 0 ? $db->table('kesehatan_peserta')->where('id', $participantId)->get()->getRowArray() : null;
+                $error = '';
+
+                if (! $participant) {
+                    $error = 'Pilih peserta yang sudah terdaftar.';
+                } elseif (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggal) || ! strtotime($tanggal)) {
+                    $error = 'Tanggal kunjungan belum valid.';
+                } elseif (strlen($catatan) > 2000) {
+                    $error = 'Catatan kunjungan maksimal 2000 karakter.';
+                }
+
+                foreach ([[$weight, 0, 300, 'Berat badan'], [$height, 0, 250, 'Tinggi badan'], [$glucose, 0, 1000, 'Gula darah'], [$systolic, 0, 300, 'Tekanan sistolik'], [$diastolic, 0, 300, 'Tekanan diastolik']] as [$value, $min, $max, $label]) {
+                    if ($value !== '' && (! is_numeric($value) || (float) $value < $min || (float) $value > $max)) {
+                        $error = $label . ' belum valid.';
+                        break;
+                    }
+                }
+
+                if ($error !== '') {
+                    return redirect()->to(site_url('admin/kesehatan-data?peserta_id=' . $participantId))
+                        ->withInput()
+                        ->with('error', $error);
+                }
+
+                $db->table('kesehatan_kunjungan')->insert([
+                    'peserta_id' => $participantId,
+                    'tanggal' => $tanggal,
+                    'hadir' => $hadir,
+                    'berat_kg' => $weight !== '' ? (float) $weight : null,
+                    'tinggi_cm' => $height !== '' ? (float) $height : null,
+                    'tekanan_sistolik' => $systolic !== '' ? (int) $systolic : null,
+                    'tekanan_diastolik' => $diastolic !== '' ? (int) $diastolic : null,
+                    'gula_darah' => $glucose !== '' ? (float) $glucose : null,
+                    'catatan' => $catatan,
+                    'dicatat_oleh' => (int) session('admin_id'),
+                ]);
+
+                return redirect()->to(site_url('admin/kesehatan-data?peserta_id=' . $participantId))->with('success', 'Kunjungan peserta berhasil dicatat.');
+            }
+        }
+
+        if ($this->request->getGet('action') === 'delete' && $id > 0) {
+            $db->transStart();
+            $db->table('kesehatan_kunjungan')->where('peserta_id', $id)->delete();
+            $db->table('kesehatan_peserta')->where('id', $id)->delete();
+            $db->transComplete();
+
+            return redirect()->to(site_url('admin/kesehatan-data'))->with('success', 'Data peserta dan kunjungannya berhasil dihapus.');
+        }
+
+        $edit = null;
+        if ($this->request->getGet('action') === 'edit' && $id > 0) {
+            $edit = $db->table('kesehatan_peserta')->where('id', $id)->get()->getRowArray();
+        }
+
+        $selectedParticipantId = (int) $this->request->getGet('peserta_id');
+        $selectedParticipant = $selectedParticipantId > 0
+            ? $db->table('kesehatan_peserta')->where('id', $selectedParticipantId)->get()->getRowArray()
+            : null;
+        $participantsBuilder = $db->table('kesehatan_peserta');
+        if (isset($participantTypeOptions[$filterJenis])) {
+            $participantsBuilder->where('jenis', $filterJenis);
+        }
+        if ($filterSearch !== '') {
+            $participantsBuilder->groupStart()->like('nama', $filterSearch)->orLike('nama_wali', $filterSearch)->groupEnd();
+        }
+        $participants = $participantsBuilder->orderBy('status', 'ASC')->orderBy('nama', 'ASC')->get()->getResultArray();
+        $visits = $db->table('kesehatan_kunjungan kunjungan')
+            ->select('kunjungan.*, peserta.nama, peserta.jenis')
+            ->join('kesehatan_peserta peserta', 'peserta.id = kunjungan.peserta_id', 'inner')
+            ->orderBy('kunjungan.tanggal', 'DESC')
+            ->orderBy('kunjungan.id', 'DESC')
+            ->limit(40)
+            ->get()
+            ->getResultArray();
+
+        return view('admin/kesehatan_data', [
+            'currentPage' => 'kesehatan-data',
+            'tableReady' => true,
+            'participants' => $participants,
+            'visits' => $visits,
+            'edit' => $edit,
+            'selectedParticipant' => $selectedParticipant,
+            'participantTypeOptions' => $participantTypeOptions,
+            'genderOptions' => $genderOptions,
+            'statusOptions' => $statusOptions,
+            'filterJenis' => $filterJenis,
+            'filterSearch' => $filterSearch,
+            'error' => session()->getFlashdata('error') ?: '',
+            'success' => session()->getFlashdata('success') ?: '',
+        ]);
+    }
+
     public function deleteEdukasi(int $id)
     {
         $db = $this->db();

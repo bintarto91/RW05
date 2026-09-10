@@ -8,6 +8,7 @@ $navItems = [
     'layanan' => ['label' => 'Layanan', 'href' => site_url('admin/layanan')],
     'edukasi' => ['label' => 'Materi Edukasi', 'href' => site_url('admin/edukasi')],
     'kesehatan-jadwal' => ['label' => 'Jadwal Kesehatan', 'href' => site_url('admin/kesehatan-jadwal')],
+    'kesehatan-data' => ['label' => 'Data Kader', 'href' => site_url('admin/kesehatan-data')],
     'pengajuan-surat' => ['label' => 'Pengajuan Surat', 'href' => site_url('admin/pengajuan-surat')],
     'pengurus' => ['label' => 'Pengurus', 'href' => site_url('admin/pengurus')],
     'warga' => ['label' => 'Data Warga', 'href' => site_url('admin/warga')],

@@ -1426,6 +1426,77 @@ if (! function_exists('ensure_kesehatan_jadwal_table')) {
     }
 }
 
+if (! function_exists('kesehatan_participant_type_options')) {
+    function kesehatan_participant_type_options(): array
+    {
+        return kesehatan_jadwal_type_options();
+    }
+}
+
+if (! function_exists('kesehatan_gender_options')) {
+    function kesehatan_gender_options(): array
+    {
+        return [
+            'L' => 'Laki-laki',
+            'P' => 'Perempuan',
+        ];
+    }
+}
+
+if (! function_exists('ensure_kesehatan_data_tables')) {
+    function ensure_kesehatan_data_tables($db = null): bool
+    {
+        $db = $db ?: db_connect();
+
+        try {
+            $db->query(
+                "CREATE TABLE IF NOT EXISTS kesehatan_peserta (
+                    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                    jenis VARCHAR(20) NOT NULL,
+                    nama VARCHAR(160) NOT NULL,
+                    tanggal_lahir DATE NULL,
+                    jenis_kelamin VARCHAR(1) NULL,
+                    nama_wali VARCHAR(160) NULL,
+                    rt VARCHAR(20) NULL,
+                    no_hp VARCHAR(40) NULL,
+                    alamat VARCHAR(255) NULL,
+                    status VARCHAR(20) NOT NULL DEFAULT 'aktif',
+                    catatan TEXT NULL,
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    KEY jenis_status (jenis, status),
+                    KEY nama (nama),
+                    KEY rt (rt)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"
+            );
+            $db->query(
+                "CREATE TABLE IF NOT EXISTS kesehatan_kunjungan (
+                    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                    peserta_id INT UNSIGNED NOT NULL,
+                    tanggal DATE NOT NULL,
+                    hadir VARCHAR(10) NOT NULL DEFAULT 'ya',
+                    berat_kg DECIMAL(5,2) NULL,
+                    tinggi_cm DECIMAL(5,2) NULL,
+                    tekanan_sistolik SMALLINT UNSIGNED NULL,
+                    tekanan_diastolik SMALLINT UNSIGNED NULL,
+                    gula_darah DECIMAL(6,2) NULL,
+                    catatan TEXT NULL,
+                    dicatat_oleh INT UNSIGNED NULL,
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    KEY peserta_tanggal (peserta_id, tanggal),
+                    KEY tanggal (tanggal)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"
+            );
+
+            return true;
+        } catch (Throwable $exception) {
+            log_message('error', 'Gagal menyiapkan tabel data kesehatan: ' . $exception->getMessage());
+
+            return false;
+        }
+    }
+}
+
 if (! function_exists('ensure_pengajuan_surat_table')) {
     function ensure_pengajuan_surat_table($db = null): bool
     {
