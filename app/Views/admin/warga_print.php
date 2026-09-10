@@ -154,6 +154,9 @@ $isPreview = (bool) ($isPreview ?? false);
   <div class="preview-toolbar">
     <span>Preview: <?= rw_esc($reportTitle) ?> — <?= rw_esc($rtLabel) ?></span>
     <button class="btn-cetak" onclick="window.print()">Cetak Sekarang</button>
+    <?php if (! empty($xlsxUrl ?? '')): ?>
+      <a class="btn-excel" href="<?= rw_esc($xlsxUrl) ?>">Download Excel</a>
+    <?php endif; ?>
     <?php if (! empty($pdfUrl ?? '')): ?>
       <a class="btn-pdf" href="<?= rw_esc($pdfUrl) ?>">Download PDF</a>
     <?php endif; ?>

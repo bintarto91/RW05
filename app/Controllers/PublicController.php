@@ -509,9 +509,34 @@ class PublicController extends BaseController
 
     private function pengurusStructureDescription(): string
     {
+        $db = db_connect();
+
+        try {
+            $columnExists = (bool) $db->query("SHOW COLUMNS FROM profil_rw LIKE 'struktur_pengurus_description'")->getRowArray();
+            if ($columnExists) {
+                $row = $db->table('profil_rw')
+                    ->select('struktur_pengurus_description')
+                    ->where('id', 1)
+                    ->get()
+                    ->getRowArray();
+                $description = trim((string) ($row['struktur_pengurus_description'] ?? ''));
+                if ($description !== '') {
+                    return $description;
+                }
+            }
+        } catch (\Throwable $exception) {
+            log_message('error', 'Gagal membaca penjelasan struktur organisasi: ' . $exception->getMessage());
+        }
+
         $path = WRITEPATH . self::PENGURUS_STRUCTURE_DESCRIPTION;
 
-        return is_file($path) ? trim((string) file_get_contents($path)) : '';
+        if (is_file($path)) {
+            return trim((string) file_get_contents($path));
+        }
+
+        return $this->pengurusStructureImageUrl() !== ''
+            ? 'Acuan susunan pengurus mengikuti gambar struktur yang diunggah dari dashboard admin. Nama dan jabatan di bawah diambil dari data pengurus aktif.'
+            : '';
     }
 
     private function assetDataUriIfExists(string $fileName): string

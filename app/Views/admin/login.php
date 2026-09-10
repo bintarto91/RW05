@@ -45,7 +45,7 @@
         <input type="password" name="password" required>
       </label>
       <button type="submit">Masuk ke Dashboard</button>
-      <div class="login-note">Jika password awal belum diubah: admin / admin123</div>
+      <div class="login-note">Jika lupa akses login, hubungi pengelola website untuk reset akun admin.</div>
     </form>
   </div>
 </body>

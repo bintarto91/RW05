@@ -601,25 +601,48 @@ class PanelController extends BaseController
     public function savePengurusStructureDescription()
     {
         $description = trim((string) $this->request->getPost('struktur_penjelasan'));
+        $db = $this->db();
 
         if (strlen($description) > 3000) {
             return redirect()->to(site_url('admin/pengurus'))->with('error', 'Penjelasan struktur organisasi maksimal 3000 karakter.');
         }
 
-        $path = $this->pengurusStructureDescriptionPath();
-        if (! is_dir(dirname($path))) {
-            mkdir(dirname($path), 0755, true);
+        if (! $this->ensurePengurusStructureDescriptionColumn($db)) {
+            return redirect()->to(site_url('admin/pengurus'))->with('error', 'Penyimpanan penjelasan struktur organisasi belum siap. Silakan coba lagi.');
+        }
+
+        $profile = $db->table('profil_rw')->select('id')->where('id', 1)->get()->getRowArray();
+        if (! $profile) {
+            return redirect()->to(site_url('admin/pengurus'))->with('error', 'Profil RW utama belum tersedia. Lengkapi profil RW terlebih dahulu.');
         }
 
         if ($description === '') {
-            if (is_file($path)) {
-                unlink($path);
+            try {
+                $db->table('profil_rw')->where('id', 1)->update([
+                    'struktur_pengurus_description' => '',
+                ]);
+            } catch (\Throwable $exception) {
+                log_message('error', 'Gagal mengosongkan penjelasan struktur organisasi: ' . $exception->getMessage());
+
+                return redirect()->to(site_url('admin/pengurus'))->with('error', 'Penjelasan struktur organisasi belum dapat dikosongkan.');
             }
+
+            $this->deleteLegacyPengurusStructureDescriptionFile();
 
             return redirect()->to(site_url('admin/pengurus'))->with('success', 'Penjelasan struktur organisasi dikosongkan.');
         }
 
-        file_put_contents($path, $description);
+        try {
+            $db->table('profil_rw')->where('id', 1)->update([
+                'struktur_pengurus_description' => $description,
+            ]);
+        } catch (\Throwable $exception) {
+            log_message('error', 'Gagal menyimpan penjelasan struktur organisasi: ' . $exception->getMessage());
+
+            return redirect()->to(site_url('admin/pengurus'))->with('error', 'Penjelasan struktur organisasi belum dapat disimpan.');
+        }
+
+        $this->syncLegacyPengurusStructureDescriptionFile($description);
 
         return redirect()->to(site_url('admin/pengurus'))->with('success', 'Penjelasan struktur organisasi berhasil disimpan.');
     }
@@ -1453,14 +1476,77 @@ class PanelController extends BaseController
 
     private function pengurusStructureDescription(): string
     {
+        $db = $this->db();
+
+        if ($this->hasPengurusStructureDescriptionColumn($db)) {
+            $row = $db->table('profil_rw')
+                ->select('struktur_pengurus_description')
+                ->where('id', 1)
+                ->get()
+                ->getRowArray();
+            $description = trim((string) ($row['struktur_pengurus_description'] ?? ''));
+            if ($description !== '') {
+                return $description;
+            }
+        }
+
         $path = $this->pengurusStructureDescriptionPath();
 
         return is_file($path) ? trim((string) file_get_contents($path)) : '';
     }
 
+    private function hasPengurusStructureDescriptionColumn($db): bool
+    {
+        try {
+            return (bool) $db->query("SHOW COLUMNS FROM profil_rw LIKE 'struktur_pengurus_description'")->getRowArray();
+        } catch (\Throwable $exception) {
+            log_message('error', 'Gagal memeriksa kolom penjelasan struktur organisasi: ' . $exception->getMessage());
+
+            return false;
+        }
+    }
+
+    private function ensurePengurusStructureDescriptionColumn($db): bool
+    {
+        if ($this->hasPengurusStructureDescriptionColumn($db)) {
+            return true;
+        }
+
+        try {
+            $db->query("ALTER TABLE profil_rw ADD COLUMN struktur_pengurus_description TEXT NULL AFTER tagline");
+
+            return true;
+        } catch (\Throwable $exception) {
+            log_message('error', 'Gagal menyiapkan kolom penjelasan struktur organisasi: ' . $exception->getMessage());
+
+            return false;
+        }
+    }
+
     private function pengurusStructureDescriptionPath(): string
     {
         return WRITEPATH . self::PENGURUS_STRUCTURE_DESCRIPTION;
+    }
+
+    private function syncLegacyPengurusStructureDescriptionFile(string $description): void
+    {
+        $path = $this->pengurusStructureDescriptionPath();
+        $directory = dirname($path);
+
+        if (! is_dir($directory) && ! @mkdir($directory, 0755, true) && ! is_dir($directory)) {
+            return;
+        }
+
+        @file_put_contents($path, $description);
+    }
+
+    private function deleteLegacyPengurusStructureDescriptionFile(): void
+    {
+        $path = $this->pengurusStructureDescriptionPath();
+
+        if (is_file($path)) {
+            @unlink($path);
+        }
     }
 
     private function removePengurusStructureImages(): void

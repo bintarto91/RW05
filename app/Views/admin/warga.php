@@ -292,6 +292,8 @@ $formTitle = ! empty($edit) ? 'Edit Data Warga' : 'Tambah Data Warga';
         </ul>
         <div class="form-actions modal-actions">
           <a class="btn-light" href="<?= rw_esc($cetakUrl) ?>" id="downloadFilterPrint" target="_blank" rel="noopener noreferrer">Preview / Cetak</a>
+          <a class="btn-light" href="<?= rw_esc($pdfExportUrl) ?>" target="_blank" rel="noopener noreferrer">Download PDF</a>
+          <a class="btn-light" href="<?= rw_esc($xlsxUrl) ?>">Download Excel</a>
         </div>
       </article>
 
@@ -301,6 +303,8 @@ $formTitle = ! empty($edit) ? 'Edit Data Warga' : 'Tambah Data Warga';
         <p class="muted">Mengambil seluruh data warga tanpa mengikuti pilihan filter.</p>
         <div class="form-actions modal-actions">
           <a class="btn-light" href="<?= rw_esc($allCetakUrl) ?>" target="_blank" rel="noopener noreferrer">Preview / Cetak</a>
+          <a class="btn-light" href="<?= rw_esc($allPdfExportUrl) ?>" target="_blank" rel="noopener noreferrer">Download PDF</a>
+          <a class="btn-light" href="<?= rw_esc($allXlsxUrl) ?>">Download Excel</a>
         </div>
       </article>
     </div>
