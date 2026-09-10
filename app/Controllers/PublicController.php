@@ -49,6 +49,60 @@ class PublicController extends BaseController
         ]);
     }
 
+    public function posyandu(): string
+    {
+        return $this->renderHealthServicePage('posyandu');
+    }
+
+    public function posbindu(): string
+    {
+        return $this->renderHealthServicePage('posbindu');
+    }
+
+    private function renderHealthServicePage(string $jenis): string
+    {
+        $services = [
+            'posyandu' => [
+                'title' => 'Posyandu RW 05',
+                'eyebrow' => 'Layanan ibu dan anak',
+                'description' => 'Informasi kegiatan Posyandu, pemantauan tumbuh kembang, dan pendampingan keluarga bersama kader lingkungan.',
+                'items' => ['Penimbangan dan pengukuran balita', 'Informasi ibu hamil dan menyusui', 'Edukasi gizi dan tumbuh kembang'],
+            ],
+            'posbindu' => [
+                'title' => 'Posbindu RW 05',
+                'eyebrow' => 'Layanan dewasa dan lansia',
+                'description' => 'Informasi kegiatan Posbindu untuk membantu warga dewasa dan lansia melakukan pemantauan kesehatan secara berkala.',
+                'items' => ['Pemantauan tekanan darah', 'Pemeriksaan faktor risiko bila tersedia', 'Edukasi pola hidup dan tindak lanjut'],
+            ],
+        ];
+
+        if (! isset($services[$jenis])) {
+            throw PageNotFoundException::forPageNotFound();
+        }
+
+        $db = db_connect();
+        $schedules = [];
+        if (ensure_kesehatan_jadwal_table($db)) {
+            $schedules = $db->table('kesehatan_jadwal')
+                ->where('jenis', $jenis)
+                ->where('status', 'aktif')
+                ->where('tanggal >=', date('Y-m-d'))
+                ->orderBy('tanggal', 'ASC')
+                ->orderBy('id', 'ASC')
+                ->limit(8)
+                ->get()
+                ->getResultArray();
+        }
+
+        return $this->renderPublic('public/kesehatan_layanan', [
+            'currentPage' => 'kesehatan',
+            'pageTitle' => $services[$jenis]['title'],
+            'serviceType' => $jenis,
+            'service' => $services[$jenis],
+            'healthSchedules' => $schedules,
+        ]);
+    }
+
     public function edukasiKesehatan(): string
     {
         $db = db_connect();

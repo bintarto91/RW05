@@ -71,7 +71,19 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
     <button class="menu-btn" id="menuBtn" type="button" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="menu">Menu</button>
     <nav class="menu" id="menu" aria-label="Menu utama">
       <?php foreach ($primaryNavItems as $key => $item): ?>
-        <a href="<?= rw_esc($item['href']) ?>" class="<?= $currentPage === $key ? 'is-active' : '' ?>"><?= rw_esc($item['label']) ?></a>
+        <?php if ($key === 'kesehatan'): ?>
+          <details class="menu-more menu-health">
+            <summary class="<?= $currentPage === 'kesehatan' ? 'is-active' : '' ?>">Kesehatan</summary>
+            <div class="menu-more-panel">
+              <a href="<?= site_url('kesehatan') ?>">Ringkasan Kesehatan</a>
+              <a href="<?= site_url('posyandu') ?>">Posyandu</a>
+              <a href="<?= site_url('posbindu') ?>">Posbindu</a>
+              <a href="<?= site_url('edukasi-kesehatan') ?>">Edukasi Kesehatan</a>
+            </div>
+          </details>
+        <?php else: ?>
+          <a href="<?= rw_esc($item['href']) ?>" class="<?= $currentPage === $key ? 'is-active' : '' ?>"><?= rw_esc($item['label']) ?></a>
+        <?php endif; ?>
       <?php endforeach; ?>
       <details class="menu-more">
         <summary class="<?= array_key_exists($currentPage, $secondaryNavItems) ? 'is-active' : '' ?>">Lainnya</summary>

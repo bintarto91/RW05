@@ -4097,6 +4097,13 @@ textarea:focus {
   background: #f7fbf8;
 }
 
+.health-service-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.75fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
 .health-calendar-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4960,6 +4967,7 @@ textarea:focus {
   .structure-showcase,
   .org-overview-grid,
   .health-support-grid,
+  .health-service-grid,
   .health-calendar-grid {
     grid-template-columns: 1fr;
   }
