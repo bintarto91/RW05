@@ -461,6 +461,108 @@ class PanelController extends BaseController
         ]);
     }
 
+    public function kesehatanJadwal()
+    {
+        $db = $this->db();
+        $tableReady = ensure_kesehatan_jadwal_table($db);
+        $id = (int) $this->request->getGet('id');
+        $typeOptions = kesehatan_jadwal_type_options();
+        $statusOptions = kesehatan_jadwal_status_options();
+
+        if (! $tableReady) {
+            return view('admin/kesehatan_jadwal', [
+                'currentPage' => 'kesehatan-jadwal',
+                'tableReady' => false,
+                'rows' => [],
+                'edit' => null,
+                'typeOptions' => $typeOptions,
+                'statusOptions' => $statusOptions,
+                'error' => 'Penyimpanan jadwal kesehatan belum siap. Coba muat ulang atau hubungi pengelola hosting.',
+                'success' => '',
+            ]);
+        }
+
+        if ($this->request->getMethod() === 'POST') {
+            $postedId = (int) $this->request->getPost('id');
+            $jenis = trim((string) $this->request->getPost('jenis'));
+            $judul = trim((string) $this->request->getPost('judul'));
+            $tanggal = trim((string) $this->request->getPost('tanggal'));
+            $waktu = trim((string) $this->request->getPost('waktu'));
+            $lokasi = trim((string) $this->request->getPost('lokasi'));
+            $penanggungJawab = trim((string) $this->request->getPost('penanggung_jawab'));
+            $kontak = trim((string) $this->request->getPost('kontak'));
+            $deskripsi = trim((string) $this->request->getPost('deskripsi'));
+            $status = trim((string) $this->request->getPost('status'));
+
+            $error = '';
+            if (! isset($typeOptions[$jenis])) {
+                $error = 'Pilih jenis kegiatan Posyandu atau Posbindu.';
+            } elseif ($judul === '' || strlen($judul) > 180) {
+                $error = 'Judul kegiatan wajib diisi dan maksimal 180 karakter.';
+            } elseif (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggal) || ! strtotime($tanggal)) {
+                $error = 'Tanggal kegiatan belum valid.';
+            } elseif ($lokasi === '' || strlen($lokasi) > 180) {
+                $error = 'Lokasi kegiatan wajib diisi dan maksimal 180 karakter.';
+            } elseif (strlen($waktu) > 80 || strlen($penanggungJawab) > 160 || strlen($kontak) > 80) {
+                $error = 'Data waktu, penanggung jawab, atau kontak terlalu panjang.';
+            } elseif (strlen($deskripsi) > 2000) {
+                $error = 'Keterangan kegiatan maksimal 2000 karakter.';
+            } elseif (! isset($statusOptions[$status])) {
+                $error = 'Pilih status tayang atau sembunyikan.';
+            }
+
+            if ($error !== '') {
+                return redirect()->to(site_url('admin/kesehatan-jadwal' . ($postedId > 0 ? '?action=edit&id=' . $postedId : '')))
+                    ->withInput()
+                    ->with('error', $error);
+            }
+
+            $data = [
+                'jenis' => $jenis,
+                'judul' => substr($judul, 0, 180),
+                'tanggal' => $tanggal,
+                'waktu' => substr($waktu, 0, 80),
+                'lokasi' => substr($lokasi, 0, 180),
+                'penanggung_jawab' => substr($penanggungJawab, 0, 160),
+                'kontak' => substr($kontak, 0, 80),
+                'deskripsi' => $deskripsi,
+                'status' => $status,
+            ];
+
+            if ($postedId > 0) {
+                $db->table('kesehatan_jadwal')->where('id', $postedId)->update($data);
+                $message = 'Jadwal kesehatan berhasil diperbarui.';
+            } else {
+                $db->table('kesehatan_jadwal')->insert($data);
+                $message = 'Jadwal kesehatan berhasil ditambahkan.';
+            }
+
+            return redirect()->to(site_url('admin/kesehatan-jadwal'))->with('success', $message);
+        }
+
+        if ($this->request->getGet('action') === 'delete' && $id > 0) {
+            $db->table('kesehatan_jadwal')->where('id', $id)->delete();
+
+            return redirect()->to(site_url('admin/kesehatan-jadwal'))->with('success', 'Jadwal kesehatan berhasil dihapus.');
+        }
+
+        $edit = null;
+        if ($this->request->getGet('action') === 'edit' && $id > 0) {
+            $edit = $db->table('kesehatan_jadwal')->where('id', $id)->get()->getRowArray();
+        }
+
+        return view('admin/kesehatan_jadwal', [
+            'currentPage' => 'kesehatan-jadwal',
+            'tableReady' => true,
+            'rows' => $db->table('kesehatan_jadwal')->orderBy('tanggal', 'DESC')->orderBy('id', 'DESC')->get()->getResultArray(),
+            'edit' => $edit,
+            'typeOptions' => $typeOptions,
+            'statusOptions' => $statusOptions,
+            'error' => session()->getFlashdata('error') ?: '',
+            'success' => session()->getFlashdata('success') ?: '',
+        ]);
+    }
+
     public function deleteEdukasi(int $id)
     {
         $db = $this->db();

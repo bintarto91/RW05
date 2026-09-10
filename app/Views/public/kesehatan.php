@@ -146,6 +146,41 @@ $healthContactExternal = ! empty($waLink);
   </div>
 </section>
 
+<section class="section health-calendar-section" aria-labelledby="health-calendar-title">
+  <div class="container">
+    <div class="section-title" data-reveal>
+      <p class="eyebrow">Jadwal layanan</p>
+      <h2 id="health-calendar-title">Posyandu dan Posbindu terdekat.</h2>
+      <p>Periksa jadwal sebelum datang dan hubungi penanggung jawab bila membutuhkan informasi tambahan.</p>
+    </div>
+    <?php if (! empty($healthSchedules)): ?>
+      <div class="health-calendar-grid">
+        <?php foreach ($healthSchedules as $schedule): ?>
+          <?php $scheduleType = ($schedule['jenis'] ?? '') === 'posbindu' ? 'Posbindu' : 'Posyandu'; ?>
+          <article class="health-calendar-card" data-reveal>
+            <div class="health-calendar-date">
+              <strong><?= rw_esc(date('d', strtotime((string) $schedule['tanggal']))) ?></strong>
+              <span><?= rw_esc(strtoupper(date('M', strtotime((string) $schedule['tanggal'])))) ?></span>
+            </div>
+            <div>
+              <span class="health-calendar-type"><?= rw_esc($scheduleType) ?></span>
+              <h3><?= rw_esc($schedule['judul'] ?? '') ?></h3>
+              <p><?= rw_esc($schedule['lokasi'] ?? '') ?><?= ! empty($schedule['waktu']) ? ' · ' . rw_esc($schedule['waktu']) : '' ?></p>
+              <?php if (! empty($schedule['deskripsi'])): ?><p class="muted"><?= nl2br(rw_esc($schedule['deskripsi'])) ?></p><?php endif; ?>
+              <?php if (! empty($schedule['penanggung_jawab'])): ?><small>Penanggung jawab: <?= rw_esc($schedule['penanggung_jawab']) ?></small><?php endif; ?>
+            </div>
+          </article>
+        <?php endforeach; ?>
+      </div>
+    <?php else: ?>
+      <div class="health-empty-schedule" data-reveal>
+        <strong>Jadwal berikutnya belum diumumkan.</strong>
+        <p>Hubungi pengurus atau kader melalui WhatsApp RW untuk menanyakan jadwal Posyandu dan Posbindu terbaru.</p>
+      </div>
+    <?php endif; ?>
+  </div>
+</section>
+
 <section class="section health-support-section" id="jadwal-bantuan" aria-labelledby="health-support-title">
   <div class="container health-support-grid">
     <article class="health-schedule-card" data-reveal>

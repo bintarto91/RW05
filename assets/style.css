@@ -4093,6 +4093,84 @@ textarea:focus {
   transform: translateX(4px);
 }
 
+.health-calendar-section {
+  background: #f7fbf8;
+}
+
+.health-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.health-calendar-card {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid #d8e6df;
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: 0 12px 26px rgba(8, 47, 42, 0.06);
+}
+
+.health-calendar-date {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  min-height: 64px;
+  border-radius: var(--radius);
+  color: var(--white);
+  background: var(--green-800);
+}
+
+.health-calendar-date strong {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.health-calendar-date span,
+.health-calendar-type {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.health-calendar-card h3 {
+  margin: 5px 0 6px;
+  color: var(--green-900);
+}
+
+.health-calendar-card p {
+  margin: 4px 0;
+  color: var(--muted);
+}
+
+.health-calendar-card small {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+}
+
+.health-empty-schedule {
+  margin-top: 24px;
+  padding: 22px;
+  border: 1px dashed #b9d2c5;
+  border-radius: var(--radius);
+  background: var(--white);
+}
+
+.health-empty-schedule strong {
+  color: var(--green-900);
+}
+
+.health-empty-schedule p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
 .health-support-section {
   background: var(--white);
 }
@@ -4881,7 +4959,8 @@ textarea:focus {
   .online-service-layout,
   .structure-showcase,
   .org-overview-grid,
-  .health-support-grid {
+  .health-support-grid,
+  .health-calendar-grid {
     grid-template-columns: 1fr;
   }
 

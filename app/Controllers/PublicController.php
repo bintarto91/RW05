@@ -29,9 +29,23 @@ class PublicController extends BaseController
 
     public function kesehatan(): string
     {
+        $db = db_connect();
+        $healthSchedules = [];
+        if (ensure_kesehatan_jadwal_table($db)) {
+            $healthSchedules = $db->table('kesehatan_jadwal')
+                ->where('status', 'aktif')
+                ->where('tanggal >=', date('Y-m-d'))
+                ->orderBy('tanggal', 'ASC')
+                ->orderBy('id', 'ASC')
+                ->limit(8)
+                ->get()
+                ->getResultArray();
+        }
+
         return $this->renderPublic('public/kesehatan', [
             'currentPage' => 'kesehatan',
             'pageTitle' => 'Kesehatan Warga',
+            'healthSchedules' => $healthSchedules,
         ]);
     }
 

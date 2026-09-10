@@ -1372,6 +1372,60 @@ if (! function_exists('ensure_edukasi_materi_table')) {
     }
 }
 
+if (! function_exists('kesehatan_jadwal_type_options')) {
+    function kesehatan_jadwal_type_options(): array
+    {
+        return [
+            'posyandu' => 'Posyandu',
+            'posbindu' => 'Posbindu',
+        ];
+    }
+}
+
+if (! function_exists('kesehatan_jadwal_status_options')) {
+    function kesehatan_jadwal_status_options(): array
+    {
+        return [
+            'aktif' => 'Tayang',
+            'nonaktif' => 'Sembunyikan',
+        ];
+    }
+}
+
+if (! function_exists('ensure_kesehatan_jadwal_table')) {
+    function ensure_kesehatan_jadwal_table($db = null): bool
+    {
+        $db = $db ?: db_connect();
+
+        try {
+            $db->query(
+                "CREATE TABLE IF NOT EXISTS kesehatan_jadwal (
+                    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                    jenis VARCHAR(20) NOT NULL,
+                    judul VARCHAR(180) NOT NULL,
+                    tanggal DATE NOT NULL,
+                    waktu VARCHAR(80) NULL,
+                    lokasi VARCHAR(180) NOT NULL,
+                    penanggung_jawab VARCHAR(160) NULL,
+                    kontak VARCHAR(80) NULL,
+                    deskripsi TEXT NULL,
+                    status VARCHAR(20) NOT NULL DEFAULT 'aktif',
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    KEY jenis_tanggal (jenis, tanggal),
+                    KEY status_tanggal (status, tanggal)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"
+            );
+
+            return true;
+        } catch (Throwable $exception) {
+            log_message('error', 'Gagal menyiapkan tabel kesehatan_jadwal: ' . $exception->getMessage());
+
+            return false;
+        }
+    }
+}
+
 if (! function_exists('ensure_pengajuan_surat_table')) {
     function ensure_pengajuan_surat_table($db = null): bool
     {
