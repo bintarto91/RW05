@@ -34,7 +34,9 @@ $routes->group('admin', ['filter' => 'adminauth'], static function ($routes) {
     $routes->match(['GET', 'POST'], 'edukasi', 'Admin\PanelController::edukasi');
     $routes->post('edukasi/delete/(:num)', 'Admin\PanelController::deleteEdukasi/$1');
     $routes->match(['GET', 'POST'], 'kesehatan-jadwal', 'Admin\PanelController::kesehatanJadwal');
+    $routes->get('kesehatan-dashboard', 'Admin\PanelController::kesehatanDashboard');
     $routes->match(['GET', 'POST'], 'kesehatan-data', 'Admin\PanelController::kesehatanData');
+    $routes->match(['GET', 'POST'], 'kesehatan-tindak-lanjut', 'Admin\PanelController::kesehatanTindakLanjut');
     $routes->match(['GET', 'POST'], 'pengajuan-surat', 'Admin\PanelController::pengajuanSurat');
     $routes->match(['GET', 'POST'], 'pengurus', 'Admin\PanelController::pengurus');
     $routes->post('pengurus/struktur-gambar', 'Admin\PanelController::uploadPengurusStructureImage');

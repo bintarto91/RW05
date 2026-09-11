@@ -608,6 +608,7 @@ class PanelController extends BaseController
                 'attendanceParticipants' => [],
                 'attendanceMap' => [],
                 'healthStats' => ['active' => 0, 'monthVisits' => 0, 'followups' => 0, 'referrals' => 0],
+                'canValidateKesehatan' => admin_role_can_validate_kesehatan(),
                 'error' => 'Penyimpanan data kader belum siap. Coba muat ulang atau hubungi pengelola hosting.',
                 'success' => '',
             ]);
@@ -753,6 +754,9 @@ class PanelController extends BaseController
                 $referralDestination = trim((string) $this->request->getPost('tujuan_rujukan'));
                 $followupDate = trim((string) $this->request->getPost('tanggal_tindak_lanjut'));
                 $validationStatus = (string) $this->request->getPost('status_validasi') === 'divalidasi' ? 'divalidasi' : 'dicatat';
+                if (! admin_role_can_validate_kesehatan()) {
+                    $validationStatus = 'dicatat';
+                }
                 $catatan = trim((string) $this->request->getPost('catatan_kunjungan'));
                 $participant = $participantId > 0 ? $db->table('kesehatan_peserta')->where('id', $participantId)->get()->getRowArray() : null;
                 $error = '';
@@ -932,25 +936,7 @@ class PanelController extends BaseController
             }
         }
 
-        $monthStart = date('Y-m-01');
-        $followupBuilder = $db->table('kesehatan_kunjungan')
-            ->whereIn('tindak_lanjut', ['pantau', 'kunjungan_rumah'])
-            ->groupStart()
-                ->where('tanggal_tindak_lanjut >=', date('Y-m-d'))
-                ->orWhere('tanggal_tindak_lanjut', null)
-            ->groupEnd();
-        $referralBuilder = $db->table('kesehatan_kunjungan')
-            ->where('tindak_lanjut', 'rujuk_puskesmas')
-            ->groupStart()
-                ->where('tanggal_tindak_lanjut >=', date('Y-m-d'))
-                ->orWhere('tanggal_tindak_lanjut', null)
-            ->groupEnd();
-        $healthStats = [
-            'active' => (int) $db->table('kesehatan_peserta')->where('status', 'aktif')->countAllResults(),
-            'monthVisits' => (int) $db->table('kesehatan_kunjungan')->where('tanggal >=', $monthStart)->where('hadir', 'ya')->countAllResults(),
-            'followups' => (int) $followupBuilder->countAllResults(),
-            'referrals' => (int) $referralBuilder->countAllResults(),
-        ];
+        $healthStats = kesehatan_health_stats($db);
 
         return view('admin/kesehatan_data', [
             'currentPage' => 'kesehatan-data',
@@ -973,6 +959,139 @@ class PanelController extends BaseController
             'attendanceParticipants' => $attendanceParticipants,
             'attendanceMap' => $attendanceMap,
             'healthStats' => $healthStats,
+            'canValidateKesehatan' => admin_role_can_validate_kesehatan(),
+            'error' => session()->getFlashdata('error') ?: '',
+            'success' => session()->getFlashdata('success') ?: '',
+        ]);
+    }
+
+    public function kesehatanDashboard(): string
+    {
+        $db = $this->db();
+        $tableReady = ensure_kesehatan_data_tables($db);
+        $jadwalReady = ensure_kesehatan_jadwal_table($db);
+        $participantTypeOptions = kesehatan_participant_type_options();
+        $lifecycleOptions = kesehatan_lifecycle_options();
+
+        if (! $tableReady) {
+            return view('admin/kesehatan_dashboard', [
+                'currentPage' => 'kesehatan-dashboard',
+                'tableReady' => false,
+                'healthStats' => ['active' => 0, 'monthVisits' => 0, 'followups' => 0, 'referrals' => 0],
+                'byJenis' => [],
+                'byLifecycle' => [],
+                'upcomingSchedules' => [],
+                'participantTypeOptions' => $participantTypeOptions,
+                'lifecycleOptions' => $lifecycleOptions,
+            ]);
+        }
+
+        $byJenis = [];
+        foreach ($db->table('kesehatan_peserta')->select('jenis, COUNT(*) AS total')->where('status', 'aktif')->groupBy('jenis')->get()->getResultArray() as $row) {
+            $byJenis[$row['jenis']] = (int) $row['total'];
+        }
+
+        $byLifecycle = [];
+        foreach ($db->table('kesehatan_peserta')->select('kelompok_siklus, COUNT(*) AS total')->where('status', 'aktif')->groupBy('kelompok_siklus')->get()->getResultArray() as $row) {
+            $byLifecycle[$row['kelompok_siklus'] ?? ''] = (int) $row['total'];
+        }
+
+        $upcomingSchedules = $jadwalReady
+            ? $db->table('kesehatan_jadwal')
+                ->where('status', 'aktif')
+                ->where('tanggal >=', date('Y-m-d'))
+                ->orderBy('tanggal', 'ASC')
+                ->limit(5)
+                ->get()
+                ->getResultArray()
+            : [];
+
+        return view('admin/kesehatan_dashboard', [
+            'currentPage' => 'kesehatan-dashboard',
+            'tableReady' => true,
+            'healthStats' => kesehatan_health_stats($db),
+            'byJenis' => $byJenis,
+            'byLifecycle' => $byLifecycle,
+            'upcomingSchedules' => $upcomingSchedules,
+            'participantTypeOptions' => $participantTypeOptions,
+            'lifecycleOptions' => $lifecycleOptions,
+        ]);
+    }
+
+    public function kesehatanTindakLanjut()
+    {
+        $db = $this->db();
+        $tableReady = ensure_kesehatan_data_tables($db);
+        $participantTypeOptions = kesehatan_participant_type_options();
+        $lifecycleOptions = kesehatan_lifecycle_options();
+        $followupOptions = kesehatan_followup_options();
+        $canValidate = admin_role_can_validate_kesehatan();
+        $filterJenis = trim((string) $this->request->getGet('jenis'));
+        $filterFollowup = trim((string) $this->request->getGet('tindak_lanjut'));
+
+        if (! $tableReady) {
+            return view('admin/kesehatan_tindak_lanjut', [
+                'currentPage' => 'kesehatan-tindak-lanjut',
+                'tableReady' => false,
+                'rows' => [],
+                'participantTypeOptions' => $participantTypeOptions,
+                'lifecycleOptions' => $lifecycleOptions,
+                'followupOptions' => $followupOptions,
+                'filterJenis' => $filterJenis,
+                'filterFollowup' => $filterFollowup,
+                'canValidate' => $canValidate,
+                'error' => 'Penyimpanan data kesehatan belum siap. Coba muat ulang atau hubungi pengelola hosting.',
+                'success' => '',
+            ]);
+        }
+
+        if ($this->request->getMethod() === 'POST') {
+            $action = (string) $this->request->getPost('action');
+            $visitId = (int) $this->request->getPost('id');
+
+            if ($action === 'mark_selesai' && $visitId > 0) {
+                $db->table('kesehatan_kunjungan')->where('id', $visitId)->update(['tindak_lanjut' => 'selesai']);
+
+                return redirect()->to(site_url('admin/kesehatan-tindak-lanjut'))->with('success', 'Tindak lanjut ditandai selesai.');
+            }
+
+            if ($action === 'mark_validasi' && $visitId > 0) {
+                if (! $canValidate) {
+                    return redirect()->to(site_url('admin/kesehatan-tindak-lanjut'))->with('error', 'Hanya nakes/admin yang dapat memvalidasi kunjungan.');
+                }
+
+                $db->table('kesehatan_kunjungan')->where('id', $visitId)->update(['status_validasi' => 'divalidasi']);
+
+                return redirect()->to(site_url('admin/kesehatan-tindak-lanjut'))->with('success', 'Kunjungan berhasil divalidasi.');
+            }
+        }
+
+        $rowsBuilder = $db->table('kesehatan_kunjungan kunjungan')
+            ->select('kunjungan.*, peserta.nama, peserta.rt, peserta.no_hp, peserta.kelompok_siklus')
+            ->join('kesehatan_peserta peserta', 'peserta.id = kunjungan.peserta_id', 'inner')
+            ->whereIn('kunjungan.tindak_lanjut', ['pantau', 'kunjungan_rumah', 'rujuk_puskesmas']);
+        if (isset($participantTypeOptions[$filterJenis])) {
+            $rowsBuilder->where('kunjungan.jenis_layanan', $filterJenis);
+        }
+        if (isset($followupOptions[$filterFollowup])) {
+            $rowsBuilder->where('kunjungan.tindak_lanjut', $filterFollowup);
+        }
+        $rows = $rowsBuilder
+            ->orderBy('kunjungan.tanggal_tindak_lanjut', 'ASC')
+            ->orderBy('kunjungan.tanggal', 'DESC')
+            ->get()
+            ->getResultArray();
+
+        return view('admin/kesehatan_tindak_lanjut', [
+            'currentPage' => 'kesehatan-tindak-lanjut',
+            'tableReady' => true,
+            'rows' => $rows,
+            'participantTypeOptions' => $participantTypeOptions,
+            'lifecycleOptions' => $lifecycleOptions,
+            'followupOptions' => $followupOptions,
+            'filterJenis' => $filterJenis,
+            'filterFollowup' => $filterFollowup,
+            'canValidate' => $canValidate,
             'error' => session()->getFlashdata('error') ?: '',
             'success' => session()->getFlashdata('success') ?: '',
         ]);

@@ -1587,6 +1587,44 @@ if (! function_exists('ensure_kesehatan_data_tables')) {
     }
 }
 
+if (! function_exists('admin_role_can_validate_kesehatan')) {
+    // Kader hanya mencatat; validasi hasil kunjungan hanya untuk nakes/admin/pengurus.
+    function admin_role_can_validate_kesehatan(?string $role = null): bool
+    {
+        $role = $role ?? (string) session('admin_role');
+
+        return $role !== 'kader_kesehatan';
+    }
+}
+
+if (! function_exists('kesehatan_health_stats')) {
+    function kesehatan_health_stats($db = null): array
+    {
+        $db = $db ?: db_connect();
+        $monthStart = date('Y-m-01');
+
+        $followupBuilder = $db->table('kesehatan_kunjungan')
+            ->whereIn('tindak_lanjut', ['pantau', 'kunjungan_rumah'])
+            ->groupStart()
+                ->where('tanggal_tindak_lanjut >=', date('Y-m-d'))
+                ->orWhere('tanggal_tindak_lanjut', null)
+            ->groupEnd();
+        $referralBuilder = $db->table('kesehatan_kunjungan')
+            ->where('tindak_lanjut', 'rujuk_puskesmas')
+            ->groupStart()
+                ->where('tanggal_tindak_lanjut >=', date('Y-m-d'))
+                ->orWhere('tanggal_tindak_lanjut', null)
+            ->groupEnd();
+
+        return [
+            'active' => (int) $db->table('kesehatan_peserta')->where('status', 'aktif')->countAllResults(),
+            'monthVisits' => (int) $db->table('kesehatan_kunjungan')->where('tanggal >=', $monthStart)->where('hadir', 'ya')->countAllResults(),
+            'followups' => (int) $followupBuilder->countAllResults(),
+            'referrals' => (int) $referralBuilder->countAllResults(),
+        ];
+    }
+}
+
 if (! function_exists('ensure_pengajuan_surat_table')) {
     function ensure_pengajuan_surat_table($db = null): bool
     {
@@ -1766,6 +1804,7 @@ if (! function_exists('admin_role_options')) {
             'sekretaris' => 'Sekretaris',
             'bendahara' => 'Bendahara',
             'operator' => 'Operator Data',
+            'kader_kesehatan' => 'Kader Posyandu/Posbindu',
         ];
     }
 }
