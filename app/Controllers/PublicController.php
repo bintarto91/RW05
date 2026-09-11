@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use CodeIgniter\Database\BaseConnection;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -11,6 +12,7 @@ class PublicController extends BaseController
     private const PENGURUS_STRUCTURE_IMAGE = 'struktur-organisasi';
     private const PENGURUS_STRUCTURE_IMAGE_EXTENSIONS = ['webp', 'jpg', 'jpeg', 'png'];
     private const PENGURUS_STRUCTURE_DESCRIPTION = 'struktur-organisasi.txt';
+    private BaseConnection|false|null $publicDb = null;
 
     public function index(): string
     {
@@ -29,9 +31,9 @@ class PublicController extends BaseController
 
     public function kesehatan(): string
     {
-        $db = db_connect();
+        $db = $this->publicDatabase();
         $healthSchedules = [];
-        if (ensure_kesehatan_jadwal_table($db)) {
+        if ($db !== null && ensure_kesehatan_jadwal_table($db)) {
             $healthSchedules = $db->table('kesehatan_jadwal')
                 ->where('status', 'aktif')
                 ->where('tanggal >=', date('Y-m-d'))
@@ -63,16 +65,24 @@ class PublicController extends BaseController
     {
         $services = [
             'posyandu' => [
-                'title' => 'Posyandu RW 05',
-                'eyebrow' => 'Layanan ibu dan anak',
-                'description' => 'Informasi kegiatan Posyandu, pemantauan tumbuh kembang, dan pendampingan keluarga bersama kader lingkungan.',
-                'items' => ['Penimbangan dan pengukuran balita', 'Informasi ibu hamil dan menyusui', 'Edukasi gizi dan tumbuh kembang'],
+                'title' => 'Posyandu ILP RW 05',
+                'eyebrow' => 'Layanan seluruh siklus hidup',
+                'description' => 'Layanan promotif dan preventif untuk ibu hamil, bayi dan balita, remaja, usia dewasa, serta lansia bersama kader dan tenaga kesehatan.',
+                'items' => ['Pendaftaran dan pemutakhiran data sasaran', 'Penimbangan serta pengukuran sesuai kelompok usia', 'Pencatatan layanan, edukasi, dan tindak lanjut'],
+                'audiences' => ['Ibu hamil, nifas & menyusui', 'Bayi & balita', 'Usia sekolah & remaja', 'Usia dewasa', 'Lanjut usia'],
+                'flow' => ['Pendaftaran peserta', 'Penimbangan dan pengukuran', 'Pencatatan dan pemeriksaan', 'Pelayanan serta penyuluhan', 'Validasi dan tindak lanjut'],
+                'prepare' => ['Bawa Buku KIA untuk ibu dan anak bila memiliki', 'Bawa catatan atau kartu pemantauan yang diberikan petugas', 'Sampaikan obat rutin dan keluhan kepada tenaga kesehatan, bukan melalui halaman publik'],
+                'notice' => 'Jenis pelayanan dapat berbeda sesuai kelompok usia, tenaga kesehatan, dan alat yang tersedia pada hari kegiatan.',
             ],
             'posbindu' => [
-                'title' => 'Posbindu RW 05',
-                'eyebrow' => 'Layanan dewasa dan lansia',
-                'description' => 'Informasi kegiatan Posbindu untuk membantu warga dewasa dan lansia melakukan pemantauan kesehatan secara berkala.',
-                'items' => ['Pemantauan tekanan darah', 'Pemeriksaan faktor risiko bila tersedia', 'Edukasi pola hidup dan tindak lanjut'],
+                'title' => 'Skrining PTM / Posbindu RW 05',
+                'eyebrow' => 'Deteksi dini faktor risiko',
+                'description' => 'Pemantauan faktor risiko penyakit tidak menular bagi warga dewasa dan lansia melalui wawancara, pengukuran, edukasi, serta rujukan bila diperlukan.',
+                'items' => ['Wawancara riwayat dan kebiasaan berisiko', 'Pengukuran dasar dan pemeriksaan yang tersedia', 'Konseling, pemantauan, atau rujukan ke Puskesmas'],
+                'audiences' => ['Usia dewasa', 'Lanjut usia', 'Warga dengan faktor risiko yang perlu dipantau'],
+                'flow' => ['Pendaftaran peserta', 'Wawancara faktor risiko', 'Pengukuran dan pemeriksaan', 'Edukasi atau konseling', 'Pencatatan dan rencana tindak lanjut'],
+                'prepare' => ['Bawa kartu pemantauan atau catatan pemeriksaan sebelumnya', 'Sampaikan kondisi puasa atau waktu makan bila dilakukan pemeriksaan gula darah', 'Bawa daftar obat rutin untuk disampaikan kepada tenaga kesehatan'],
+                'notice' => 'Hasil skrining bukan diagnosis. Penetapan kondisi medis, obat, dan keputusan klinis dilakukan oleh tenaga kesehatan.',
             ],
         ];
 
@@ -80,9 +90,9 @@ class PublicController extends BaseController
             throw PageNotFoundException::forPageNotFound();
         }
 
-        $db = db_connect();
+        $db = $this->publicDatabase();
         $schedules = [];
-        if (ensure_kesehatan_jadwal_table($db)) {
+        if ($db !== null && ensure_kesehatan_jadwal_table($db)) {
             $schedules = $db->table('kesehatan_jadwal')
                 ->where('jenis', $jenis)
                 ->where('status', 'aktif')
@@ -105,11 +115,11 @@ class PublicController extends BaseController
 
     public function edukasiKesehatan(): string
     {
-        $db = db_connect();
+        $db = $this->publicDatabase();
         $topics = edukasi_topic_definitions();
         $materialsByCategory = array_fill_keys(array_keys($topics), []);
 
-        if (ensure_edukasi_materi_table($db)) {
+        if ($db !== null && ensure_edukasi_materi_table($db)) {
             foreach ($db->table('edukasi_materi')
                 ->where('status', 'publish')
                 ->orderBy('kategori', 'ASC')
@@ -145,8 +155,8 @@ class PublicController extends BaseController
         }
 
         $materials = [];
-        $db = db_connect();
-        if (ensure_edukasi_materi_table($db)) {
+        $db = $this->publicDatabase();
+        if ($db !== null && ensure_edukasi_materi_table($db)) {
             $builder = $db->table('edukasi_materi')
                 ->where('kategori', $category)
                 ->where('status', 'publish');
@@ -173,8 +183,8 @@ class PublicController extends BaseController
 
     public function keuangan()
     {
-        $db = db_connect();
-        $tableReady = ensure_keuangan_transaksi_table($db);
+        $db = $this->publicDatabase();
+        $tableReady = $db !== null && ensure_keuangan_transaksi_table($db);
         $selectedUnit = keuangan_normalize_unit_filter($this->request->getGet('unit'));
         $legacySelectedRt = normalize_rt_code($this->request->getGet('rt'));
         if ($selectedUnit === '' && $legacySelectedRt !== '') {
@@ -251,7 +261,8 @@ class PublicController extends BaseController
 
     public function layananOnline(): string
     {
-        $tableReady = ensure_pengajuan_surat_table();
+        $db = $this->publicDatabase();
+        $tableReady = $db !== null && ensure_pengajuan_surat_table($db);
         $lookupCode = strtoupper(trim((string) $this->request->getGet('kode')));
         $lookupName = trim((string) $this->request->getGet('nama'));
         $lookupRt = normalize_rt_code($this->request->getGet('rt'));
@@ -260,7 +271,7 @@ class PublicController extends BaseController
         $lookupError = '';
 
         if ($tableReady && $lookupCode !== '') {
-            $lookupRow = db_connect()->table('pengajuan_surat')
+            $lookupRow = $db->table('pengajuan_surat')
                 ->where('kode_pengajuan', $lookupCode)
                 ->get()
                 ->getRowArray();
@@ -268,7 +279,7 @@ class PublicController extends BaseController
             if ($lookupName !== '' && strlen($lookupName) < 3) {
                 $lookupError = 'Nama pemohon minimal 3 huruf agar pencarian lebih tepat.';
             } else {
-                $builder = db_connect()->table('pengajuan_surat')
+                $builder = $db->table('pengajuan_surat')
                     ->orderBy('created_at', 'DESC')
                     ->limit(10);
 
@@ -301,7 +312,8 @@ class PublicController extends BaseController
 
     public function submitLayananOnline()
     {
-        if (! ensure_pengajuan_surat_table()) {
+        $db = $this->publicDatabase();
+        if ($db === null || ! ensure_pengajuan_surat_table($db)) {
             return redirect()->to(site_url('layanan-online'))
                 ->withInput()
                 ->with('surat_error', 'Tabel pengajuan surat belum siap. Silakan hubungi admin RW.');
@@ -347,9 +359,9 @@ class PublicController extends BaseController
                 ->with('surat_error', 'Lengkapi data surat berikut: ' . implode(', ', $missingStructuredFields) . '.');
         }
 
-        $kodePengajuan = $this->newPengajuanSuratCode();
+        $kodePengajuan = $this->newPengajuanSuratCode($db);
 
-        db_connect()->table('pengajuan_surat')->insert([
+        $db->table('pengajuan_surat')->insert([
             'kode_pengajuan' => $kodePengajuan,
             'jenis_surat' => $jenisSurat,
             'keperluan' => substr($keperluan, 0, 180),
@@ -369,13 +381,13 @@ class PublicController extends BaseController
 
     public function cetakSurat(string $kodePengajuan)
     {
-        if (! ensure_pengajuan_surat_table()) {
+        $db = $this->publicDatabase();
+        if ($db === null || ! ensure_pengajuan_surat_table($db)) {
             return redirect()->to(site_url('layanan-online'))
                 ->with('surat_error', 'Tabel pengajuan surat belum siap.');
         }
 
         $kodePengajuan = strtoupper(trim($kodePengajuan));
-        $db = db_connect();
         $pengajuan = $db->table('pengajuan_surat')
             ->where('kode_pengajuan', $kodePengajuan)
             ->get()
@@ -485,7 +497,14 @@ class PublicController extends BaseController
                 ->with('aspirasi_error', 'Nama dan pesan wajib diisi.');
         }
 
-        db_connect()->table('aspirasi')->insert([
+        $db = $this->publicDatabase();
+        if ($db === null) {
+            return redirect()->to(site_url('aspirasi'))
+                ->withInput()
+                ->with('aspirasi_error', 'Layanan aspirasi sedang tidak terhubung ke database. Silakan coba lagi nanti.');
+        }
+
+        $db->table('aspirasi')->insert([
             'nama' => $nama,
             'no_hp' => trim((string) $this->request->getPost('no_hp')),
             'rt' => trim((string) $this->request->getPost('rt')),
@@ -504,50 +523,107 @@ class PublicController extends BaseController
 
     private function sharedData(): array
     {
-        $db = db_connect();
+        $db = $this->publicDatabase();
+        if ($db === null) {
+            return $this->fallbackSharedData();
+        }
 
-        $profil = $db->table('profil_rw')->where('id', 1)->get()->getRowArray() ?: [];
-        $programs = $db->table('program_kerja')
-            ->where('status', 'aktif')
-            ->orderBy('nomor', 'ASC')
-            ->orderBy('id', 'ASC')
-            ->get()
-            ->getResultArray();
-        $layanan = $db->table('layanan')
-            ->where('status', 'aktif')
-            ->orderBy('urutan', 'ASC')
-            ->orderBy('id', 'ASC')
-            ->get()
-            ->getResultArray();
-        $kegiatan = $db->table('kegiatan')
-            ->where('status', 'publish')
-            ->orderBy('tanggal', 'DESC')
-            ->orderBy('id', 'DESC')
-            ->limit(8)
-            ->get()
-            ->getResultArray();
-        $pengurus = $db->table('pengurus')
-            ->where('status', 'aktif')
-            ->orderBy('urutan', 'ASC')
-            ->orderBy('id', 'ASC')
-            ->get()
-            ->getResultArray();
+        try {
+            $profil = $db->table('profil_rw')->where('id', 1)->get()->getRowArray() ?: [];
+            $programs = $db->table('program_kerja')
+                ->where('status', 'aktif')
+                ->orderBy('nomor', 'ASC')
+                ->orderBy('id', 'ASC')
+                ->get()
+                ->getResultArray();
+            $layanan = $db->table('layanan')
+                ->where('status', 'aktif')
+                ->orderBy('urutan', 'ASC')
+                ->orderBy('id', 'ASC')
+                ->get()
+                ->getResultArray();
+            $kegiatan = $db->table('kegiatan')
+                ->where('status', 'publish')
+                ->orderBy('tanggal', 'DESC')
+                ->orderBy('id', 'DESC')
+                ->limit(8)
+                ->get()
+                ->getResultArray();
+            $pengurus = $db->table('pengurus')
+                ->where('status', 'aktif')
+                ->orderBy('urutan', 'ASC')
+                ->orderBy('id', 'ASC')
+                ->get()
+                ->getResultArray();
+
+            return [
+                'profil' => $profil,
+                'programs' => $programs,
+                'layanan' => $layanan,
+                'kegiatan' => $kegiatan,
+                'pengurus' => $pengurus,
+                'strukturPengurusImage' => $this->pengurusStructureImageUrl(),
+                'strukturPengurusDescription' => $this->pengurusStructureDescription($db),
+                'totalWarga' => (int) ($db->query("SELECT COALESCE(SUM(jumlah_anggota),0) AS total FROM warga WHERE status_tinggal <> 'pindah'")->getRowArray()['total'] ?? 0),
+                'totalKK' => (int) ($db->query("SELECT COUNT(*) AS total FROM warga WHERE status_tinggal <> 'pindah'")->getRowArray()['total'] ?? 0),
+                'totalAspirasi' => (int) ($db->query('SELECT COUNT(*) AS total FROM aspirasi')->getRowArray()['total'] ?? 0),
+                'waLink' => wa_link($profil['whatsapp'] ?? ''),
+                'instagramLink' => instagram_link($profil['instagram'] ?? ''),
+                'siteName' => $profil['nama_rw'] ?? 'RW 05 Desa Citeureup',
+                'desa' => $profil['desa'] ?? 'Citeureup',
+                'adminEntryUrl' => session('admin_id') ? site_url('admin') : site_url('admin/login'),
+                'adminEntryLabel' => session('admin_id') ? 'Dashboard Admin' : 'Login Admin',
+            ];
+        } catch (\Throwable $exception) {
+            log_message('error', 'Data publik gagal dibaca; menggunakan tampilan cadangan: ' . $exception->getMessage());
+
+            return $this->fallbackSharedData();
+        }
+    }
+
+    private function publicDatabase(): ?BaseConnection
+    {
+        if ($this->publicDb === false) {
+            return null;
+        }
+
+        if ($this->publicDb instanceof BaseConnection) {
+            return $this->publicDb;
+        }
+
+        try {
+            $db = db_connect();
+            $db->initialize();
+            $this->publicDb = $db;
+
+            return $db;
+        } catch (\Throwable $exception) {
+            $this->publicDb = false;
+            log_message('error', 'Database publik tidak tersedia; menggunakan tampilan cadangan: ' . $exception->getMessage());
+
+            return null;
+        }
+    }
+
+    private function fallbackSharedData(): array
+    {
+        $profil = [];
 
         return [
             'profil' => $profil,
-            'programs' => $programs,
-            'layanan' => $layanan,
-            'kegiatan' => $kegiatan,
-            'pengurus' => $pengurus,
+            'programs' => [],
+            'layanan' => [],
+            'kegiatan' => [],
+            'pengurus' => [],
             'strukturPengurusImage' => $this->pengurusStructureImageUrl(),
             'strukturPengurusDescription' => $this->pengurusStructureDescription(),
-            'totalWarga' => (int) ($db->query("SELECT COALESCE(SUM(jumlah_anggota),0) AS total FROM warga WHERE status_tinggal <> 'pindah'")->getRowArray()['total'] ?? 0),
-            'totalKK' => (int) ($db->query("SELECT COUNT(*) AS total FROM warga WHERE status_tinggal <> 'pindah'")->getRowArray()['total'] ?? 0),
-            'totalAspirasi' => (int) ($db->query('SELECT COUNT(*) AS total FROM aspirasi')->getRowArray()['total'] ?? 0),
-            'waLink' => wa_link($profil['whatsapp'] ?? ''),
-            'instagramLink' => instagram_link($profil['instagram'] ?? ''),
-            'siteName' => $profil['nama_rw'] ?? 'RW 05 Desa Citeureup',
-            'desa' => $profil['desa'] ?? 'Citeureup',
+            'totalWarga' => 0,
+            'totalKK' => 0,
+            'totalAspirasi' => 0,
+            'waLink' => '',
+            'instagramLink' => '',
+            'siteName' => 'RW 05 Desa Citeureup',
+            'desa' => 'Citeureup',
             'adminEntryUrl' => session('admin_id') ? site_url('admin') : site_url('admin/login'),
             'adminEntryLabel' => session('admin_id') ? 'Dashboard Admin' : 'Login Admin',
         ];
@@ -575,25 +651,25 @@ class PublicController extends BaseController
             : '';
     }
 
-    private function pengurusStructureDescription(): string
+    private function pengurusStructureDescription(?BaseConnection $db = null): string
     {
-        $db = db_connect();
-
-        try {
-            $columnExists = (bool) $db->query("SHOW COLUMNS FROM profil_rw LIKE 'struktur_pengurus_description'")->getRowArray();
-            if ($columnExists) {
-                $row = $db->table('profil_rw')
-                    ->select('struktur_pengurus_description')
-                    ->where('id', 1)
-                    ->get()
-                    ->getRowArray();
-                $description = trim((string) ($row['struktur_pengurus_description'] ?? ''));
-                if ($description !== '') {
-                    return $description;
+        if ($db !== null) {
+            try {
+                $columnExists = (bool) $db->query("SHOW COLUMNS FROM profil_rw LIKE 'struktur_pengurus_description'")->getRowArray();
+                if ($columnExists) {
+                    $row = $db->table('profil_rw')
+                        ->select('struktur_pengurus_description')
+                        ->where('id', 1)
+                        ->get()
+                        ->getRowArray();
+                    $description = trim((string) ($row['struktur_pengurus_description'] ?? ''));
+                    if ($description !== '') {
+                        return $description;
+                    }
                 }
+            } catch (\Throwable $exception) {
+                log_message('error', 'Gagal membaca penjelasan struktur organisasi: ' . $exception->getMessage());
             }
-        } catch (\Throwable $exception) {
-            log_message('error', 'Gagal membaca penjelasan struktur organisasi: ' . $exception->getMessage());
         }
 
         $path = WRITEPATH . self::PENGURUS_STRUCTURE_DESCRIPTION;
@@ -643,10 +719,8 @@ class PublicController extends BaseController
         return $value !== '' ? $value : 'rw05';
     }
 
-    private function newPengajuanSuratCode(): string
+    private function newPengajuanSuratCode(BaseConnection $db): string
     {
-        $db = db_connect();
-
         for ($attempt = 0; $attempt < 8; $attempt++) {
             $suffix = strtoupper(bin2hex(random_bytes(3)));
             $code = 'RW05-' . date('Ymd') . '-' . $suffix;

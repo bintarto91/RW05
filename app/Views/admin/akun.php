@@ -43,6 +43,7 @@ $roleOptions = $roleOptions ?? admin_role_options();
 <section class="panel">
   <h2><?= $isEditUser ? 'Edit Akun Admin' : 'Tambah Akun Admin' ?></h2>
   <form method="post" action="<?= site_url('admin/akun') ?>" class="grid-form">
+    <?= csrf_field() ?>
     <input type="hidden" name="action" value="save_user">
     <input type="hidden" name="user_id" value="<?= rw_esc((string) ($editUser['id'] ?? 0)) ?>">
 
@@ -109,6 +110,7 @@ $roleOptions = $roleOptions ?? admin_role_options();
             <a href="<?= site_url('admin/akun?edit_user=' . (int) $user['id']) ?>">Edit</a>
             <?php if ((int) $user['id'] !== (int) $admin['id']): ?>
               <form method="post" action="<?= site_url('admin/akun') ?>" class="inline-form" onsubmit="return confirm('Hapus akun admin ini?')" style="display:inline">
+                <?= csrf_field() ?>
                 <input type="hidden" name="action" value="delete_user">
                 <input type="hidden" name="user_id" value="<?= rw_esc((string) $user['id']) ?>">
                 <button type="submit" class="btn-link-danger">Hapus</button>
@@ -129,6 +131,7 @@ $roleOptions = $roleOptions ?? admin_role_options();
   <p class="muted">Gunakan ini untuk mengganti password akun yang sedang dipakai login.</p>
 
   <form method="post" action="<?= site_url('admin/akun') ?>" class="grid-form">
+    <?= csrf_field() ?>
     <input type="hidden" name="action" value="change_password">
     <label>Password Saat Ini
       <input type="password" name="current_password" autocomplete="current-password" required>

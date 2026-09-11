@@ -205,6 +205,7 @@ $formTitle = ! empty($edit) ? 'Edit Data Warga' : 'Tambah Data Warga';
     </div>
 
     <form method="post" action="<?= rw_esc($formAction) ?>" class="grid-form">
+      <?= csrf_field() ?>
       <input type="hidden" name="id" value="<?= rw_esc($edit['id'] ?? '') ?>">
 
       <label>Nama Kepala Keluarga
@@ -323,6 +324,7 @@ $formTitle = ! empty($edit) ? 'Edit Data Warga' : 'Tambah Data Warga';
     </div>
 
     <form method="post" action="<?= site_url('admin/import') ?>" enctype="multipart/form-data" class="grid-form">
+      <?= csrf_field() ?>
       <input type="hidden" name="dataset" value="warga">
       <input type="hidden" name="return_to" value="warga">
 

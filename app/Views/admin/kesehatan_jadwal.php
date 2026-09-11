@@ -36,6 +36,7 @@ $selectedStatus = old('status', $edit['status'] ?? 'aktif');
     <div class="alert warning">Form belum dapat digunakan karena penyimpanan jadwal belum siap.</div>
   <?php else: ?>
     <form method="post" action="<?= site_url('admin/kesehatan-jadwal') ?>" class="grid-form">
+      <?= csrf_field() ?>
       <input type="hidden" name="id" value="<?= rw_esc((string) ($edit['id'] ?? '')) ?>">
       <label>Jenis Kegiatan
         <select name="jenis" required>

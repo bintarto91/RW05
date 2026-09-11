@@ -250,14 +250,23 @@ h3,
 	border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.sidebar-actions a {
+.sidebar-actions a,
+.sidebar-actions button {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
+	width: 100%;
 	min-height: 46px;
 	padding: 12px 16px;
+	border: 0;
 	border-radius: 14px;
+	font: inherit;
 	font-weight: 800;
+	cursor: pointer;
+}
+
+.sidebar-actions form {
+	margin: 0;
 }
 
 .sidebar-actions a:first-child {
@@ -1212,6 +1221,47 @@ tbody a[href*='delete'] {
 	grid-column: 1 / -1;
 }
 
+.health-stat-grid {
+	margin-bottom: 24px;
+}
+
+.health-stat-grid .stat small {
+	display: block;
+	margin-top: 8px;
+	color: var(--muted);
+}
+
+.health-form-section {
+	padding: 14px 16px;
+	border-left: 4px solid var(--forest-soft);
+	border-radius: 12px;
+	background: rgba(233, 248, 238, 0.72);
+}
+
+.health-form-section p {
+	margin: 6px 0 0;
+}
+
+.health-consent-check {
+	display: flex;
+	gap: 10px;
+	align-items: flex-start;
+	padding: 14px 16px;
+	border: 1px solid var(--border);
+	border-radius: 16px;
+	background: rgba(255, 255, 255, 0.78);
+}
+
+.health-consent-check input {
+	width: auto;
+	margin: 3px 0 0;
+}
+
+.table-actions form {
+	display: inline-flex;
+	margin: 0;
+}
+
 label {
 	display: block;
 	font-weight: 700;
@@ -1864,7 +1914,8 @@ code {
 	}
 
 	.admin-nav a,
-	.sidebar-actions a {
+	.sidebar-actions a,
+	.sidebar-actions button {
 		min-height: 44px;
 	}
 

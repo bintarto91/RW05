@@ -51,6 +51,7 @@
     </div>
 
     <form method="post" action="<?= site_url('aspirasi') ?>" class="aspirasi-form" data-reveal>
+      <?= csrf_field() ?>
       <?php if ($success ?? false): ?>
         <div class="alert success">Terima kasih. Aspirasi sudah terkirim dan akan ditinjau pengurus.</div>
       <?php endif; ?>

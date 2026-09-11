@@ -22,7 +22,7 @@ $routes->post('aspirasi', 'PublicController::submitAspirasi');
 
 $routes->get('admin/login', 'Admin\AuthController::login');
 $routes->post('admin/login', 'Admin\AuthController::attemptLogin');
-$routes->get('admin/logout', 'Admin\AuthController::logout');
+$routes->post('admin/logout', 'Admin\AuthController::logout');
 
 $routes->group('admin', ['filter' => 'adminauth'], static function ($routes) {
     $routes->get('/', 'Admin\PanelController::dashboard');

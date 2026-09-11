@@ -21,15 +21,24 @@ class AuthController extends BaseController
     {
         $username = normalize_admin_username($this->request->getPost('username'));
         $password = (string) $this->request->getPost('password');
-        $db = db_connect();
-        ensure_admin_users_table($db);
+        try {
+            $db = db_connect();
+            $db->initialize();
+            ensure_admin_users_table($db);
 
-        $admin = $db->table('admin_users')
-            ->where('username', $username)
-            ->where('status', 'aktif')
-            ->limit(1)
-            ->get()
-            ->getRowArray();
+            $admin = $db->table('admin_users')
+                ->where('username', $username)
+                ->where('status', 'aktif')
+                ->limit(1)
+                ->get()
+                ->getRowArray();
+        } catch (\Throwable $exception) {
+            log_message('error', 'Login admin gagal terhubung ke database: ' . $exception->getMessage());
+
+            return redirect()->to(site_url('admin/login'))
+                ->withInput()
+                ->with('login_error', 'Database belum dapat dijangkau. Periksa koneksi lokal lalu coba lagi.');
+        }
 
         if ($admin && password_verify($password, $admin['password_hash'])) {
             session()->regenerate();

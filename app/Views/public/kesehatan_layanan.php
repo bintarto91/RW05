@@ -14,8 +14,8 @@
     </div>
     <aside class="page-callout health-callout" data-reveal>
       <span>Informasi untuk warga</span>
-      <strong><?= rw_esc(ucfirst($serviceType)) ?></strong>
-      <p>Jadwal dan informasi umum dapat dilihat warga. Data peserta dan catatan kader hanya tersedia di area admin.</p>
+      <strong><?= rw_esc($service['title']) ?></strong>
+      <p><?= rw_esc($service['notice']) ?></p>
     </aside>
   </div>
 </section>
@@ -24,18 +24,42 @@
   <div class="container health-service-grid">
     <article class="health-schedule-card" data-reveal>
       <p class="eyebrow">Layanan utama</p>
-      <h2 id="service-info-title">Yang dapat disiapkan warga.</h2>
+      <h2 id="service-info-title">Apa yang dilakukan saat kegiatan.</h2>
       <ul class="health-step-list">
         <?php foreach ($service['items'] as $index => $item): ?>
-          <li><span><?= rw_esc((string) ($index + 1)) ?></span><div><strong><?= rw_esc($item) ?></strong><p>Konfirmasi jadwal dan kebutuhan kepada kader sebelum datang.</p></div></li>
+          <li><span><?= rw_esc((string) ($index + 1)) ?></span><div><strong><?= rw_esc($item) ?></strong><p>Pelayanan disesuaikan dengan kelompok sasaran serta ketersediaan petugas dan alat.</p></div></li>
         <?php endforeach; ?>
       </ul>
     </article>
     <aside class="health-help-card" data-reveal>
-      <p class="eyebrow">Privasi warga</p>
-      <h2>Data peserta tetap terlindungi.</h2>
-      <p>Website publik hanya menampilkan informasi layanan dan jadwal. Data peserta serta catatan kunjungan dikelola kader melalui login admin.</p>
+      <p class="eyebrow">Sasaran layanan</p>
+      <h2>Siapa yang dapat mengikuti.</h2>
+      <ul class="health-service-audience">
+        <?php foreach ($service['audiences'] as $audience): ?><li><?= rw_esc($audience) ?></li><?php endforeach; ?>
+      </ul>
       <a href="<?= rw_esc($waLink ?: site_url('aspirasi')) ?>"<?= ! empty($waLink) ? ' target="_blank" rel="noopener noreferrer"' : '' ?> class="btn primary">Hubungi Pengurus</a>
+    </aside>
+  </div>
+</section>
+
+<section class="section health-program-section" aria-labelledby="service-flow-title">
+  <div class="container health-service-grid">
+    <article class="health-schedule-card" data-reveal>
+      <p class="eyebrow">Alur pelayanan</p>
+      <h2 id="service-flow-title">Lima langkah dari datang sampai tindak lanjut.</h2>
+      <ol class="health-step-list">
+        <?php foreach ($service['flow'] as $index => $step): ?>
+          <li><span><?= rw_esc((string) ($index + 1)) ?></span><div><strong><?= rw_esc($step) ?></strong></div></li>
+        <?php endforeach; ?>
+      </ol>
+    </article>
+    <aside class="health-help-card" data-reveal>
+      <p class="eyebrow">Sebelum datang</p>
+      <h2>Yang sebaiknya disiapkan.</h2>
+      <ul class="health-service-audience">
+        <?php foreach ($service['prepare'] as $item): ?><li><?= rw_esc($item) ?></li><?php endforeach; ?>
+      </ul>
+      <div class="health-service-notice"><strong>Privasi</strong><p>Jangan kirim hasil pemeriksaan, foto identitas, atau diagnosis melalui halaman publik. Sampaikan langsung kepada kader atau tenaga kesehatan.</p></div>
     </aside>
   </div>
 </section>
@@ -44,7 +68,7 @@
   <div class="container">
     <div class="section-title" data-reveal>
       <p class="eyebrow">Jadwal layanan</p>
-      <h2 id="service-schedule-title">Jadwal <?= rw_esc(ucfirst($serviceType)) ?> terdekat.</h2>
+      <h2 id="service-schedule-title">Jadwal <?= rw_esc($service['title']) ?> terdekat.</h2>
       <p>Datang sesuai waktu dan lokasi yang diumumkan oleh kader.</p>
     </div>
     <?php if (! empty($healthSchedules)): ?>

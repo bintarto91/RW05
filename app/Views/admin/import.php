@@ -38,6 +38,7 @@
 <section class="panel">
   <h2>Upload File CSV</h2>
   <form method="post" action="<?= site_url('admin/import') ?>" enctype="multipart/form-data" class="grid-form">
+    <?= csrf_field() ?>
     <label>Jenis Data
       <select name="dataset" required>
         <?php foreach ($datasets as $key => $dataset): ?>

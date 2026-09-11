@@ -73,6 +73,7 @@
           </td>
           <td>
             <form method="post" action="<?= site_url('admin/pengajuan-surat') ?>" class="inline-form letter-update-form">
+              <?= csrf_field() ?>
               <input type="hidden" name="id" value="<?= rw_esc($row['id']) ?>">
               <select name="status">
                 <?php foreach ($statusOptions as $status => $label): ?>

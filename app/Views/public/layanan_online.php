@@ -53,6 +53,7 @@ $oldSuratData = is_array($oldSuratData) ? $oldSuratData : [];
     </aside>
 
     <form method="post" action="<?= site_url('layanan-online') ?>" class="aspirasi-form online-request-form" id="ajukan-surat" data-reveal>
+      <?= csrf_field() ?>
       <?php if (! empty($successCode)): ?>
         <div class="alert success">
           Pengajuan berhasil dikirim. Simpan kode ini untuk cek status: <strong><?= rw_esc($successCode) ?></strong><br>

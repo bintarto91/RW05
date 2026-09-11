@@ -19,6 +19,7 @@
         <td><?= nl2br(rw_esc($row['pesan'])) ?></td>
         <td>
           <form method="post" action="<?= site_url('admin/aspirasi') ?>" class="inline-form">
+            <?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= rw_esc($row['id']) ?>">
             <select name="status">
               <option value="baru" <?= is_selected($row['status'], 'baru') ?>>Baru</option>

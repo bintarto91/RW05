@@ -1376,8 +1376,8 @@ if (! function_exists('kesehatan_jadwal_type_options')) {
     function kesehatan_jadwal_type_options(): array
     {
         return [
-            'posyandu' => 'Posyandu',
-            'posbindu' => 'Posbindu',
+            'posyandu' => 'Posyandu ILP',
+            'posbindu' => 'Skrining PTM / Posbindu',
         ];
     }
 }
@@ -1433,6 +1433,42 @@ if (! function_exists('kesehatan_participant_type_options')) {
     }
 }
 
+if (! function_exists('kesehatan_lifecycle_options')) {
+    function kesehatan_lifecycle_options(): array
+    {
+        return [
+            'ibu_hamil_nifas' => 'Ibu Hamil, Nifas & Menyusui',
+            'bayi_balita' => 'Bayi & Balita',
+            'usia_sekolah_remaja' => 'Usia Sekolah & Remaja',
+            'dewasa' => 'Usia Dewasa',
+            'lansia' => 'Lanjut Usia',
+        ];
+    }
+}
+
+if (! function_exists('kesehatan_followup_options')) {
+    function kesehatan_followup_options(): array
+    {
+        return [
+            'selesai' => 'Selesai / Tidak Ada Tindak Lanjut',
+            'pantau' => 'Pantau pada Kunjungan Berikutnya',
+            'kunjungan_rumah' => 'Perlu Kunjungan Rumah',
+            'rujuk_puskesmas' => 'Rujuk / Konsultasi ke Puskesmas',
+        ];
+    }
+}
+
+if (! function_exists('kesehatan_glucose_context_options')) {
+    function kesehatan_glucose_context_options(): array
+    {
+        return [
+            'sewaktu' => 'Gula Darah Sewaktu',
+            'puasa' => 'Gula Darah Puasa',
+            'dua_jam_pp' => 'Dua Jam Setelah Makan',
+        ];
+    }
+}
+
 if (! function_exists('kesehatan_gender_options')) {
     function kesehatan_gender_options(): array
     {
@@ -1453,6 +1489,7 @@ if (! function_exists('ensure_kesehatan_data_tables')) {
                 "CREATE TABLE IF NOT EXISTS kesehatan_peserta (
                     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                     jenis VARCHAR(20) NOT NULL,
+                    kelompok_siklus VARCHAR(40) NULL,
                     nama VARCHAR(160) NOT NULL,
                     tanggal_lahir DATE NULL,
                     jenis_kelamin VARCHAR(1) NULL,
@@ -1461,6 +1498,7 @@ if (! function_exists('ensure_kesehatan_data_tables')) {
                     no_hp VARCHAR(40) NULL,
                     alamat VARCHAR(255) NULL,
                     status VARCHAR(20) NOT NULL DEFAULT 'aktif',
+                    persetujuan_data TINYINT(1) NOT NULL DEFAULT 0,
                     catatan TEXT NULL,
                     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -1475,11 +1513,26 @@ if (! function_exists('ensure_kesehatan_data_tables')) {
                     peserta_id INT UNSIGNED NOT NULL,
                     tanggal DATE NOT NULL,
                     hadir VARCHAR(10) NOT NULL DEFAULT 'ya',
+                    jenis_layanan VARCHAR(20) NULL,
                     berat_kg DECIMAL(5,2) NULL,
                     tinggi_cm DECIMAL(5,2) NULL,
+                    lingkar_kepala_cm DECIMAL(5,2) NULL,
+                    lingkar_lengan_cm DECIMAL(5,2) NULL,
+                    lingkar_perut_cm DECIMAL(5,2) NULL,
+                    usia_kehamilan_minggu TINYINT UNSIGNED NULL,
                     tekanan_sistolik SMALLINT UNSIGNED NULL,
                     tekanan_diastolik SMALLINT UNSIGNED NULL,
                     gula_darah DECIMAL(6,2) NULL,
+                    jenis_gula_darah VARCHAR(20) NULL,
+                    faktor_merokok VARCHAR(20) NULL,
+                    aktivitas_fisik VARCHAR(20) NULL,
+                    konsumsi_buah_sayur VARCHAR(20) NULL,
+                    layanan_diberikan TEXT NULL,
+                    edukasi TEXT NULL,
+                    tindak_lanjut VARCHAR(30) NOT NULL DEFAULT 'selesai',
+                    tujuan_rujukan VARCHAR(160) NULL,
+                    tanggal_tindak_lanjut DATE NULL,
+                    status_validasi VARCHAR(20) NOT NULL DEFAULT 'dicatat',
                     catatan TEXT NULL,
                     dicatat_oleh INT UNSIGNED NULL,
                     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1487,6 +1540,43 @@ if (! function_exists('ensure_kesehatan_data_tables')) {
                     KEY tanggal (tanggal)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"
             );
+
+            $participantColumns = [
+                'kelompok_siklus' => "ALTER TABLE kesehatan_peserta ADD COLUMN kelompok_siklus VARCHAR(40) NULL AFTER jenis",
+                'persetujuan_data' => "ALTER TABLE kesehatan_peserta ADD COLUMN persetujuan_data TINYINT(1) NOT NULL DEFAULT 0 AFTER status",
+            ];
+            foreach ($participantColumns as $column => $sql) {
+                $exists = $db->query("SHOW COLUMNS FROM kesehatan_peserta LIKE '" . $db->escapeString($column) . "'")->getRowArray();
+                if (! $exists) {
+                    $db->query($sql);
+                }
+            }
+
+            $visitColumns = [
+                'jenis_layanan' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN jenis_layanan VARCHAR(20) NULL AFTER hadir",
+                'lingkar_kepala_cm' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN lingkar_kepala_cm DECIMAL(5,2) NULL AFTER tinggi_cm",
+                'lingkar_lengan_cm' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN lingkar_lengan_cm DECIMAL(5,2) NULL AFTER lingkar_kepala_cm",
+                'lingkar_perut_cm' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN lingkar_perut_cm DECIMAL(5,2) NULL AFTER lingkar_lengan_cm",
+                'usia_kehamilan_minggu' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN usia_kehamilan_minggu TINYINT UNSIGNED NULL AFTER lingkar_perut_cm",
+                'jenis_gula_darah' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN jenis_gula_darah VARCHAR(20) NULL AFTER gula_darah",
+                'faktor_merokok' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN faktor_merokok VARCHAR(20) NULL AFTER jenis_gula_darah",
+                'aktivitas_fisik' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN aktivitas_fisik VARCHAR(20) NULL AFTER faktor_merokok",
+                'konsumsi_buah_sayur' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN konsumsi_buah_sayur VARCHAR(20) NULL AFTER aktivitas_fisik",
+                'layanan_diberikan' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN layanan_diberikan TEXT NULL AFTER konsumsi_buah_sayur",
+                'edukasi' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN edukasi TEXT NULL AFTER layanan_diberikan",
+                'tindak_lanjut' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN tindak_lanjut VARCHAR(30) NOT NULL DEFAULT 'selesai' AFTER edukasi",
+                'tujuan_rujukan' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN tujuan_rujukan VARCHAR(160) NULL AFTER tindak_lanjut",
+                'tanggal_tindak_lanjut' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN tanggal_tindak_lanjut DATE NULL AFTER tujuan_rujukan",
+                'status_validasi' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN status_validasi VARCHAR(20) NOT NULL DEFAULT 'dicatat' AFTER tanggal_tindak_lanjut",
+            ];
+            foreach ($visitColumns as $column => $sql) {
+                $exists = $db->query("SHOW COLUMNS FROM kesehatan_kunjungan LIKE '" . $db->escapeString($column) . "'")->getRowArray();
+                if (! $exists) {
+                    $db->query($sql);
+                }
+            }
+
+            $db->query("UPDATE kesehatan_kunjungan kunjungan INNER JOIN kesehatan_peserta peserta ON peserta.id = kunjungan.peserta_id SET kunjungan.jenis_layanan = peserta.jenis WHERE kunjungan.jenis_layanan IS NULL OR kunjungan.jenis_layanan = ''");
 
             return true;
         } catch (Throwable $exception) {

@@ -32,6 +32,7 @@
     </section>
 
     <form method="post" action="<?= site_url('admin/login') ?>" class="login-box">
+      <?= csrf_field() ?>
       <p class="admin-kicker">Masuk ke area pengurus</p>
       <h1>Login Admin</h1>
       <p>Gunakan akun pengurus untuk mengelola website RW 05 dari satu sistem yang sama.</p>

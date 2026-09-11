@@ -34,6 +34,7 @@
       </div>
     <?php endif; ?>
     <form method="post" action="<?= rw_esc($config['imageUpload']['uploadUrl']) ?>" enctype="multipart/form-data" class="grid-form upload-form">
+      <?= csrf_field() ?>
       <label class="full">File Gambar
         <input type="file" name="struktur_gambar" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required>
       </label>
@@ -45,9 +46,10 @@
       </div>
     </form>
     <?php if (! empty($config['imageUpload']['imageUrl'])): ?>
-      <form id="deleteStructureImageForm" method="post" action="<?= rw_esc($config['imageUpload']['deleteUrl']) ?>" onsubmit="return confirm('Hapus gambar struktur organisasi?')"></form>
+      <form id="deleteStructureImageForm" method="post" action="<?= rw_esc($config['imageUpload']['deleteUrl']) ?>" onsubmit="return confirm('Hapus gambar struktur organisasi?')"><?= csrf_field() ?></form>
     <?php endif; ?>
     <form method="post" action="<?= rw_esc($config['imageUpload']['descriptionSaveUrl']) ?>" class="grid-form structure-text-form">
+      <?= csrf_field() ?>
       <label class="full">Penjelasan Struktur Organisasi
         <textarea name="struktur_penjelasan" rows="6" placeholder="Contoh: Ketua RW berada di posisi tertinggi, dibantu Sekretaris dan Bendahara. Ketua RT 01 sampai RT 06 menjadi koordinator wilayah masing-masing."><?= rw_esc($config['imageUpload']['descriptionValue'] ?? '') ?></textarea>
         <span class="field-note">Teks ini akan tampil di bawah gambar struktur organisasi pada halaman warga.</span>
@@ -77,6 +79,7 @@
 <section class="panel">
   <h2><?= $edit ? 'Edit Data' : 'Tambah Data' ?></h2>
   <form method="post" action="<?= site_url('admin/' . $page) ?>" class="grid-form">
+    <?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= rw_esc($edit['id'] ?? '') ?>">
 
     <?php foreach ($config['fields'] as $name => $field): ?>

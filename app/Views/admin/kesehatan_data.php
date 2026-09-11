@@ -5,19 +5,28 @@
 $isEditing = ! empty($edit);
 $selectedParticipant = $selectedParticipant ?? null;
 $selectedJenis = old('jenis', $edit['jenis'] ?? 'posyandu');
+$selectedLifecycle = old('kelompok_siklus', $edit['kelompok_siklus'] ?? 'bayi_balita');
 $selectedGender = old('jenis_kelamin', $edit['jenis_kelamin'] ?? '');
 $selectedStatus = old('status', $edit['status'] ?? 'aktif');
+$selectedVisitType = old('jenis_layanan', $selectedParticipant['jenis'] ?? 'posyandu');
 ?>
 <div class="section-heading">
   <div>
-    <h1>Data Kader Posyandu & Posbindu</h1>
-    <p class="muted">Data ini privat untuk admin/kader yang login. Jangan masukkan NIK atau diagnosis medis lengkap.</p>
+    <h1>Posyandu ILP & Posbindu PTM</h1>
+    <p class="muted">Catat layanan berdasarkan siklus hidup, hasil pengukuran, edukasi, dan tindak lanjut. Modul RW ini bukan pengganti Buku KIA, ASIK, atau rekam medis Puskesmas.</p>
   </div>
   <a href="<?= site_url('kesehatan') ?>" target="_blank" rel="noopener noreferrer">Lihat Halaman Warga</a>
 </div>
 
 <?php if ($success !== ''): ?><div class="alert success"><?= rw_esc($success) ?></div><?php endif; ?>
 <?php if ($error !== ''): ?><div class="alert error"><?= rw_esc($error) ?></div><?php endif; ?>
+
+<div class="stat-grid health-stat-grid">
+  <article class="stat"><span>Peserta Aktif</span><strong><?= rw_esc((string) ($healthStats['active'] ?? 0)) ?></strong><small>Semua kelompok siklus hidup</small></article>
+  <article class="stat"><span>Kunjungan Bulan Ini</span><strong><?= rw_esc((string) ($healthStats['monthVisits'] ?? 0)) ?></strong><small>Peserta yang tercatat hadir</small></article>
+  <article class="stat"><span>Perlu Ditindaklanjuti</span><strong><?= rw_esc((string) ($healthStats['followups'] ?? 0)) ?></strong><small>Pantau atau kunjungan rumah</small></article>
+  <article class="stat"><span>Rujukan</span><strong><?= rw_esc((string) ($healthStats['referrals'] ?? 0)) ?></strong><small>Perlu konsultasi Puskesmas</small></article>
+</div>
 
 <section class="panel">
   <div class="section-heading">
@@ -39,6 +48,7 @@ $selectedStatus = old('status', $edit['status'] ?? 'aktif');
     <div class="form-actions"><button type="submit">Tampilkan Daftar</button></div>
   </form>
   <form method="post" action="<?= site_url('admin/kesehatan-data') ?>">
+    <?= csrf_field() ?>
     <input type="hidden" name="action" value="save_attendance">
     <input type="hidden" name="jenis_kegiatan" value="<?= rw_esc($activityJenis) ?>">
     <input type="hidden" name="tanggal_kegiatan" value="<?= rw_esc($activityDate) ?>">
@@ -75,12 +85,20 @@ $selectedStatus = old('status', $edit['status'] ?? 'aktif');
     <div class="alert warning">Penyimpanan data kader belum siap.</div>
   <?php else: ?>
     <form method="post" action="<?= site_url('admin/kesehatan-data') ?>" class="grid-form">
+      <?= csrf_field() ?>
       <input type="hidden" name="action" value="save_participant">
       <input type="hidden" name="id" value="<?= rw_esc((string) ($edit['id'] ?? '')) ?>">
-      <label>Jenis Layanan
+      <label>Layanan Utama
         <select name="jenis" required>
           <?php foreach ($participantTypeOptions as $value => $label): ?>
             <option value="<?= rw_esc($value) ?>" <?= is_selected($selectedJenis, $value) ?>><?= rw_esc($label) ?></option>
+          <?php endforeach; ?>
+        </select>
+      </label>
+      <label>Kelompok Siklus Hidup
+        <select name="kelompok_siklus" required>
+          <?php foreach ($lifecycleOptions as $value => $label): ?>
+            <option value="<?= rw_esc($value) ?>" <?= is_selected($selectedLifecycle, $value) ?>><?= rw_esc($label) ?></option>
           <?php endforeach; ?>
         </select>
       </label>
@@ -120,6 +138,10 @@ $selectedStatus = old('status', $edit['status'] ?? 'aktif');
       <label class="full">Catatan Kader
         <textarea name="catatan" rows="3" maxlength="2000" placeholder="Catatan non-sensitif untuk kebutuhan pendampingan."><?= rw_esc(old('catatan', $edit['catatan'] ?? '')) ?></textarea>
       </label>
+      <label class="full health-consent-check">
+        <input type="checkbox" name="persetujuan_data" value="1" <?= ! empty(old('persetujuan_data', $edit['persetujuan_data'] ?? 0)) ? 'checked' : '' ?> <?= $isEditing ? '' : 'required' ?>>
+        Peserta atau wali telah diberi tahu bahwa data minimum ini digunakan untuk kegiatan dan tindak lanjut kesehatan RW.
+      </label>
       <div class="full form-actions">
         <button type="submit"><?= $isEditing ? 'Simpan Perubahan' : 'Simpan Peserta' ?></button>
         <?php if ($isEditing): ?><a class="btn-light" href="<?= site_url('admin/kesehatan-data') ?>">Batal</a><?php endif; ?>
@@ -142,6 +164,12 @@ $selectedStatus = old('status', $edit['status'] ?? 'aktif');
         <?php foreach ($participantTypeOptions as $value => $label): ?><option value="<?= rw_esc($value) ?>" <?= is_selected($filterJenis, $value) ?>><?= rw_esc($label) ?></option><?php endforeach; ?>
       </select>
     </label>
+    <label>Kelompok Siklus Hidup
+      <select name="kelompok_siklus">
+        <option value="">Semua kelompok</option>
+        <?php foreach ($lifecycleOptions as $value => $label): ?><option value="<?= rw_esc($value) ?>" <?= is_selected($filterLifecycle, $value) ?>><?= rw_esc($label) ?></option><?php endforeach; ?>
+      </select>
+    </label>
     <label>Cari Nama / Wali
       <input type="search" name="q" value="<?= rw_esc($filterSearch) ?>" placeholder="Ketik nama">
     </label>
@@ -149,18 +177,19 @@ $selectedStatus = old('status', $edit['status'] ?? 'aktif');
   </form>
   <div class="table-scroll">
     <table>
-      <thead><tr><th>Jenis</th><th>Peserta</th><th>Kontak Lingkungan</th><th>Status</th><th>Aksi</th></tr></thead>
+      <thead><tr><th>Layanan</th><th>Peserta</th><th>Siklus Hidup</th><th>Kontak Lingkungan</th><th>Status</th><th>Aksi</th></tr></thead>
       <tbody>
         <?php foreach ($participants as $participant): ?>
           <tr>
             <td><?= rw_esc($participantTypeOptions[$participant['jenis'] ?? ''] ?? ucfirst((string) ($participant['jenis'] ?? '-'))) ?></td>
             <td><strong><?= rw_esc($participant['nama'] ?? '') ?></strong><br><small><?= rw_esc($participant['tanggal_lahir'] ?? '-') ?><?= ! empty($participant['nama_wali']) ? ' · Wali: ' . rw_esc($participant['nama_wali']) : '' ?></small></td>
+            <td><?= rw_esc($lifecycleOptions[$participant['kelompok_siklus'] ?? ''] ?? 'Belum ditentukan') ?></td>
             <td>RT <?= rw_esc($participant['rt'] ?? '-') ?><br><small><?= rw_esc($participant['no_hp'] ?? '') ?></small></td>
             <td><?= rw_esc($statusOptions[$participant['status'] ?? ''] ?? ucfirst((string) ($participant['status'] ?? '-'))) ?></td>
-            <td><div class="table-actions"><a href="<?= site_url('admin/kesehatan-data?peserta_id=' . (int) $participant['id']) ?>">Kunjungan</a><a href="<?= site_url('admin/kesehatan-data?action=edit&id=' . (int) $participant['id']) ?>">Edit</a><a class="btn-link-danger" href="<?= site_url('admin/kesehatan-data?action=delete&id=' . (int) $participant['id']) ?>" onclick="return confirm('Hapus peserta dan seluruh catatan kunjungannya?')">Hapus</a></div></td>
+            <td><div class="table-actions"><a href="<?= site_url('admin/kesehatan-data?peserta_id=' . (int) $participant['id']) ?>">Kunjungan</a><a href="<?= site_url('admin/kesehatan-data?action=edit&id=' . (int) $participant['id']) ?>">Edit</a><form method="post" action="<?= site_url('admin/kesehatan-data') ?>" onsubmit="return confirm('Hapus peserta dan seluruh catatan kunjungannya?')"><?= csrf_field() ?><input type="hidden" name="action" value="delete_participant"><input type="hidden" name="id" value="<?= (int) $participant['id'] ?>"><button type="submit" class="btn-link-danger">Hapus</button></form></div></td>
           </tr>
         <?php endforeach; ?>
-        <?php if (empty($participants)): ?><tr><td colspan="5" class="table-empty">Belum ada peserta sesuai filter.</td></tr><?php endif; ?>
+        <?php if (empty($participants)): ?><tr><td colspan="6" class="table-empty">Belum ada peserta sesuai filter.</td></tr><?php endif; ?>
       </tbody>
     </table>
   </div>
@@ -168,10 +197,11 @@ $selectedStatus = old('status', $edit['status'] ?? 'aktif');
 
 <section class="panel">
   <div class="section-heading">
-    <div><h2>Catat Kunjungan / Pemeriksaan</h2><p class="muted">Untuk Posyandu gunakan berat/tinggi. Untuk Posbindu gunakan tekanan darah atau gula darah bila memang diperiksa.</p></div>
+    <div><h2>Catat Kunjungan Lima Langkah</h2><p class="muted">Catat yang benar-benar dilakukan. Aplikasi tidak memberikan diagnosis otomatis; hasil yang perlu perhatian harus diverifikasi tenaga kesehatan.</p></div>
     <?php if ($selectedParticipant): ?><strong><?= rw_esc($selectedParticipant['nama']) ?></strong><?php endif; ?>
   </div>
   <form method="post" action="<?= site_url('admin/kesehatan-data') ?>" class="grid-form">
+    <?= csrf_field() ?>
     <input type="hidden" name="action" value="save_visit">
     <label>Peserta
       <select name="peserta_id" required>
@@ -185,11 +215,33 @@ $selectedStatus = old('status', $edit['status'] ?? 'aktif');
     <label>Kehadiran
       <select name="hadir"><option value="ya">Hadir</option><option value="tidak">Tidak hadir</option></select>
     </label>
+    <label>Jenis Layanan Kunjungan
+      <select name="jenis_layanan" id="healthVisitType" required>
+        <?php foreach ($participantTypeOptions as $value => $label): ?><option value="<?= rw_esc($value) ?>" <?= is_selected($selectedVisitType, $value) ?>><?= rw_esc($label) ?></option><?php endforeach; ?>
+      </select>
+    </label>
+    <div class="full health-form-section"><strong>2. Penimbangan dan pengukuran dasar</strong><p class="muted">Isi hanya pengukuran yang benar-benar dilakukan dengan alat yang tersedia.</p></div>
     <label>Berat (kg)<input type="number" name="berat_kg" min="0" max="300" step="0.01" value="<?= rw_esc(old('berat_kg')) ?>"></label>
-    <label>Tinggi (cm)<input type="number" name="tinggi_cm" min="0" max="250" step="0.01" value="<?= rw_esc(old('tinggi_cm')) ?>"></label>
-    <label>Tekanan Sistolik<input type="number" name="tekanan_sistolik" min="0" max="300" value="<?= rw_esc(old('tekanan_sistolik')) ?>"></label>
-    <label>Tekanan Diastolik<input type="number" name="tekanan_diastolik" min="0" max="300" value="<?= rw_esc(old('tekanan_diastolik')) ?>"></label>
-    <label>Gula Darah<input type="number" name="gula_darah" min="0" max="1000" step="0.01" value="<?= rw_esc(old('gula_darah')) ?>"></label>
+    <label>Tinggi / Panjang Badan (cm)<input type="number" name="tinggi_cm" min="0" max="250" step="0.01" value="<?= rw_esc(old('tinggi_cm')) ?>"></label>
+    <label data-health-service="posyandu">Lingkar Kepala (cm)<input type="number" name="lingkar_kepala_cm" min="0" max="100" step="0.01" value="<?= rw_esc(old('lingkar_kepala_cm')) ?>"></label>
+    <label data-health-service="posyandu">Lingkar Lengan / LILA (cm)<input type="number" name="lingkar_lengan_cm" min="0" max="100" step="0.01" value="<?= rw_esc(old('lingkar_lengan_cm')) ?>"></label>
+    <label data-health-service="posyandu">Usia Kehamilan (minggu)<input type="number" name="usia_kehamilan_minggu" min="0" max="45" value="<?= rw_esc(old('usia_kehamilan_minggu')) ?>"></label>
+    <label data-health-service="posbindu">Lingkar Perut (cm)<input type="number" name="lingkar_perut_cm" min="0" max="250" step="0.01" value="<?= rw_esc(old('lingkar_perut_cm')) ?>"></label>
+    <div class="full health-form-section" data-health-service="posbindu"><strong>3. Skrining faktor risiko PTM</strong><p class="muted">Pertanyaan dan pemeriksaan ini untuk skrining, bukan penetapan diagnosis.</p></div>
+    <label data-health-service="posbindu">Tekanan Sistolik<input type="number" name="tekanan_sistolik" min="0" max="300" value="<?= rw_esc(old('tekanan_sistolik')) ?>"></label>
+    <label data-health-service="posbindu">Tekanan Diastolik<input type="number" name="tekanan_diastolik" min="0" max="300" value="<?= rw_esc(old('tekanan_diastolik')) ?>"></label>
+    <label data-health-service="posbindu">Gula Darah (mg/dL)<input type="number" name="gula_darah" min="0" max="1000" step="0.01" value="<?= rw_esc(old('gula_darah')) ?>"></label>
+    <label data-health-service="posbindu">Konteks Gula Darah<select name="jenis_gula_darah"><option value="">Pilih bila diperiksa</option><?php foreach ($glucoseContextOptions as $value => $label): ?><option value="<?= rw_esc($value) ?>" <?= is_selected(old('jenis_gula_darah'), $value) ?>><?= rw_esc($label) ?></option><?php endforeach; ?></select></label>
+    <label data-health-service="posbindu">Kebiasaan Merokok<select name="faktor_merokok"><option value="">Tidak ditanyakan</option><option value="tidak">Tidak</option><option value="ya">Ya</option><option value="berhenti">Sudah berhenti</option></select></label>
+    <label data-health-service="posbindu">Aktivitas Fisik<select name="aktivitas_fisik"><option value="">Tidak ditanyakan</option><option value="cukup">Cukup</option><option value="kurang">Kurang</option></select></label>
+    <label data-health-service="posbindu">Konsumsi Buah & Sayur<select name="konsumsi_buah_sayur"><option value="">Tidak ditanyakan</option><option value="cukup">Cukup</option><option value="kurang">Kurang</option></select></label>
+    <div class="full health-form-section"><strong>4–5. Pelayanan, edukasi, validasi, dan tindak lanjut</strong></div>
+    <label class="full">Layanan yang Diberikan<textarea name="layanan_diberikan" rows="2" maxlength="2000" placeholder="Contoh: penimbangan, pemeriksaan tekanan darah, PMT, atau pelayanan oleh nakes."><?= rw_esc(old('layanan_diberikan')) ?></textarea></label>
+    <label class="full">Edukasi / Konseling<textarea name="edukasi" rows="2" maxlength="2000" placeholder="Tuliskan edukasi yang benar-benar diberikan."><?= rw_esc(old('edukasi')) ?></textarea></label>
+    <label>Tindak Lanjut<select name="tindak_lanjut" id="healthFollowup"><?php foreach ($followupOptions as $value => $label): ?><option value="<?= rw_esc($value) ?>" <?= is_selected(old('tindak_lanjut', 'selesai'), $value) ?>><?= rw_esc($label) ?></option><?php endforeach; ?></select></label>
+    <label>Jadwal Tindak Lanjut<input type="date" name="tanggal_tindak_lanjut" value="<?= rw_esc(old('tanggal_tindak_lanjut')) ?>"></label>
+    <label class="full" data-referral-field>Tujuan Rujukan / Konsultasi<input type="text" name="tujuan_rujukan" maxlength="160" value="<?= rw_esc(old('tujuan_rujukan')) ?>" placeholder="Contoh: Puskesmas Dayeuhkolot"></label>
+    <input type="hidden" name="status_validasi" value="dicatat">
     <label class="full">Catatan Kunjungan<textarea name="catatan_kunjungan" rows="3" maxlength="2000" placeholder="Catatan tindak lanjut non-diagnosis."><?= rw_esc(old('catatan_kunjungan')) ?></textarea></label>
     <div class="full form-actions"><button type="submit">Simpan Kunjungan</button></div>
   </form>
@@ -199,14 +251,32 @@ $selectedStatus = old('status', $edit['status'] ?? 'aktif');
   <h2>Riwayat Kunjungan Terbaru</h2>
   <div class="table-scroll">
     <table>
-      <thead><tr><th>Tanggal</th><th>Peserta</th><th>Hadir</th><th>Pengukuran</th><th>Catatan</th></tr></thead>
+      <thead><tr><th>Tanggal</th><th>Peserta</th><th>Layanan</th><th>Pengukuran</th><th>Tindak Lanjut</th><th>Catatan</th></tr></thead>
       <tbody>
         <?php foreach ($visits as $visit): ?>
-          <tr><td><?= rw_esc(date('d/m/Y', strtotime((string) $visit['tanggal']))) ?></td><td><?= rw_esc($visit['nama']) ?><br><small><?= rw_esc($participantTypeOptions[$visit['jenis']] ?? $visit['jenis']) ?></small></td><td><?= rw_esc($visit['hadir']) ?></td><td><?= $visit['berat_kg'] !== null ? 'BB ' . rw_esc($visit['berat_kg']) . ' kg · ' : '' ?><?= $visit['tinggi_cm'] !== null ? 'TB ' . rw_esc($visit['tinggi_cm']) . ' cm · ' : '' ?><?= $visit['tekanan_sistolik'] !== null ? 'TD ' . rw_esc($visit['tekanan_sistolik']) . '/' . rw_esc($visit['tekanan_diastolik']) . ' · ' : '' ?><?= $visit['gula_darah'] !== null ? 'Gula ' . rw_esc($visit['gula_darah']) : '-' ?></td><td><?= nl2br(rw_esc($visit['catatan'] ?? '-')) ?></td></tr>
+          <tr><td><?= rw_esc(date('d/m/Y', strtotime((string) $visit['tanggal']))) ?><br><small><?= rw_esc($visit['hadir']) ?></small></td><td><?= rw_esc($visit['nama']) ?><br><small><?= rw_esc($lifecycleOptions[$visit['kelompok_siklus'] ?? ''] ?? 'Kelompok belum ditentukan') ?></small></td><td><?= rw_esc($participantTypeOptions[$visit['jenis_layanan'] ?? $visit['jenis']] ?? ($visit['jenis_layanan'] ?? $visit['jenis'])) ?></td><td><?= $visit['berat_kg'] !== null ? 'BB ' . rw_esc($visit['berat_kg']) . ' kg · ' : '' ?><?= $visit['tinggi_cm'] !== null ? 'TB ' . rw_esc($visit['tinggi_cm']) . ' cm · ' : '' ?><?= $visit['lingkar_perut_cm'] !== null ? 'LP ' . rw_esc($visit['lingkar_perut_cm']) . ' cm · ' : '' ?><?= $visit['tekanan_sistolik'] !== null ? 'TD ' . rw_esc($visit['tekanan_sistolik']) . '/' . rw_esc($visit['tekanan_diastolik']) . ' · ' : '' ?><?= $visit['gula_darah'] !== null ? 'Gula ' . rw_esc($visit['gula_darah']) : '-' ?></td><td><?= rw_esc($followupOptions[$visit['tindak_lanjut'] ?? 'selesai'] ?? 'Belum ditentukan') ?><?= ! empty($visit['tanggal_tindak_lanjut']) ? '<br><small>' . rw_esc(format_date_id($visit['tanggal_tindak_lanjut'])) . '</small>' : '' ?></td><td><?= nl2br(rw_esc($visit['catatan'] ?? '-')) ?></td></tr>
         <?php endforeach; ?>
-        <?php if (empty($visits)): ?><tr><td colspan="5" class="table-empty">Belum ada catatan kunjungan.</td></tr><?php endif; ?>
+        <?php if (empty($visits)): ?><tr><td colspan="6" class="table-empty">Belum ada catatan kunjungan.</td></tr><?php endif; ?>
       </tbody>
     </table>
   </div>
 </section>
+<script>
+(() => {
+  const visitType = document.getElementById('healthVisitType');
+  const followup = document.getElementById('healthFollowup');
+  const syncHealthFields = () => {
+    const selected = visitType?.value || 'posyandu';
+    document.querySelectorAll('[data-health-service]').forEach((field) => {
+      field.hidden = field.dataset.healthService !== selected;
+    });
+    document.querySelectorAll('[data-referral-field]').forEach((field) => {
+      field.hidden = followup?.value !== 'rujuk_puskesmas';
+    });
+  };
+  visitType?.addEventListener('change', syncHealthFields);
+  followup?.addEventListener('change', syncHealthFields);
+  syncHealthFields();
+})();
+</script>
 <?= $this->endSection() ?>

@@ -7,6 +7,7 @@
 
 <section class="panel">
   <form method="post" action="<?= site_url('admin/profil') ?>" class="grid-form">
+    <?= csrf_field() ?>
     <label>Nama RW <input type="text" name="nama_rw" value="<?= rw_esc($profil['nama_rw'] ?? '') ?>" required></label>
     <label>Desa <input type="text" name="desa" value="<?= rw_esc($profil['desa'] ?? '') ?>" required></label>
     <label>Kecamatan <input type="text" name="kecamatan" value="<?= rw_esc($profil['kecamatan'] ?? '') ?>" required></label>

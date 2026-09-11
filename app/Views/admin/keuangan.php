@@ -64,6 +64,7 @@
 <section class="panel">
   <h2><?= $edit ? 'Edit Transaksi' : 'Tambah Transaksi' ?></h2>
   <form method="post" action="<?= site_url('admin/keuangan?start=' . rawurlencode($selectedStart) . '&end=' . rawurlencode($selectedEnd) . ($selectedUnit !== '' ? '&unit=' . rawurlencode($selectedUnit) : '')) ?>" class="grid-form">
+    <?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= rw_esc($edit['id'] ?? '') ?>">
 
     <label>Tanggal

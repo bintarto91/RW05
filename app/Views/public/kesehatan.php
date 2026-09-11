@@ -3,9 +3,10 @@ $healthPrograms = [
     [
         'number' => '01',
         'id' => 'ibu-anak',
-        'title' => 'Posyandu, Ibu & Anak',
-        'description' => 'Pusat informasi kegiatan Posyandu, kesehatan ibu, serta pemantauan tumbuh kembang anak di lingkungan RW.',
-        'items' => ['Jadwal kegiatan Posyandu', 'Informasi kesehatan ibu dan anak', 'Arah kontak kader lingkungan'],
+        'title' => 'Posyandu ILP',
+        'description' => 'Layanan terintegrasi untuk ibu hamil, bayi dan balita, remaja, dewasa, serta lansia di lingkungan RW.',
+        'items' => ['Alur lima langkah', 'Sasaran seluruh siklus hidup', 'Jadwal dan persiapan warga'],
+        'href' => site_url('posyandu'),
     ],
     [
         'number' => '02',
@@ -17,9 +18,10 @@ $healthPrograms = [
     [
         'number' => '03',
         'id' => 'lansia',
-        'title' => 'Lansia & Posbindu',
-        'description' => 'Informasi kegiatan kesehatan dan pendampingan agar warga lanjut usia tetap aktif, aman, dan terhubung.',
-        'items' => ['Jadwal Posbindu', 'Kegiatan lansia aktif', 'Pendampingan keluarga'],
+        'title' => 'Skrining PTM / Posbindu',
+        'description' => 'Deteksi dini faktor risiko PTM untuk warga dewasa dan lansia, disertai edukasi serta tindak lanjut.',
+        'items' => ['Wawancara faktor risiko', 'Pengukuran yang tersedia', 'Edukasi dan jalur rujukan'],
+        'href' => site_url('posbindu'),
     ],
     [
         'number' => '04',
@@ -128,7 +130,7 @@ $healthContactExternal = ! empty($waLink);
 
     <div class="health-program-grid">
       <?php foreach ($healthPrograms as $program): ?>
-        <a href="<?= site_url('edukasi-kesehatan/' . $program['id']) ?>" class="health-program-card" id="<?= rw_esc($program['id']) ?>" aria-label="Buka edukasi <?= rw_esc($program['title']) ?>" data-reveal>
+        <a href="<?= rw_esc($program['href'] ?? site_url('edukasi-kesehatan/' . $program['id'])) ?>" class="health-program-card" id="<?= rw_esc($program['id']) ?>" aria-label="Buka informasi <?= rw_esc($program['title']) ?>" data-reveal>
           <div class="health-program-head">
             <span><?= rw_esc($program['number']) ?></span>
             <h3><?= rw_esc($program['title']) ?></h3>
@@ -139,7 +141,7 @@ $healthContactExternal = ! empty($waLink);
               <li><?= rw_esc($item) ?></li>
             <?php endforeach; ?>
           </ul>
-          <span class="health-card-link">Buka edukasi & video <b aria-hidden="true">→</b></span>
+          <span class="health-card-link"><?= isset($program['href']) ? 'Buka informasi layanan' : 'Buka edukasi & video' ?> <b aria-hidden="true">→</b></span>
         </a>
       <?php endforeach; ?>
     </div>

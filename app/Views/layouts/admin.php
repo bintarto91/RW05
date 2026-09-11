@@ -8,7 +8,7 @@ $navItems = [
     'layanan' => ['label' => 'Layanan', 'href' => site_url('admin/layanan')],
     'edukasi' => ['label' => 'Materi Edukasi', 'href' => site_url('admin/edukasi')],
     'kesehatan-jadwal' => ['label' => 'Jadwal Kesehatan', 'href' => site_url('admin/kesehatan-jadwal')],
-    'kesehatan-data' => ['label' => 'Data Kader', 'href' => site_url('admin/kesehatan-data')],
+    'kesehatan-data' => ['label' => 'Layanan Kesehatan', 'href' => site_url('admin/kesehatan-data')],
     'pengajuan-surat' => ['label' => 'Pengajuan Surat', 'href' => site_url('admin/pengajuan-surat')],
     'pengurus' => ['label' => 'Pengurus', 'href' => site_url('admin/pengurus')],
     'warga' => ['label' => 'Data Warga', 'href' => site_url('admin/warga')],
@@ -76,7 +76,10 @@ $notificationTotal = array_sum($notificationCounts);
 
       <div class="sidebar-actions">
         <a href="<?= site_url('/') ?>" target="_blank" rel="noreferrer">Lihat Website</a>
-        <a href="<?= site_url('admin/logout') ?>" class="is-danger">Logout</a>
+        <form method="post" action="<?= site_url('admin/logout') ?>">
+          <?= csrf_field() ?>
+          <button type="submit" class="is-danger">Logout</button>
+        </form>
       </div>
     </aside>
 

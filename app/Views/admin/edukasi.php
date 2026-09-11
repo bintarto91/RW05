@@ -56,6 +56,7 @@ $selectedType = (string) old('jenis', $edit['jenis'] ?? 'poster');
     <div class="alert warning">Form belum dapat digunakan karena penyimpanan materi belum siap.</div>
   <?php else: ?>
     <form method="post" action="<?= site_url('admin/edukasi') ?>" enctype="multipart/form-data" class="grid-form education-form">
+      <?= csrf_field() ?>
       <input type="hidden" name="id" value="<?= rw_esc((string) ($edit['id'] ?? '')) ?>">
 
       <label>Kategori Edukasi
@@ -223,6 +224,7 @@ $selectedType = (string) old('jenis', $edit['jenis'] ?? 'poster');
               <div class="education-row-actions">
                 <a href="<?= site_url('admin/edukasi?action=edit&id=' . (int) ($row['id'] ?? 0)) ?>">Edit</a>
                 <form method="post" action="<?= site_url('admin/edukasi/delete/' . (int) ($row['id'] ?? 0)) ?>" onsubmit="return confirm('Hapus materi ini? File upload terkait juga akan dihapus.')">
+                  <?= csrf_field() ?>
                   <button type="submit" class="education-delete-button">Hapus</button>
                 </form>
               </div>

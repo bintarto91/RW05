@@ -569,9 +569,13 @@ class PanelController extends BaseController
         $tableReady = ensure_kesehatan_data_tables($db);
         $id = (int) $this->request->getGet('id');
         $participantTypeOptions = kesehatan_participant_type_options();
+        $lifecycleOptions = kesehatan_lifecycle_options();
+        $followupOptions = kesehatan_followup_options();
+        $glucoseContextOptions = kesehatan_glucose_context_options();
         $genderOptions = kesehatan_gender_options();
         $statusOptions = ['aktif' => 'Aktif', 'nonaktif' => 'Arsip'];
         $filterJenis = trim((string) $this->request->getGet('jenis'));
+        $filterLifecycle = trim((string) $this->request->getGet('kelompok_siklus'));
         $filterSearch = trim((string) $this->request->getGet('q'));
         $activityJenis = trim((string) $this->request->getGet('jenis_kegiatan'));
         $activityDate = trim((string) $this->request->getGet('tanggal_kegiatan'));
@@ -591,14 +595,19 @@ class PanelController extends BaseController
                 'edit' => null,
                 'selectedParticipant' => null,
                 'participantTypeOptions' => $participantTypeOptions,
+                'lifecycleOptions' => $lifecycleOptions,
+                'followupOptions' => $followupOptions,
+                'glucoseContextOptions' => $glucoseContextOptions,
                 'genderOptions' => $genderOptions,
                 'statusOptions' => $statusOptions,
                 'filterJenis' => $filterJenis,
+                'filterLifecycle' => $filterLifecycle,
                 'filterSearch' => $filterSearch,
                 'activityJenis' => $activityJenis,
                 'activityDate' => $activityDate,
                 'attendanceParticipants' => [],
                 'attendanceMap' => [],
+                'healthStats' => ['active' => 0, 'monthVisits' => 0, 'followups' => 0, 'referrals' => 0],
                 'error' => 'Penyimpanan data kader belum siap. Coba muat ulang atau hubungi pengelola hosting.',
                 'success' => '',
             ]);
@@ -617,27 +626,30 @@ class PanelController extends BaseController
                     return redirect()->to(site_url('admin/kesehatan-data'))->with('error', 'Jenis layanan atau tanggal kegiatan belum valid.');
                 }
 
-                $participantsForAttendance = $db->table('kesehatan_peserta')
-                    ->where('jenis', $jenis)
-                    ->where('status', 'aktif')
-                    ->get()
-                    ->getResultArray();
+                $attendanceBuilder = $db->table('kesehatan_peserta')->where('status', 'aktif');
+                if ($jenis === 'posbindu') {
+                    $attendanceBuilder->whereIn('kelompok_siklus', ['dewasa', 'lansia']);
+                }
+                $participantsForAttendance = $attendanceBuilder->get()->getResultArray();
                 foreach ($participantsForAttendance as $participant) {
                     $participantId = (int) $participant['id'];
                     $visit = $db->table('kesehatan_kunjungan')
                         ->where('peserta_id', $participantId)
                         ->where('tanggal', $tanggal)
+                        ->where('jenis_layanan', $jenis)
                         ->get()
                         ->getRowArray();
                     $data = [
                         'peserta_id' => $participantId,
                         'tanggal' => $tanggal,
                         'hadir' => isset($hadir[$participantId]) ? 'ya' : 'tidak',
+                        'jenis_layanan' => $jenis,
                         'dicatat_oleh' => (int) session('admin_id'),
                     ];
                     if ($visit) {
                         $db->table('kesehatan_kunjungan')->where('id', (int) $visit['id'])->update([
                             'hadir' => $data['hadir'],
+                            'jenis_layanan' => $data['jenis_layanan'],
                             'dicatat_oleh' => $data['dicatat_oleh'],
                         ]);
                     } else {
@@ -652,6 +664,7 @@ class PanelController extends BaseController
             if ($action === 'save_participant') {
                 $participantId = (int) $this->request->getPost('id');
                 $jenis = trim((string) $this->request->getPost('jenis'));
+                $kelompokSiklus = trim((string) $this->request->getPost('kelompok_siklus'));
                 $nama = trim((string) $this->request->getPost('nama'));
                 $tanggalLahir = trim((string) $this->request->getPost('tanggal_lahir'));
                 $jenisKelamin = trim((string) $this->request->getPost('jenis_kelamin'));
@@ -660,11 +673,16 @@ class PanelController extends BaseController
                 $noHp = trim((string) $this->request->getPost('no_hp'));
                 $alamat = trim((string) $this->request->getPost('alamat'));
                 $status = trim((string) $this->request->getPost('status'));
+                $persetujuanData = $this->request->getPost('persetujuan_data') === '1' ? 1 : 0;
                 $catatan = trim((string) $this->request->getPost('catatan'));
                 $error = '';
 
                 if (! isset($participantTypeOptions[$jenis])) {
                     $error = 'Pilih jenis peserta Posyandu atau Posbindu.';
+                } elseif (! isset($lifecycleOptions[$kelompokSiklus])) {
+                    $error = 'Pilih kelompok siklus hidup peserta.';
+                } elseif ($jenis === 'posbindu' && ! in_array($kelompokSiklus, ['dewasa', 'lansia'], true)) {
+                    $error = 'Peserta Posbindu harus berada pada kelompok dewasa atau lansia.';
                 } elseif ($nama === '' || strlen($nama) > 160) {
                     $error = 'Nama peserta wajib diisi dan maksimal 160 karakter.';
                 } elseif ($tanggalLahir !== '' && (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggalLahir) || ! strtotime($tanggalLahir))) {
@@ -675,6 +693,8 @@ class PanelController extends BaseController
                     $error = 'Salah satu data peserta terlalu panjang.';
                 } elseif (! isset($statusOptions[$status])) {
                     $error = 'Status peserta belum valid.';
+                } elseif ($participantId <= 0 && $persetujuanData !== 1) {
+                    $error = 'Persetujuan penggunaan data perlu dikonfirmasi sebelum peserta disimpan.';
                 }
 
                 if ($error !== '') {
@@ -685,6 +705,7 @@ class PanelController extends BaseController
 
                 $data = [
                     'jenis' => $jenis,
+                    'kelompok_siklus' => $kelompokSiklus,
                     'nama' => substr($nama, 0, 160),
                     'tanggal_lahir' => $tanggalLahir !== '' ? $tanggalLahir : null,
                     'jenis_kelamin' => $jenisKelamin !== '' ? $jenisKelamin : null,
@@ -693,6 +714,7 @@ class PanelController extends BaseController
                     'no_hp' => substr($noHp, 0, 40),
                     'alamat' => substr($alamat, 0, 255),
                     'status' => $status,
+                    'persetujuan_data' => $persetujuanData,
                     'catatan' => $catatan,
                 ];
 
@@ -711,24 +733,57 @@ class PanelController extends BaseController
                 $participantId = (int) $this->request->getPost('peserta_id');
                 $tanggal = trim((string) $this->request->getPost('tanggal'));
                 $hadir = (string) $this->request->getPost('hadir') === 'tidak' ? 'tidak' : 'ya';
+                $jenisLayanan = trim((string) $this->request->getPost('jenis_layanan'));
                 $weight = trim((string) $this->request->getPost('berat_kg'));
                 $height = trim((string) $this->request->getPost('tinggi_cm'));
+                $headCircumference = trim((string) $this->request->getPost('lingkar_kepala_cm'));
+                $armCircumference = trim((string) $this->request->getPost('lingkar_lengan_cm'));
+                $waistCircumference = trim((string) $this->request->getPost('lingkar_perut_cm'));
+                $gestationalAge = trim((string) $this->request->getPost('usia_kehamilan_minggu'));
                 $systolic = trim((string) $this->request->getPost('tekanan_sistolik'));
                 $diastolic = trim((string) $this->request->getPost('tekanan_diastolik'));
                 $glucose = trim((string) $this->request->getPost('gula_darah'));
+                $glucoseContext = trim((string) $this->request->getPost('jenis_gula_darah'));
+                $smokingRisk = trim((string) $this->request->getPost('faktor_merokok'));
+                $physicalActivity = trim((string) $this->request->getPost('aktivitas_fisik'));
+                $fruitVegetable = trim((string) $this->request->getPost('konsumsi_buah_sayur'));
+                $servicesProvided = trim((string) $this->request->getPost('layanan_diberikan'));
+                $education = trim((string) $this->request->getPost('edukasi'));
+                $followup = trim((string) $this->request->getPost('tindak_lanjut'));
+                $referralDestination = trim((string) $this->request->getPost('tujuan_rujukan'));
+                $followupDate = trim((string) $this->request->getPost('tanggal_tindak_lanjut'));
+                $validationStatus = (string) $this->request->getPost('status_validasi') === 'divalidasi' ? 'divalidasi' : 'dicatat';
                 $catatan = trim((string) $this->request->getPost('catatan_kunjungan'));
                 $participant = $participantId > 0 ? $db->table('kesehatan_peserta')->where('id', $participantId)->get()->getRowArray() : null;
                 $error = '';
 
                 if (! $participant) {
                     $error = 'Pilih peserta yang sudah terdaftar.';
+                } elseif (! isset($participantTypeOptions[$jenisLayanan])) {
+                    $error = 'Pilih jenis layanan kunjungan.';
+                } elseif ($jenisLayanan === 'posbindu' && ! in_array((string) ($participant['kelompok_siklus'] ?? ''), ['dewasa', 'lansia'], true)) {
+                    $error = 'Skrining Posbindu hanya dapat dicatat untuk peserta dewasa atau lansia.';
                 } elseif (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggal) || ! strtotime($tanggal)) {
                     $error = 'Tanggal kunjungan belum valid.';
-                } elseif (strlen($catatan) > 2000) {
-                    $error = 'Catatan kunjungan maksimal 2000 karakter.';
+                } elseif ($glucose !== '' && ! isset($glucoseContextOptions[$glucoseContext])) {
+                    $error = 'Pilih konteks pemeriksaan gula darah.';
+                } elseif ($smokingRisk !== '' && ! in_array($smokingRisk, ['tidak', 'ya', 'berhenti'], true)) {
+                    $error = 'Jawaban kebiasaan merokok belum valid.';
+                } elseif ($physicalActivity !== '' && ! in_array($physicalActivity, ['cukup', 'kurang'], true)) {
+                    $error = 'Jawaban aktivitas fisik belum valid.';
+                } elseif ($fruitVegetable !== '' && ! in_array($fruitVegetable, ['cukup', 'kurang'], true)) {
+                    $error = 'Jawaban konsumsi buah dan sayur belum valid.';
+                } elseif (! isset($followupOptions[$followup])) {
+                    $error = 'Pilih tindak lanjut kunjungan.';
+                } elseif ($followup === 'rujuk_puskesmas' && $referralDestination === '') {
+                    $error = 'Tujuan rujukan atau konsultasi wajib diisi.';
+                } elseif ($followupDate !== '' && (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $followupDate) || ! strtotime($followupDate))) {
+                    $error = 'Tanggal tindak lanjut belum valid.';
+                } elseif (strlen($catatan) > 2000 || strlen($servicesProvided) > 2000 || strlen($education) > 2000 || strlen($referralDestination) > 160) {
+                    $error = 'Salah satu catatan kunjungan terlalu panjang.';
                 }
 
-                foreach ([[$weight, 0, 300, 'Berat badan'], [$height, 0, 250, 'Tinggi badan'], [$glucose, 0, 1000, 'Gula darah'], [$systolic, 0, 300, 'Tekanan sistolik'], [$diastolic, 0, 300, 'Tekanan diastolik']] as [$value, $min, $max, $label]) {
+                foreach ([[$weight, 0, 300, 'Berat badan'], [$height, 0, 250, 'Tinggi badan'], [$headCircumference, 0, 100, 'Lingkar kepala'], [$armCircumference, 0, 100, 'Lingkar lengan'], [$waistCircumference, 0, 250, 'Lingkar perut'], [$gestationalAge, 0, 45, 'Usia kehamilan'], [$glucose, 0, 1000, 'Gula darah'], [$systolic, 0, 300, 'Tekanan sistolik'], [$diastolic, 0, 300, 'Tekanan diastolik']] as [$value, $min, $max, $label]) {
                     if ($value !== '' && (! is_numeric($value) || (float) $value < $min || (float) $value > $max)) {
                         $error = $label . ' belum valid.';
                         break;
@@ -741,21 +796,44 @@ class PanelController extends BaseController
                         ->with('error', $error);
                 }
 
+                if ($jenisLayanan === 'posyandu') {
+                    $waistCircumference = $systolic = $diastolic = $glucose = $glucoseContext = '';
+                    $smokingRisk = $physicalActivity = $fruitVegetable = '';
+                } else {
+                    $headCircumference = $armCircumference = $gestationalAge = '';
+                }
+
                 $visitData = [
                     'peserta_id' => $participantId,
                     'tanggal' => $tanggal,
                     'hadir' => $hadir,
+                    'jenis_layanan' => $jenisLayanan,
                     'berat_kg' => $weight !== '' ? (float) $weight : null,
                     'tinggi_cm' => $height !== '' ? (float) $height : null,
+                    'lingkar_kepala_cm' => $headCircumference !== '' ? (float) $headCircumference : null,
+                    'lingkar_lengan_cm' => $armCircumference !== '' ? (float) $armCircumference : null,
+                    'lingkar_perut_cm' => $waistCircumference !== '' ? (float) $waistCircumference : null,
+                    'usia_kehamilan_minggu' => $gestationalAge !== '' ? (int) $gestationalAge : null,
                     'tekanan_sistolik' => $systolic !== '' ? (int) $systolic : null,
                     'tekanan_diastolik' => $diastolic !== '' ? (int) $diastolic : null,
                     'gula_darah' => $glucose !== '' ? (float) $glucose : null,
+                    'jenis_gula_darah' => $glucose !== '' ? $glucoseContext : null,
+                    'faktor_merokok' => $smokingRisk !== '' ? substr($smokingRisk, 0, 20) : null,
+                    'aktivitas_fisik' => $physicalActivity !== '' ? substr($physicalActivity, 0, 20) : null,
+                    'konsumsi_buah_sayur' => $fruitVegetable !== '' ? substr($fruitVegetable, 0, 20) : null,
+                    'layanan_diberikan' => $servicesProvided,
+                    'edukasi' => $education,
+                    'tindak_lanjut' => $followup,
+                    'tujuan_rujukan' => substr($referralDestination, 0, 160),
+                    'tanggal_tindak_lanjut' => $followupDate !== '' ? $followupDate : null,
+                    'status_validasi' => $validationStatus,
                     'catatan' => $catatan,
                     'dicatat_oleh' => (int) session('admin_id'),
                 ];
                 $existingVisit = $db->table('kesehatan_kunjungan')
                     ->where('peserta_id', $participantId)
                     ->where('tanggal', $tanggal)
+                    ->where('jenis_layanan', $jenisLayanan)
                     ->get()
                     ->getRowArray();
                 if ($existingVisit) {
@@ -766,23 +844,29 @@ class PanelController extends BaseController
 
                 return redirect()->to(site_url('admin/kesehatan-data?peserta_id=' . $participantId))->with('success', 'Kunjungan peserta berhasil dicatat.');
             }
-        }
 
-        if ($this->request->getGet('action') === 'delete' && $id > 0) {
-            $db->transStart();
-            $db->table('kesehatan_kunjungan')->where('peserta_id', $id)->delete();
-            $db->table('kesehatan_peserta')->where('id', $id)->delete();
-            $db->transComplete();
+            if ($action === 'delete_participant') {
+                $participantId = (int) $this->request->getPost('id');
+                if ($participantId > 0) {
+                    $db->transStart();
+                    $db->table('kesehatan_kunjungan')->where('peserta_id', $participantId)->delete();
+                    $db->table('kesehatan_peserta')->where('id', $participantId)->delete();
+                    $db->transComplete();
+                }
 
-            return redirect()->to(site_url('admin/kesehatan-data'))->with('success', 'Data peserta dan kunjungannya berhasil dihapus.');
+                return redirect()->to(site_url('admin/kesehatan-data'))->with('success', 'Data peserta dan catatan kunjungannya berhasil dihapus.');
+            }
         }
 
         if ($this->request->getGet('print') === '1') {
-            $reportRows = $db->table('kesehatan_peserta peserta')
-                ->select('peserta.*, kunjungan.hadir, kunjungan.berat_kg, kunjungan.tinggi_cm, kunjungan.tekanan_sistolik, kunjungan.tekanan_diastolik, kunjungan.gula_darah, kunjungan.catatan AS catatan_kunjungan')
-                ->join('kesehatan_kunjungan kunjungan', "kunjungan.peserta_id = peserta.id AND kunjungan.tanggal = " . $db->escape($activityDate), 'left')
-                ->where('peserta.jenis', $activityJenis)
-                ->where('peserta.status', 'aktif')
+            $reportBuilder = $db->table('kesehatan_peserta peserta')
+                ->select('peserta.*, kunjungan.hadir, kunjungan.berat_kg, kunjungan.tinggi_cm, kunjungan.lingkar_perut_cm, kunjungan.tekanan_sistolik, kunjungan.tekanan_diastolik, kunjungan.gula_darah, kunjungan.tindak_lanjut, kunjungan.tujuan_rujukan, kunjungan.catatan AS catatan_kunjungan')
+                ->join('kesehatan_kunjungan kunjungan', "kunjungan.peserta_id = peserta.id AND kunjungan.tanggal = " . $db->escape($activityDate) . " AND kunjungan.jenis_layanan = " . $db->escape($activityJenis), 'left')
+                ->where('peserta.status', 'aktif');
+            if ($activityJenis === 'posbindu') {
+                $reportBuilder->whereIn('peserta.kelompok_siklus', ['dewasa', 'lansia']);
+            }
+            $reportRows = $reportBuilder
                 ->orderBy('peserta.rt', 'ASC')
                 ->orderBy('peserta.nama', 'ASC')
                 ->get()
@@ -792,6 +876,8 @@ class PanelController extends BaseController
                 'reportRows' => $reportRows,
                 'reportType' => $participantTypeOptions[$activityJenis],
                 'reportDate' => $activityDate,
+                'lifecycleOptions' => $lifecycleOptions,
+                'followupOptions' => $followupOptions,
                 'autoPrint' => false,
             ]);
         }
@@ -809,21 +895,26 @@ class PanelController extends BaseController
         if (isset($participantTypeOptions[$filterJenis])) {
             $participantsBuilder->where('jenis', $filterJenis);
         }
+        if (isset($lifecycleOptions[$filterLifecycle])) {
+            $participantsBuilder->where('kelompok_siklus', $filterLifecycle);
+        }
         if ($filterSearch !== '') {
             $participantsBuilder->groupStart()->like('nama', $filterSearch)->orLike('nama_wali', $filterSearch)->groupEnd();
         }
         $participants = $participantsBuilder->orderBy('status', 'ASC')->orderBy('nama', 'ASC')->get()->getResultArray();
         $visits = $db->table('kesehatan_kunjungan kunjungan')
-            ->select('kunjungan.*, peserta.nama, peserta.jenis')
+            ->select('kunjungan.*, peserta.nama, peserta.jenis, peserta.kelompok_siklus')
             ->join('kesehatan_peserta peserta', 'peserta.id = kunjungan.peserta_id', 'inner')
             ->orderBy('kunjungan.tanggal', 'DESC')
             ->orderBy('kunjungan.id', 'DESC')
             ->limit(40)
             ->get()
             ->getResultArray();
-        $attendanceParticipants = $db->table('kesehatan_peserta')
-            ->where('jenis', $activityJenis)
-            ->where('status', 'aktif')
+        $attendanceBuilder = $db->table('kesehatan_peserta')->where('status', 'aktif');
+        if ($activityJenis === 'posbindu') {
+            $attendanceBuilder->whereIn('kelompok_siklus', ['dewasa', 'lansia']);
+        }
+        $attendanceParticipants = $attendanceBuilder
             ->orderBy('rt', 'ASC')
             ->orderBy('nama', 'ASC')
             ->get()
@@ -832,6 +923,7 @@ class PanelController extends BaseController
         if ($attendanceParticipants) {
             $attendanceRows = $db->table('kesehatan_kunjungan')
                 ->where('tanggal', $activityDate)
+                ->where('jenis_layanan', $activityJenis)
                 ->whereIn('peserta_id', array_map(static fn (array $row): int => (int) $row['id'], $attendanceParticipants))
                 ->get()
                 ->getResultArray();
@@ -839,6 +931,26 @@ class PanelController extends BaseController
                 $attendanceMap[(int) $attendanceRow['peserta_id']] = $attendanceRow;
             }
         }
+
+        $monthStart = date('Y-m-01');
+        $followupBuilder = $db->table('kesehatan_kunjungan')
+            ->whereIn('tindak_lanjut', ['pantau', 'kunjungan_rumah'])
+            ->groupStart()
+                ->where('tanggal_tindak_lanjut >=', date('Y-m-d'))
+                ->orWhere('tanggal_tindak_lanjut', null)
+            ->groupEnd();
+        $referralBuilder = $db->table('kesehatan_kunjungan')
+            ->where('tindak_lanjut', 'rujuk_puskesmas')
+            ->groupStart()
+                ->where('tanggal_tindak_lanjut >=', date('Y-m-d'))
+                ->orWhere('tanggal_tindak_lanjut', null)
+            ->groupEnd();
+        $healthStats = [
+            'active' => (int) $db->table('kesehatan_peserta')->where('status', 'aktif')->countAllResults(),
+            'monthVisits' => (int) $db->table('kesehatan_kunjungan')->where('tanggal >=', $monthStart)->where('hadir', 'ya')->countAllResults(),
+            'followups' => (int) $followupBuilder->countAllResults(),
+            'referrals' => (int) $referralBuilder->countAllResults(),
+        ];
 
         return view('admin/kesehatan_data', [
             'currentPage' => 'kesehatan-data',
@@ -848,14 +960,19 @@ class PanelController extends BaseController
             'edit' => $edit,
             'selectedParticipant' => $selectedParticipant,
             'participantTypeOptions' => $participantTypeOptions,
+            'lifecycleOptions' => $lifecycleOptions,
+            'followupOptions' => $followupOptions,
+            'glucoseContextOptions' => $glucoseContextOptions,
             'genderOptions' => $genderOptions,
             'statusOptions' => $statusOptions,
             'filterJenis' => $filterJenis,
+            'filterLifecycle' => $filterLifecycle,
             'filterSearch' => $filterSearch,
             'activityJenis' => $activityJenis,
             'activityDate' => $activityDate,
             'attendanceParticipants' => $attendanceParticipants,
             'attendanceMap' => $attendanceMap,
+            'healthStats' => $healthStats,
             'error' => session()->getFlashdata('error') ?: '',
             'success' => session()->getFlashdata('success') ?: '',
         ]);

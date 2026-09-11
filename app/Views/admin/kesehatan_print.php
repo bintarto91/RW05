@@ -54,19 +54,21 @@ $autoPrint = (bool) ($autoPrint ?? false);
     </div>
     <h2>Daftar Kehadiran dan Pemantauan</h2>
     <table>
-      <thead><tr><th>No.</th><th>Nama Peserta</th><th>RT</th><th>Status</th><th>Pengukuran</th><th>Catatan</th></tr></thead>
+      <thead><tr><th>No.</th><th>Nama Peserta</th><th>Siklus Hidup</th><th>RT</th><th>Status</th><th>Pengukuran</th><th>Tindak Lanjut</th><th>Catatan</th></tr></thead>
       <tbody>
         <?php foreach ($reportRows as $index => $row): ?>
           <tr>
             <td><?= rw_esc((string) ($index + 1)) ?></td>
             <td><strong><?= rw_esc($row['nama']) ?></strong><?= ! empty($row['nama_wali']) ? '<br><small>Wali: ' . rw_esc($row['nama_wali']) . '</small>' : '' ?></td>
+            <td><?= rw_esc($lifecycleOptions[$row['kelompok_siklus'] ?? ''] ?? 'Belum ditentukan') ?></td>
             <td><?= rw_esc($row['rt'] ?? '-') ?></td>
             <td><?= ($row['hadir'] ?? '') === 'ya' ? 'Hadir' : 'Tidak hadir' ?></td>
-            <td><?= $row['berat_kg'] !== null ? 'BB ' . rw_esc($row['berat_kg']) . ' kg; ' : '' ?><?= $row['tinggi_cm'] !== null ? 'TB ' . rw_esc($row['tinggi_cm']) . ' cm; ' : '' ?><?= $row['tekanan_sistolik'] !== null ? 'TD ' . rw_esc($row['tekanan_sistolik']) . '/' . rw_esc($row['tekanan_diastolik']) . '; ' : '' ?><?= $row['gula_darah'] !== null ? 'Gula ' . rw_esc($row['gula_darah']) : '-' ?></td>
+            <td><?= $row['berat_kg'] !== null ? 'BB ' . rw_esc($row['berat_kg']) . ' kg; ' : '' ?><?= $row['tinggi_cm'] !== null ? 'TB ' . rw_esc($row['tinggi_cm']) . ' cm; ' : '' ?><?= $row['lingkar_perut_cm'] !== null ? 'LP ' . rw_esc($row['lingkar_perut_cm']) . ' cm; ' : '' ?><?= $row['tekanan_sistolik'] !== null ? 'TD ' . rw_esc($row['tekanan_sistolik']) . '/' . rw_esc($row['tekanan_diastolik']) . '; ' : '' ?><?= $row['gula_darah'] !== null ? 'Gula ' . rw_esc($row['gula_darah']) : '-' ?></td>
+            <td><?= rw_esc($followupOptions[$row['tindak_lanjut'] ?? 'selesai'] ?? '-') ?><?= ! empty($row['tujuan_rujukan']) ? '<br><small>' . rw_esc($row['tujuan_rujukan']) . '</small>' : '' ?></td>
             <td><?= nl2br(rw_esc($row['catatan_kunjungan'] ?? '-')) ?></td>
           </tr>
         <?php endforeach; ?>
-        <?php if (empty($reportRows)): ?><tr><td colspan="6">Belum ada peserta aktif pada layanan ini.</td></tr><?php endif; ?>
+        <?php if (empty($reportRows)): ?><tr><td colspan="8">Belum ada peserta aktif pada layanan ini.</td></tr><?php endif; ?>
       </tbody>
     </table>
   </main>
