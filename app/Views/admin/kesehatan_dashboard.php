@@ -1,17 +1,24 @@
-<?= $this->extend('layouts/admin') ?>
+<?= $this->extend('layouts/kesehatan_admin') ?>
 
 <?= $this->section('content') ?>
-<div class="section-heading">
+<section class="health-dashboard-hero">
   <div>
-    <h1>Dashboard Kesehatan</h1>
-    <p class="muted">Ringkasan Posyandu ILP dan Posbindu PTM untuk pengurus dan nakes pendamping.</p>
+    <span class="health-dashboard-eyebrow">Posyandu ILP & Posbindu PTM</span>
+    <h1>Dashboard Pelayanan Kesehatan</h1>
+    <p>Pusat kerja kader dan tenaga kesehatan untuk mencatat kunjungan, melihat sasaran, serta memastikan tindak lanjut warga tidak terlewat.</p>
   </div>
-  <div class="form-actions">
-    <a href="<?= site_url('admin/kesehatan-data') ?>">Layanan Kesehatan</a>
-    <a href="<?= site_url('admin/kesehatan-tindak-lanjut') ?>">Tindak Lanjut & Rujukan</a>
-    <a href="<?= site_url('admin/kesehatan-jadwal') ?>">Jadwal Kesehatan</a>
+  <div class="health-dashboard-date">
+    <span>Hari ini</span>
+    <strong><?= rw_esc(format_date_id(date('Y-m-d'))) ?></strong>
+    <small>RW 05 Desa Citeureup</small>
   </div>
-</div>
+</section>
+
+<nav class="health-quick-actions" aria-label="Aksi cepat kesehatan">
+  <a href="<?= site_url('admin/kesehatan-data') ?>"><strong>Catat layanan</strong><span>Peserta, kehadiran, dan hasil kunjungan</span></a>
+  <a href="<?= site_url('admin/kesehatan-tindak-lanjut') ?>"><strong>Cek tindak lanjut</strong><span>Pemantauan, kunjungan rumah, dan rujukan</span></a>
+  <a href="<?= site_url('admin/kesehatan-jadwal') ?>"><strong>Atur jadwal</strong><span>Publikasikan kegiatan untuk warga</span></a>
+</nav>
 
 <?php if (! ($tableReady ?? false)): ?>
   <div class="alert warning">Penyimpanan data kesehatan belum siap. Coba muat ulang atau hubungi pengelola hosting.</div>
@@ -21,6 +28,7 @@
     <article class="stat"><span>Kunjungan Bulan Ini</span><strong><?= rw_esc((string) ($healthStats['monthVisits'] ?? 0)) ?></strong><small>Peserta yang tercatat hadir</small></article>
     <article class="stat"><span>Perlu Ditindaklanjuti</span><strong><?= rw_esc((string) ($healthStats['followups'] ?? 0)) ?></strong><small>Pantau atau kunjungan rumah</small></article>
     <article class="stat"><span>Rujukan</span><strong><?= rw_esc((string) ($healthStats['referrals'] ?? 0)) ?></strong><small>Perlu konsultasi Puskesmas</small></article>
+    <article class="stat health-stat-overdue"><span>Terlambat</span><strong><?= rw_esc((string) ($healthStats['overdue'] ?? 0)) ?></strong><small>Jadwal tindak lanjut sudah lewat</small></article>
   </div>
 
   <div class="dashboard-layout dashboard-layout-wide">

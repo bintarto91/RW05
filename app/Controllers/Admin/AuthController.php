@@ -9,7 +9,7 @@ class AuthController extends BaseController
     public function login()
     {
         if (session('admin_id')) {
-            return redirect()->to(site_url('admin'));
+            return redirect()->to($this->landingUrl((string) session('admin_role')));
         }
 
         return view('admin/login', [
@@ -48,7 +48,7 @@ class AuthController extends BaseController
                 'admin_role' => $admin['role'] ?? 'admin',
             ]);
 
-            return redirect()->to(site_url('admin'));
+            return redirect()->to($this->landingUrl((string) ($admin['role'] ?? 'admin')));
         }
 
         return redirect()->to(site_url('admin/login'))
@@ -61,5 +61,12 @@ class AuthController extends BaseController
         session()->destroy();
 
         return redirect()->to(site_url('admin/login'));
+    }
+
+    private function landingUrl(string $role): string
+    {
+        return $role === 'kader_kesehatan'
+            ? site_url('admin/kesehatan-dashboard')
+            : site_url('admin');
     }
 }

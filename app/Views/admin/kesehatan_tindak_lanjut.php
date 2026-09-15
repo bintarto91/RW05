@@ -1,4 +1,4 @@
-<?= $this->extend('layouts/admin') ?>
+<?= $this->extend('layouts/kesehatan_admin') ?>
 
 <?= $this->section('content') ?>
 <div class="section-heading">

@@ -1593,7 +1593,7 @@ if (! function_exists('admin_role_can_validate_kesehatan')) {
     {
         $role = $role ?? (string) session('admin_role');
 
-        return $role !== 'kader_kesehatan';
+        return in_array($role, ['superadmin', 'admin', 'ketua_rw', 'nakes'], true);
     }
 }
 
@@ -1604,23 +1604,19 @@ if (! function_exists('kesehatan_health_stats')) {
         $monthStart = date('Y-m-01');
 
         $followupBuilder = $db->table('kesehatan_kunjungan')
-            ->whereIn('tindak_lanjut', ['pantau', 'kunjungan_rumah'])
-            ->groupStart()
-                ->where('tanggal_tindak_lanjut >=', date('Y-m-d'))
-                ->orWhere('tanggal_tindak_lanjut', null)
-            ->groupEnd();
+            ->whereIn('tindak_lanjut', ['pantau', 'kunjungan_rumah']);
         $referralBuilder = $db->table('kesehatan_kunjungan')
-            ->where('tindak_lanjut', 'rujuk_puskesmas')
-            ->groupStart()
-                ->where('tanggal_tindak_lanjut >=', date('Y-m-d'))
-                ->orWhere('tanggal_tindak_lanjut', null)
-            ->groupEnd();
+            ->where('tindak_lanjut', 'rujuk_puskesmas');
+        $overdueBuilder = $db->table('kesehatan_kunjungan')
+            ->whereIn('tindak_lanjut', ['pantau', 'kunjungan_rumah', 'rujuk_puskesmas'])
+            ->where('tanggal_tindak_lanjut <', date('Y-m-d'));
 
         return [
             'active' => (int) $db->table('kesehatan_peserta')->where('status', 'aktif')->countAllResults(),
             'monthVisits' => (int) $db->table('kesehatan_kunjungan')->where('tanggal >=', $monthStart)->where('hadir', 'ya')->countAllResults(),
             'followups' => (int) $followupBuilder->countAllResults(),
             'referrals' => (int) $referralBuilder->countAllResults(),
+            'overdue' => (int) $overdueBuilder->countAllResults(),
         ];
     }
 }
@@ -1805,6 +1801,7 @@ if (! function_exists('admin_role_options')) {
             'bendahara' => 'Bendahara',
             'operator' => 'Operator Data',
             'kader_kesehatan' => 'Kader Posyandu/Posbindu',
+            'nakes' => 'Tenaga Kesehatan Pendamping',
         ];
     }
 }

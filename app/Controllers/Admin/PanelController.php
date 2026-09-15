@@ -607,7 +607,7 @@ class PanelController extends BaseController
                 'activityDate' => $activityDate,
                 'attendanceParticipants' => [],
                 'attendanceMap' => [],
-                'healthStats' => ['active' => 0, 'monthVisits' => 0, 'followups' => 0, 'referrals' => 0],
+                'healthStats' => ['active' => 0, 'monthVisits' => 0, 'followups' => 0, 'referrals' => 0, 'overdue' => 0],
                 'canValidateKesehatan' => admin_role_can_validate_kesehatan(),
                 'error' => 'Penyimpanan data kader belum siap. Coba muat ulang atau hubungi pengelola hosting.',
                 'success' => '',
@@ -977,7 +977,7 @@ class PanelController extends BaseController
             return view('admin/kesehatan_dashboard', [
                 'currentPage' => 'kesehatan-dashboard',
                 'tableReady' => false,
-                'healthStats' => ['active' => 0, 'monthVisits' => 0, 'followups' => 0, 'referrals' => 0],
+                'healthStats' => ['active' => 0, 'monthVisits' => 0, 'followups' => 0, 'referrals' => 0, 'overdue' => 0],
                 'byJenis' => [],
                 'byLifecycle' => [],
                 'upcomingSchedules' => [],
