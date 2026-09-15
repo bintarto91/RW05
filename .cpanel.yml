@@ -1,0 +1,8 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/rwciteur/public_html/
+    - /bin/cp -R app "$DEPLOYPATH"
+    - /bin/cp -R assets "$DEPLOYPATH"
+    - /bin/cp -R writable "$DEPLOYPATH"
+    - /bin/cp .htaccess .user.ini composer.json composer.lock favicon.svg index.php LICENSE manifest.webmanifest preload.php service-worker.js spark "$DEPLOYPATH"
