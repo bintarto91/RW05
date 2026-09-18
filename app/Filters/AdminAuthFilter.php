@@ -14,6 +14,28 @@ class AdminAuthFilter implements FilterInterface
             return redirect()->to(site_url('admin/login'));
         }
 
+        try {
+            $admin = db_connect()->table('admin_users')
+                ->select('id, role, status, session_version')
+                ->where('id', (int) session()->get('admin_id'))
+                ->get()
+                ->getRowArray();
+        } catch (\Throwable $exception) {
+            log_message('error', 'Admin session validation failed: ' . $exception->getMessage());
+            session()->destroy();
+
+            return redirect()->to(site_url('admin/login'));
+        }
+
+        if (! $admin || ($admin['status'] ?? '') !== 'aktif'
+            || (int) ($admin['session_version'] ?? 1) !== (int) session()->get('admin_session_version')) {
+            session()->destroy();
+
+            return redirect()->to(site_url('admin/login'));
+        }
+
+        session()->set('admin_role', (string) ($admin['role'] ?? session()->get('admin_role')));
+
         if ((string) session()->get('admin_role') === 'kader_kesehatan') {
             $pathSegments = explode('/', trim($request->getUri()->getPath(), '/'));
             $adminSegment = array_search('admin', $pathSegments, true);

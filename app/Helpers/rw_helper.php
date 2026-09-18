@@ -1757,6 +1757,7 @@ if (! function_exists('ensure_admin_users_table')) {
                     password_hash VARCHAR(255) NOT NULL,
                     role VARCHAR(40) NOT NULL DEFAULT 'admin',
                     status VARCHAR(20) NOT NULL DEFAULT 'aktif',
+                    session_version INT UNSIGNED NOT NULL DEFAULT 1,
                     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     UNIQUE KEY username (username),
@@ -1767,7 +1768,8 @@ if (! function_exists('ensure_admin_users_table')) {
             $missingColumns = [
                 'role' => "ALTER TABLE admin_users ADD COLUMN role VARCHAR(40) NOT NULL DEFAULT 'admin' AFTER password_hash",
                 'status' => "ALTER TABLE admin_users ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'aktif' AFTER role",
-                'created_at' => "ALTER TABLE admin_users ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER status",
+                'session_version' => "ALTER TABLE admin_users ADD COLUMN session_version INT UNSIGNED NOT NULL DEFAULT 1 AFTER status",
+                'created_at' => "ALTER TABLE admin_users ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER session_version",
                 'updated_at' => "ALTER TABLE admin_users ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at",
             ];
 
