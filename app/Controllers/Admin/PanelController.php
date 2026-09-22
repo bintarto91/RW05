@@ -484,6 +484,12 @@ class PanelController extends BaseController
 
         if ($this->request->getMethod() === 'POST') {
             $postedId = (int) $this->request->getPost('id');
+            if ((string) $this->request->getPost('action') === 'delete' && $postedId > 0) {
+                $db->table('kesehatan_jadwal')->where('id', $postedId)->delete();
+
+                return redirect()->to(site_url('admin/kesehatan-jadwal'))->with('success', 'Jadwal kesehatan berhasil dihapus.');
+            }
+
             $jenis = trim((string) $this->request->getPost('jenis'));
             $judul = trim((string) $this->request->getPost('judul'));
             $tanggal = trim((string) $this->request->getPost('tanggal'));
@@ -538,12 +544,6 @@ class PanelController extends BaseController
             }
 
             return redirect()->to(site_url('admin/kesehatan-jadwal'))->with('success', $message);
-        }
-
-        if ($this->request->getGet('action') === 'delete' && $id > 0) {
-            $db->table('kesehatan_jadwal')->where('id', $id)->delete();
-
-            return redirect()->to(site_url('admin/kesehatan-jadwal'))->with('success', 'Jadwal kesehatan berhasil dihapus.');
         }
 
         $edit = null;
@@ -1133,6 +1133,13 @@ class PanelController extends BaseController
         }
 
         if ($this->request->getMethod() === 'POST') {
+            $postedId = (int) $this->request->getPost('id');
+            if ((string) $this->request->getPost('action') === 'delete' && $postedId > 0) {
+                $db->table('pengajuan_surat')->where('id', $postedId)->delete();
+
+                return redirect()->to(site_url('admin/pengajuan-surat'))->with('success', 'Pengajuan surat berhasil dihapus.');
+            }
+
             $status = (string) $this->request->getPost('status');
             if (! array_key_exists($status, surat_status_options())) {
                 $status = 'menunggu';
@@ -1145,12 +1152,6 @@ class PanelController extends BaseController
             ]);
 
             return redirect()->to(site_url('admin/pengajuan-surat'))->with('success', 'Status pengajuan surat berhasil diperbarui.');
-        }
-
-        if ($this->request->getGet('action') === 'delete' && $id > 0) {
-            $db->table('pengajuan_surat')->where('id', $id)->delete();
-
-            return redirect()->to(site_url('admin/pengajuan-surat'))->with('success', 'Pengajuan surat berhasil dihapus.');
         }
 
         $statusCounts = array_fill_keys(array_keys(surat_status_options()), 0);
@@ -1338,6 +1339,12 @@ class PanelController extends BaseController
 
         if ($this->request->getMethod() === 'POST') {
             $postedId = (int) $this->request->getPost('id');
+            if ((string) $this->request->getPost('action') === 'delete' && $postedId > 0) {
+                $db->table('warga')->where('id', $postedId)->delete();
+
+                return redirect()->to($this->wargaUrl($filters))->with('success', 'Data warga berhasil dihapus.');
+            }
+
             $redirectExtra = $postedId > 0 ? ['action' => 'edit', 'id' => $postedId] : [];
             $nama = trim((string) $this->request->getPost('nama_kepala_keluarga'));
             $rt = normalize_rt_code($this->request->getPost('rt'));
@@ -1397,12 +1404,6 @@ class PanelController extends BaseController
             }
 
             return redirect()->to($this->wargaUrl($filters))->with('success', $message);
-        }
-
-        if ($this->request->getGet('action') === 'delete' && $id > 0) {
-            $db->table('warga')->where('id', $id)->delete();
-
-            return redirect()->to($this->wargaUrl($filters))->with('success', 'Data warga berhasil dihapus.');
         }
 
         $edit = null;
@@ -1723,16 +1724,17 @@ class PanelController extends BaseController
         $id = (int) $this->request->getGet('id');
 
         if ($this->request->getMethod() === 'POST') {
+            $postedId = (int) $this->request->getPost('id');
+            if ((string) $this->request->getPost('action') === 'delete' && $postedId > 0) {
+                $db->table('aspirasi')->where('id', $postedId)->delete();
+
+                return redirect()->to(site_url('admin/aspirasi'));
+            }
+
             $db->table('aspirasi')->where('id', (int) $this->request->getPost('id'))->update([
                 'status' => $this->request->getPost('status') ?: 'baru',
                 'catatan_admin' => trim((string) $this->request->getPost('catatan_admin')),
             ]);
-
-            return redirect()->to(site_url('admin/aspirasi'));
-        }
-
-        if ($this->request->getGet('action') === 'delete' && $id > 0) {
-            $db->table('aspirasi')->where('id', $id)->delete();
 
             return redirect()->to(site_url('admin/aspirasi'));
         }
@@ -1791,6 +1793,12 @@ class PanelController extends BaseController
 
         if ($this->request->getMethod() === 'POST') {
             $postedId = (int) $this->request->getPost('id');
+            if ((string) $this->request->getPost('action') === 'delete' && $postedId > 0) {
+                $db->table('keuangan_transaksi')->where('id', $postedId)->delete();
+
+                return redirect()->to($this->financeUrl($selectedStart, $selectedEnd, $selectedUnit))->with('success', 'Transaksi keuangan berhasil dihapus.');
+            }
+
             $tanggal = trim((string) $this->request->getPost('tanggal'));
             $lingkup = (string) $this->request->getPost('lingkup');
             $jenis = (string) $this->request->getPost('jenis');
@@ -1838,12 +1846,6 @@ class PanelController extends BaseController
             }
 
             return redirect()->to($this->financeUrl($selectedStart, $selectedEnd, $selectedUnit))->with('success', $message);
-        }
-
-        if ($this->request->getGet('action') === 'delete' && $id > 0) {
-            $db->table('keuangan_transaksi')->where('id', $id)->delete();
-
-            return redirect()->to($this->financeUrl($selectedStart, $selectedEnd, $selectedUnit))->with('success', 'Transaksi keuangan berhasil dihapus.');
         }
 
         $edit = null;
@@ -2018,6 +2020,15 @@ class PanelController extends BaseController
         $id = (int) $this->request->getGet('id');
 
         if ($this->request->getMethod() === 'POST') {
+            if ((string) $this->request->getPost('action') === 'delete') {
+                $deleteId = (int) $this->request->getPost('id');
+                if ($deleteId > 0) {
+                    $db->table($config['table'])->where('id', $deleteId)->delete();
+                }
+
+                return redirect()->to(site_url('admin/' . $page));
+            }
+
             $data = [];
             foreach ($config['fields'] as $name => $field) {
                 $value = $this->request->getPost($name);
@@ -2035,12 +2046,6 @@ class PanelController extends BaseController
             } else {
                 $db->table($config['table'])->insert($data);
             }
-
-            return redirect()->to(site_url('admin/' . $page));
-        }
-
-        if ($this->request->getGet('action') === 'delete' && $id > 0) {
-            $db->table($config['table'])->where('id', $id)->delete();
 
             return redirect()->to(site_url('admin/' . $page));
         }

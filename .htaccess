@@ -5,6 +5,12 @@ ServerSignature Off
     Options +FollowSymlinks
     RewriteEngine On
 
+    # Enforce HTTPS at the web server layer. This avoids CodeIgniter failing
+    # to detect TLS correctly on shared-hosting proxy configurations.
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
     RewriteRule ^(app|system|vendor|writable|tests)(/.*)?$ - [F,L]
     RewriteRule ^(\.env|\.user\.ini|composer\.(json|lock)|spark|preload\.php|phpunit\.dist\.xml)$ - [F,L]
 

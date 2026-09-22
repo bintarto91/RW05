@@ -242,7 +242,12 @@ $showPanitiaDetail = $selectedUnit === '' || $selectedUnit === 'panitia';
           <td><?= nl2br(rw_esc($row['keterangan'] ?? '')) ?></td>
           <td>
             <a href="<?= site_url('admin/keuangan?action=edit&id=' . ($row['id'] ?? 0) . '&start=' . rawurlencode($selectedStart) . '&end=' . rawurlencode($selectedEnd) . ($selectedUnit !== '' ? '&unit=' . rawurlencode($selectedUnit) : '')) ?>">Edit</a> |
-            <a href="<?= site_url('admin/keuangan?action=delete&id=' . ($row['id'] ?? 0) . '&start=' . rawurlencode($selectedStart) . '&end=' . rawurlencode($selectedEnd) . ($selectedUnit !== '' ? '&unit=' . rawurlencode($selectedUnit) : '')) ?>" onclick="return confirm('Hapus transaksi ini?')">Hapus</a>
+            <form method="post" action="<?= site_url('admin/keuangan?start=' . rawurlencode($selectedStart) . '&end=' . rawurlencode($selectedEnd) . ($selectedUnit !== '' ? '&unit=' . rawurlencode($selectedUnit) : '')) ?>" class="inline-form" onsubmit="return confirm('Hapus transaksi ini?')">
+              <?= csrf_field() ?>
+              <input type="hidden" name="action" value="delete">
+              <input type="hidden" name="id" value="<?= (int) ($row['id'] ?? 0) ?>">
+              <button type="submit" class="btn-link-danger">Hapus</button>
+            </form>
           </td>
         </tr>
       <?php endforeach; ?>

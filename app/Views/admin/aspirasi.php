@@ -30,7 +30,14 @@
             <button type="submit">Update</button>
           </form>
         </td>
-        <td><a href="<?= site_url('admin/aspirasi?action=delete&id=' . $row['id']) ?>" onclick="return confirm('Hapus aspirasi ini?')">Hapus</a></td>
+        <td>
+          <form method="post" action="<?= site_url('admin/aspirasi') ?>" onsubmit="return confirm('Hapus aspirasi ini?')">
+            <?= csrf_field() ?>
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="id" value="<?= (int) $row['id'] ?>">
+            <button type="submit" class="btn-link-danger">Hapus</button>
+          </form>
+        </td>
       </tr>
     <?php endforeach; ?>
     <?php if (empty($rows)): ?>

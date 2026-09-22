@@ -132,8 +132,13 @@
             </td>
           <?php endforeach; ?>
           <td>
-            <a href="<?= site_url('admin/' . $page . '?action=edit&id=' . ($row['id'] ?? 0)) ?>">Edit</a> |
-            <a href="<?= site_url('admin/' . $page . '?action=delete&id=' . ($row['id'] ?? 0)) ?>" onclick="return confirm('Hapus data ini?')">Hapus</a>
+            <a href="<?= site_url('admin/' . $page . '?action=edit&id=' . ($row['id'] ?? 0)) ?>">Edit</a>
+            <form method="post" action="<?= site_url('admin/' . $page) ?>" class="inline-form" onsubmit="return confirm('Hapus data ini?')">
+              <?= csrf_field() ?>
+              <input type="hidden" name="action" value="delete">
+              <input type="hidden" name="id" value="<?= (int) ($row['id'] ?? 0) ?>">
+              <button type="submit" class="btn-link-danger">Hapus</button>
+            </form>
           </td>
         </tr>
       <?php endforeach; ?>

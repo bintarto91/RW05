@@ -178,7 +178,7 @@ $formTitle = ! empty($edit) ? 'Edit Data Warga' : 'Tambah Data Warga';
                 <button
                   type="button"
                   class="btn-link-danger"
-                  data-delete-url="<?= rw_esc($wargaUrl(['action' => 'delete', 'id' => $row['id'] ?? 0])) ?>"
+                  data-delete-id="<?= (int) ($row['id'] ?? 0) ?>"
                   data-delete-name="<?= rw_esc($row['nama_kepala_keluarga'] ?? 'data warga ini') ?>"
                 >Hapus</button>
               </div>
@@ -371,7 +371,12 @@ $formTitle = ! empty($edit) ? 'Edit Data Warga' : 'Tambah Data Warga';
     </div>
     <p class="muted">Data <strong id="deleteWargaName">warga ini</strong> akan dihapus dari daftar warga. Aksi ini tidak bisa dibatalkan dari halaman ini.</p>
     <div class="form-actions modal-actions">
-      <a href="#" class="btn-danger" id="confirmDeleteWarga">Ya, Hapus</a>
+      <form method="post" action="<?= rw_esc($formAction) ?>" id="deleteWargaForm">
+        <?= csrf_field() ?>
+        <input type="hidden" name="action" value="delete">
+        <input type="hidden" name="id" id="deleteWargaId" value="">
+        <button type="submit" class="btn-danger" id="confirmDeleteWarga">Ya, Hapus</button>
+      </form>
       <button type="button" class="btn-light" data-close-modal>Batal</button>
     </div>
   </div>
@@ -383,6 +388,7 @@ $formTitle = ! empty($edit) ? 'Edit Data Warga' : 'Tambah Data Warga';
   const modals = Array.from(document.querySelectorAll('.admin-modal'));
   const deleteName = document.getElementById('deleteWargaName');
   const deleteConfirm = document.getElementById('confirmDeleteWarga');
+  const deleteId = document.getElementById('deleteWargaId');
   const wargaBaseUrl = <?= json_encode($baseWargaUrl, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
   const filterForm = document.getElementById('wargaFilterForm');
   const downloadFilterTitle = document.getElementById('downloadFilterTitle');
@@ -499,13 +505,13 @@ $formTitle = ! empty($edit) ? 'Edit Data Warga' : 'Tambah Data Warga';
     });
   });
 
-  document.querySelectorAll('[data-delete-url]').forEach((trigger) => {
+  document.querySelectorAll('[data-delete-id]').forEach((trigger) => {
     trigger.addEventListener('click', () => {
       if (deleteName) {
         deleteName.textContent = trigger.getAttribute('data-delete-name') || 'warga ini';
       }
-      if (deleteConfirm) {
-        deleteConfirm.setAttribute('href', trigger.getAttribute('data-delete-url') || '#');
+      if (deleteId) {
+        deleteId.value = trigger.getAttribute('data-delete-id') || '';
       }
       openModal('wargaDeleteModal');
     });

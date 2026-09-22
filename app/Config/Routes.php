@@ -45,7 +45,7 @@ $routes->group('admin', ['filter' => 'adminauth'], static function ($routes) {
     $routes->match(['GET', 'POST'], 'warga', 'Admin\PanelController::warga');
     $routes->match(['GET', 'POST'], 'keuangan', 'Admin\PanelController::keuangan');
     $routes->match(['GET', 'POST'], 'aspirasi', 'Admin\PanelController::aspirasi');
-    $routes->match(['GET', 'POST'], 'akun', 'Admin\PanelController::akun');
-    $routes->match(['GET', 'POST'], 'import', 'Admin\ImportController::index');
-    $routes->get('import/template/(:segment)', 'Admin\ImportController::template/$1');
+    $routes->match(['GET', 'POST'], 'akun', 'Admin\PanelController::akun', ['filter' => 'superadmin']);
+    $routes->match(['GET', 'POST'], 'import', 'Admin\ImportController::index', ['filter' => 'superadmin']);
+    $routes->get('import/template/(:segment)', 'Admin\ImportController::template/$1', ['filter' => 'superadmin']);
 });
