@@ -672,12 +672,6 @@ class PublicController extends BaseController
             }
         }
 
-        $path = WRITEPATH . self::PENGURUS_STRUCTURE_DESCRIPTION;
-
-        if (is_file($path)) {
-            return trim((string) file_get_contents($path));
-        }
-
         return $this->pengurusStructureImageUrl() !== ''
             ? 'Acuan susunan pengurus mengikuti gambar struktur yang diunggah dari dashboard admin. Nama dan jabatan di bawah diambil dari data pengurus aktif.'
             : '';

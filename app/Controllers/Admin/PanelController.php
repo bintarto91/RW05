@@ -2131,9 +2131,7 @@ class PanelController extends BaseController
             }
         }
 
-        $path = $this->pengurusStructureDescriptionPath();
-
-        return is_file($path) ? trim((string) file_get_contents($path)) : '';
+        return '';
     }
 
     private function hasPengurusStructureDescriptionColumn($db): bool
