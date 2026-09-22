@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rw05-pwa-v9';
+const CACHE_NAME = 'rw05-pwa-v10';
 const APP_SHELL = [
   '/',
   '/assets/style.css',
@@ -28,13 +28,34 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  const requestUrl = new URL(event.request.url);
+
+  // Only document navigations may fall back to the cached homepage. Returning
+  // HTML for a failed stylesheet, script, or image makes the whole site appear
+  // unstyled even though the server itself is healthy.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('/'))
+    );
+    return;
+  }
+
+  // Do not cache dynamic pages, admin responses, or third-party resources.
+  const cacheableDestinations = ['style', 'script', 'image', 'font', 'manifest'];
+  if (requestUrl.origin !== self.location.origin || !cacheableDestinations.includes(event.request.destination)) {
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
         return response;
       })
-      .catch(() => caches.match(event.request).then((cached) => cached || caches.match('/')))
+      .catch(() => caches.match(event.request, { ignoreSearch: true })
+        .then((cached) => cached || Response.error()))
   );
 });
