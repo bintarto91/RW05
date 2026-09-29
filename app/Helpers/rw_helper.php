@@ -1580,6 +1580,10 @@ if (! function_exists('kesehatan_sasaran_detail_fields')) {
             'obat_cacing' => 20,
             'imunisasi' => 20,
             'perkembangan' => 30,
+            'status_bb_u' => 30,
+            'status_pb_u' => 30,
+            'status_bb_pb' => 30,
+            'status_imt_u' => 30,
             'ttd' => 20,
             'kelas_ibu' => 20,
             'anemia' => 20,
@@ -1608,6 +1612,10 @@ if (! function_exists('sanitize_kesehatan_sasaran_details')) {
             'obat_cacing' => ['ya', 'tidak', 'tidak_berlaku', 'belum_diperiksa'],
             'imunisasi' => ['lengkap', 'belum_lengkap', 'tidak_diperiksa'],
             'perkembangan' => ['sesuai', 'meragukan', 'penyimpangan', 'belum_diperiksa'],
+            'status_bb_u' => ['sangat_kurang', 'kurang', 'normal', 'risiko_lebih', 'belum_dinilai'],
+            'status_pb_u' => ['sangat_pendek', 'pendek', 'normal', 'tinggi', 'belum_dinilai'],
+            'status_bb_pb' => ['gizi_buruk', 'gizi_kurang', 'gizi_baik', 'risiko_lebih', 'gizi_lebih', 'obesitas', 'belum_dinilai'],
+            'status_imt_u' => ['gizi_buruk', 'gizi_kurang', 'gizi_baik', 'risiko_lebih', 'gizi_lebih', 'obesitas', 'belum_dinilai'],
             'ttd' => ['ya', 'tidak', 'tidak_berlaku', 'belum_diperiksa'],
             'kelas_ibu' => ['ya', 'tidak', 'tidak_berlaku', 'belum_diperiksa'],
             'anemia' => ['tidak', 'curiga', 'belum_diperiksa'],
@@ -1633,6 +1641,138 @@ if (! function_exists('sanitize_kesehatan_sasaran_details')) {
         }
 
         return $result;
+    }
+}
+
+if (! function_exists('kesehatan_visit_has_results')) {
+    /**
+     * Menentukan apakah kunjungan sudah berisi hasil pelayanan, bukan sekadar kehadiran.
+     */
+    function kesehatan_visit_has_results(?array $visit): bool
+    {
+        if (! $visit) {
+            return false;
+        }
+
+        foreach ([
+            'berat_kg', 'tinggi_cm', 'lingkar_kepala_cm', 'lingkar_lengan_cm', 'lingkar_perut_cm',
+            'usia_kehamilan_minggu', 'tekanan_sistolik', 'tekanan_diastolik', 'gula_darah',
+            'faktor_merokok', 'aktivitas_fisik', 'konsumsi_buah_sayur', 'layanan_diberikan',
+            'edukasi', 'tujuan_rujukan', 'tanggal_tindak_lanjut', 'catatan',
+        ] as $field) {
+            if (isset($visit[$field]) && trim((string) $visit[$field]) !== '') {
+                return true;
+            }
+        }
+
+        foreach ([decode_kesehatan_sasaran_details($visit['sasaran_data_json'] ?? ''), decode_kesehatan_posbindu_details($visit['posbindu_data_json'] ?? '')] as $details) {
+            foreach ($details as $value) {
+                if ($value !== '' && ! in_array($value, ['belum_diperiksa', 'belum_dinilai', 'tidak_diperiksa', 'tidak_berlaku'], true)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+}
+
+if (! function_exists('kesehatan_visit_screening_status')) {
+    /**
+     * Ringkasan operasional, bukan diagnosis. Penanda Posbindu memakai ambang skrining
+     * Kemenkes dan jawaban eksplisit; hasil klinis tetap harus divalidasi tenaga kesehatan.
+     */
+    function kesehatan_visit_screening_status(?array $visit, ?array $participant = null): array
+    {
+        if (! $visit) {
+            return ['key' => 'belum_dicatat', 'label' => 'Belum dicatat', 'reasons' => [], 'bmi' => null];
+        }
+        if (($visit['hadir'] ?? '') !== 'ya') {
+            return ['key' => 'tidak_hadir', 'label' => 'Tidak hadir', 'reasons' => [], 'bmi' => null];
+        }
+        if (! kesehatan_visit_has_results($visit)) {
+            return ['key' => 'belum_diisi', 'label' => 'Hasil belum diisi', 'reasons' => [], 'bmi' => null];
+        }
+
+        $reasons = [];
+        $details = decode_kesehatan_sasaran_details($visit['sasaran_data_json'] ?? '');
+        $posbindu = decode_kesehatan_posbindu_details($visit['posbindu_data_json'] ?? '');
+        $isReferral = ($visit['tindak_lanjut'] ?? '') === 'rujuk_puskesmas'
+            || ($posbindu['rujuk_rs'] ?? '') === 'YA';
+
+        if ($isReferral) {
+            $reasons[] = 'Ada rujukan/konsultasi';
+        }
+        if (in_array(($visit['tindak_lanjut'] ?? ''), ['pantau', 'kunjungan_rumah'], true)) {
+            $reasons[] = 'Ada tindak lanjut';
+        }
+
+        foreach ([
+            'kenaikan_bb' => ['tidak_naik' => 'Berat badan tidak naik'],
+            'perkembangan' => ['meragukan' => 'Perkembangan meragukan', 'penyimpangan' => 'Perkembangan perlu tindak lanjut'],
+            'status_bb_u' => ['sangat_kurang' => 'BB/U sangat kurang', 'kurang' => 'BB/U kurang', 'risiko_lebih' => 'BB/U berisiko lebih'],
+            'status_pb_u' => ['sangat_pendek' => 'PB/TB-U sangat pendek', 'pendek' => 'PB/TB-U pendek'],
+            'status_bb_pb' => ['gizi_buruk' => 'BB/PB-TB gizi buruk', 'gizi_kurang' => 'BB/PB-TB gizi kurang', 'risiko_lebih' => 'BB/PB-TB berisiko lebih', 'gizi_lebih' => 'BB/PB-TB gizi lebih', 'obesitas' => 'BB/PB-TB obesitas'],
+            'status_imt_u' => ['gizi_buruk' => 'IMT/U gizi buruk', 'gizi_kurang' => 'IMT/U gizi kurang', 'risiko_lebih' => 'IMT/U berisiko lebih', 'gizi_lebih' => 'IMT/U gizi lebih', 'obesitas' => 'IMT/U obesitas'],
+            'imunisasi' => ['belum_lengkap' => 'Imunisasi belum lengkap'],
+            'anemia' => ['curiga' => 'Curiga anemia'],
+            'kesehatan_jiwa' => ['bermasalah' => 'Skrining kesehatan jiwa perlu tindak lanjut'],
+            'napza' => ['berisiko' => 'Risiko NAPZA'],
+            'skilas' => ['perlu_tindak_lanjut' => 'SKILAS perlu tindak lanjut'],
+            'tanda_bahaya' => ['ada' => 'Ada tanda bahaya'],
+        ] as $field => $flags) {
+            $value = (string) ($details[$field] ?? '');
+            if (isset($flags[$value])) {
+                $reasons[] = $flags[$value];
+            }
+        }
+
+        $bmi = null;
+        $height = (float) ($visit['tinggi_cm'] ?? 0);
+        $weight = (float) ($visit['berat_kg'] ?? 0);
+        if ($height > 0 && $weight > 0 && in_array(($participant['kelompok_siklus'] ?? ''), ['dewasa', 'lansia'], true)) {
+            $bmi = round($weight / (($height / 100) ** 2), 1);
+            if ($bmi < 18.5 || $bmi >= 25) {
+                $reasons[] = 'IMT di luar rentang skrining 18,5–24,9';
+            }
+        }
+
+        if (($visit['jenis_layanan'] ?? '') === 'posbindu') {
+            $systolic = (int) ($visit['tekanan_sistolik'] ?? 0);
+            $diastolic = (int) ($visit['tekanan_diastolik'] ?? 0);
+            if ($systolic >= 140 || $diastolic >= 90) {
+                $reasons[] = 'Tekanan darah perlu ditindaklanjuti';
+            }
+            $waist = (float) ($visit['lingkar_perut_cm'] ?? 0);
+            $gender = (string) ($participant['jenis_kelamin'] ?? '');
+            if (($gender === 'L' && $waist > 90) || ($gender === 'P' && $waist > 80)) {
+                $reasons[] = 'Lingkar perut di atas ambang skrining';
+            }
+            $glucose = (float) ($visit['gula_darah'] ?? 0);
+            $glucoseContext = (string) ($visit['jenis_gula_darah'] ?? '');
+            $glucoseLimit = ['puasa' => 126, 'dua_jam_pp' => 180, 'sewaktu' => 200][$glucoseContext] ?? null;
+            if ($glucoseLimit !== null && $glucose >= $glucoseLimit) {
+                $reasons[] = 'Gula darah perlu ditindaklanjuti';
+            }
+            if (($visit['faktor_merokok'] ?? '') === 'ya') $reasons[] = 'Merokok';
+            if (($visit['aktivitas_fisik'] ?? '') === 'kurang') $reasons[] = 'Aktivitas fisik kurang';
+            if (($visit['konsumsi_buah_sayur'] ?? '') === 'kurang') $reasons[] = 'Konsumsi buah/sayur kurang';
+            foreach (['gula_berlebihan', 'garam_berlebihan', 'lemak_berlebihan', 'konsumsi_alkohol'] as $field) {
+                if (($posbindu[$field] ?? '') === 'YA') {
+                    $reasons[] = ['gula_berlebihan' => 'Konsumsi gula berlebihan', 'garam_berlebihan' => 'Konsumsi garam berlebihan', 'lemak_berlebihan' => 'Konsumsi lemak berlebihan', 'konsumsi_alkohol' => 'Konsumsi alkohol'][$field];
+                }
+            }
+        }
+
+        $reasons = array_values(array_unique($reasons));
+        if ($isReferral) {
+            return ['key' => 'rujukan', 'label' => 'Rujukan', 'reasons' => $reasons, 'bmi' => $bmi];
+        }
+        if ($reasons) {
+            return ['key' => 'perhatian', 'label' => 'Perlu perhatian', 'reasons' => $reasons, 'bmi' => $bmi];
+        }
+
+        return ['key' => 'tercatat', 'label' => 'Hasil tercatat', 'reasons' => [], 'bmi' => $bmi];
     }
 }
 

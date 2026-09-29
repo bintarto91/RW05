@@ -6,7 +6,7 @@
     <div>
       <p class="admin-kicker">Alur khusus Posbindu</p>
       <h1>Laporan Posbindu</h1>
-      <p class="muted">Satu halaman untuk memilih tanggal, melengkapi pemeriksaan, lalu mengunduh laporan Puskesmas dengan format Excel asli.</p>
+      <p class="muted">Pilih tanggal, lengkapi hasil peserta, lalu unduh satu laporan Excel dengan susunan kolom yang sama seperti format Puskesmas.</p>
     </div>
     <a class="btn-light" href="<?= site_url('admin/kesehatan-data?jenis=posbindu&jenis_kegiatan=posbindu') ?>">Daftar peserta & isi pemeriksaan</a>
   </div>
@@ -31,8 +31,10 @@
   </form>
   <div class="stat-grid health-report-stats">
     <article><strong><?= count($rows) ?></strong><span>Peserta terdaftar</span></article>
-    <article><strong><?= (int) $presentCount ?></strong><span>Hadir / sudah dicatat</span></article>
-    <article><strong><?= (int) $completeCount ?></strong><span>Data inti lengkap</span></article>
+    <article><strong><?= (int) $presentCount ?></strong><span>Hadir</span></article>
+    <article><strong><?= (int) $completeCount ?></strong><span>Siap diekspor</span></article>
+    <article class="is-warning"><strong><?= (int) ($attentionCount ?? 0) ?></strong><span>Perlu perhatian</span></article>
+    <article class="is-danger"><strong><?= (int) ($referralCount ?? 0) ?></strong><span>Rujukan</span></article>
   </div>
 </section>
 
@@ -42,19 +44,26 @@
   </div>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Peserta</th><th>NIK</th><th>RT</th><th>Hasil inti</th><th>Status</th><th>Aksi</th></tr></thead>
+      <thead><tr><th>Peserta</th><th>NIK</th><th>RT</th><th>Ringkasan hasil</th><th>Penanda skrining</th><th>Status laporan</th><th>Aksi</th></tr></thead>
       <tbody>
         <?php foreach ($rows as $row): ?>
           <tr>
             <td><strong><?= rw_esc($row['nama']) ?></strong></td>
             <td><?= rw_esc($row['nik'] ?: '—') ?></td>
             <td><?= rw_esc($row['rt'] ?: '—') ?></td>
-            <td><?= $row['kunjungan_id'] ? rw_esc(trim(($row['tekanan_sistolik'] ?? '') . '/' . ($row['tekanan_diastolik'] ?? ''), '/') ?: 'Belum lengkap') : '—' ?></td>
-            <td><span class="report-status <?= $row['report_status'] === 'Siap dilaporkan' ? 'is-ready' : ($row['report_status'] === 'Perlu dilengkapi' ? 'is-warning' : '') ?>"><?= rw_esc($row['report_status']) ?></span></td>
-            <td><a href="<?= site_url('admin/kesehatan-data?jenis=posbindu&peserta_id=' . (int) $row['id'] . '&jenis_kegiatan=posbindu&tanggal_kegiatan=' . rawurlencode($reportDate)) ?>"><?= $row['kunjungan_id'] ? 'Lengkapi' : 'Isi pemeriksaan' ?></a></td>
+            <td>
+              <?php if ($row['kunjungan_id']): ?>
+                <?= ($row['tekanan_sistolik'] !== null || $row['tekanan_diastolik'] !== null) ? 'TD ' . rw_esc(($row['tekanan_sistolik'] ?? '—') . '/' . ($row['tekanan_diastolik'] ?? '—')) . '<br>' : '' ?>
+                <?= ($row['berat_kg'] !== null || $row['tinggi_cm'] !== null) ? '<small>BB/TB ' . rw_esc(($row['berat_kg'] ?? '—') . ' kg / ' . ($row['tinggi_cm'] ?? '—') . ' cm') . '</small>' : '<small>Hasil belum diisi</small>' ?>
+              <?php else: ?>—<?php endif; ?>
+            </td>
+            <?php $screening = $row['screening_status'] ?? ['key' => 'belum_dicatat', 'label' => 'Belum dicatat', 'reasons' => []]; ?>
+            <td><span class="health-screening-status is-<?= rw_esc($screening['key']) ?>" title="<?= rw_esc(implode(' · ', $screening['reasons'])) ?>"><?= rw_esc($screening['label']) ?></span><?php if ($screening['reasons']): ?><small class="health-status-reason"><?= rw_esc(implode(' · ', array_slice($screening['reasons'], 0, 2))) ?></small><?php endif; ?></td>
+            <td><span class="report-status <?= $row['report_status'] === 'Siap diekspor' ? 'is-ready' : ($row['report_status'] !== 'Belum dicatat' ? 'is-warning' : '') ?>"><?= rw_esc($row['report_status']) ?></span></td>
+            <td><a class="health-row-action" href="<?= site_url('admin/kesehatan-data?jenis=posbindu&peserta_id=' . (int) $row['id'] . '&jenis_kegiatan=posbindu&tab=pemeriksaan&tanggal_kegiatan=' . rawurlencode($reportDate)) ?>"><?= $row['kunjungan_id'] ? 'Edit hasil' : 'Isi pemeriksaan' ?></a></td>
           </tr>
         <?php endforeach; ?>
-        <?php if (empty($rows)): ?><tr><td colspan="6" class="table-empty">Belum ada peserta dewasa atau lansia.</td></tr><?php endif; ?>
+        <?php if (empty($rows)): ?><tr><td colspan="7" class="table-empty">Belum ada peserta dewasa atau lansia.</td></tr><?php endif; ?>
       </tbody>
     </table>
   </div>

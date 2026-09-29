@@ -30,7 +30,9 @@ $yesNoUnknownOptions = ['belum_diperiksa' => 'Belum diperiksa', 'ya' => 'Ya', 't
 $visitDetailLabels = [
     'suhu_tubuh' => 'Suhu tubuh', 'status_ibu' => 'Status ibu', 'kenaikan_bb' => 'Kenaikan BB', 'asi_eksklusif' => 'ASI eksklusif',
     'pmt_lokal' => 'PMT lokal', 'vitamin_a' => 'Vitamin A', 'obat_cacing' => 'Obat cacing',
-    'imunisasi' => 'Imunisasi', 'perkembangan' => 'Perkembangan', 'ttd' => 'Tablet tambah darah',
+    'imunisasi' => 'Imunisasi', 'perkembangan' => 'Perkembangan',
+    'status_bb_u' => 'Status BB/U', 'status_pb_u' => 'Status PB/TB-U',
+    'status_bb_pb' => 'Status BB/PB-TB', 'status_imt_u' => 'Status IMT/U', 'ttd' => 'Tablet tambah darah',
     'kelas_ibu' => 'Kelas ibu', 'anemia' => 'Skrining anemia', 'kesehatan_jiwa' => 'Kesehatan jiwa',
     'napza' => 'Risiko NAPZA', 'kolesterol' => 'Kolesterol', 'adl' => 'ADL/AKS',
     'skilas' => 'SKILAS', 'lingkar_betis' => 'Lingkar betis', 'tanda_bahaya' => 'Tanda bahaya',
@@ -42,6 +44,10 @@ $visitDetailValues = [
     'belum_diperiksa' => 'Belum diperiksa', 'lengkap' => 'Lengkap', 'belum_lengkap' => 'Belum lengkap',
     'tidak_diperiksa' => 'Tidak diperiksa', 'sesuai' => 'Sesuai', 'meragukan' => 'Meragukan',
     'penyimpangan' => 'Ada penyimpangan', 'curiga' => 'Curiga anemia', 'normal' => 'Normal',
+    'sangat_kurang' => 'Sangat kurang', 'kurang' => 'Kurang', 'risiko_lebih' => 'Risiko berat lebih',
+    'sangat_pendek' => 'Sangat pendek', 'pendek' => 'Pendek', 'tinggi' => 'Tinggi',
+    'gizi_buruk' => 'Gizi buruk', 'gizi_kurang' => 'Gizi kurang', 'gizi_baik' => 'Gizi baik',
+    'gizi_lebih' => 'Gizi lebih', 'obesitas' => 'Obesitas',
     'bermasalah' => 'Ada masalah', 'berisiko' => 'Berisiko', 'mandiri' => 'Mandiri',
     'ketergantungan_ringan' => 'Ketergantungan ringan', 'ketergantungan_sedang' => 'Ketergantungan sedang',
     'ketergantungan_berat' => 'Ketergantungan berat', 'ketergantungan_total' => 'Ketergantungan total',
@@ -107,6 +113,18 @@ $visitSummary = static function (?array $visit) use ($visitDetailLabels, $visitD
 </nav>
 
 <?php if ($activeStep === 'kegiatan'): ?>
+<?php
+$dayCounts = ['target' => count($attendanceParticipants), 'hadir' => 0, 'tidak_hadir' => 0, 'hasil' => 0, 'perhatian' => 0, 'rujukan' => 0];
+foreach ($attendanceParticipants as $dayParticipant) {
+    $dayVisit = $attendanceMap[(int) $dayParticipant['id']] ?? null;
+    $dayStatus = kesehatan_visit_screening_status($dayVisit, $dayParticipant);
+    if (($dayVisit['hadir'] ?? '') === 'ya') $dayCounts['hadir']++;
+    if (($dayVisit['hadir'] ?? '') === 'tidak') $dayCounts['tidak_hadir']++;
+    if (kesehatan_visit_has_results($dayVisit)) $dayCounts['hasil']++;
+    if ($dayStatus['key'] === 'perhatian') $dayCounts['perhatian']++;
+    if ($dayStatus['key'] === 'rujukan') $dayCounts['rujukan']++;
+}
+?>
 <section class="panel">
   <div class="section-heading">
     <div>
@@ -126,6 +144,14 @@ $visitSummary = static function (?array $visit) use ($visitDetailLabels, $visitD
       <input type="date" name="tanggal_kegiatan" value="<?= rw_esc($activityDate) ?>" required onchange="this.form.submit()">
     </label>
   </form>
+  <div class="health-day-recap" aria-label="Rekap kegiatan tanggal ini">
+    <div><strong><?= $dayCounts['target'] ?></strong><span>Sasaran aktif</span></div>
+    <div><strong><?= $dayCounts['hadir'] ?></strong><span>Hadir</span></div>
+    <div><strong><?= $dayCounts['tidak_hadir'] ?></strong><span>Tidak hadir</span></div>
+    <div><strong><?= $dayCounts['hasil'] ?></strong><span>Hasil terisi</span></div>
+    <div class="is-warning"><strong><?= $dayCounts['perhatian'] ?></strong><span>Perlu perhatian</span></div>
+    <div class="is-danger"><strong><?= $dayCounts['rujukan'] ?></strong><span>Rujukan</span></div>
+  </div>
   <div class="health-flow-note"><strong>Apa fungsi Simpan Kehadiran?</strong><span>Tombol ini hanya menyimpan siapa yang hadir atau tidak hadir pada tanggal tersebut. Setelah tersimpan, gunakan tombol <b>Isi hasil</b> untuk mencatat pengukuran dan pelayanan. Menyimpan ulang kehadiran tidak menghapus hasil pemeriksaan yang sudah ada.</span></div>
   <form method="post" action="<?= site_url('admin/kesehatan-data') ?>">
     <?= csrf_field() ?>
@@ -134,23 +160,26 @@ $visitSummary = static function (?array $visit) use ($visitDetailLabels, $visitD
     <input type="hidden" name="tanggal_kegiatan" value="<?= rw_esc($activityDate) ?>">
     <div class="table-scroll">
       <table>
-        <thead><tr><th>Hadir</th><th>Peserta</th><th>RT</th><th>Hasil Hari Ini</th><th>Aksi</th></tr></thead>
+        <thead><tr><th>Hadir</th><th>Peserta</th><th>RT</th><th>Status</th><th>Hasil Hari Ini</th><th>Aksi</th></tr></thead>
         <tbody>
           <?php foreach ($attendanceParticipants as $participant): ?>
             <?php $attendance = $attendanceMap[(int) $participant['id']] ?? null; ?>
+            <?php $screeningStatus = kesehatan_visit_screening_status($attendance, $participant); ?>
             <tr>
               <td><input type="checkbox" name="hadir[<?= (int) $participant['id'] ?>]" value="1" <?= ($attendance['hadir'] ?? '') === 'ya' ? 'checked' : '' ?> aria-label="Hadir: <?= rw_esc($participant['nama']) ?>"></td>
               <td><strong><?= rw_esc($participant['nama']) ?></strong><?= ! empty($participant['nama_wali']) ? '<br><small>Wali: ' . rw_esc($participant['nama_wali']) . '</small>' : '' ?></td>
               <td><?= rw_esc($participant['rt'] ?? '-') ?></td>
+              <td><span class="health-screening-status is-<?= rw_esc($screeningStatus['key']) ?>" title="<?= rw_esc(implode(' · ', $screeningStatus['reasons'])) ?>"><?= rw_esc($screeningStatus['label']) ?></span><?php if ($screeningStatus['reasons']): ?><small class="health-status-reason"><?= rw_esc(implode(' · ', array_slice($screeningStatus['reasons'], 0, 2))) ?></small><?php endif; ?></td>
               <td>
                 <?php $todayNotes = $visitSummary($attendance); ?>
                 <?php $todaySummary = $todayNotes ? implode(' · ', $todayNotes) : (($attendance['hadir'] ?? '') === 'ya' ? 'Hadir, hasil belum diisi' : (($attendance['hadir'] ?? '') === 'tidak' ? 'Tidak hadir' : 'Kehadiran belum disimpan')); ?>
                 <span class="health-result-summary" title="<?= rw_esc($todaySummary) ?>"><?= rw_esc(str_starts_with($todaySummary, 'Impor laporan Posbindu') ? 'Data hasil impor - klik Edit hasil untuk melengkapi' : $todaySummary) ?></span>
+                <?php if ($screeningStatus['bmi'] !== null): ?><small>IMT <?= rw_esc((string) $screeningStatus['bmi']) ?> kg/m²</small><?php endif; ?>
               </td>
-              <td><a class="health-row-action" href="<?= rw_esc($workspaceUrl('pemeriksaan') . '&peserta_id=' . (int) $participant['id']) ?>"><?= $todayNotes ? 'Edit hasil' : 'Isi hasil' ?></a></td>
+              <td><a class="health-row-action" href="<?= rw_esc($workspaceUrl('pemeriksaan') . '&peserta_id=' . (int) $participant['id']) ?>"><?= kesehatan_visit_has_results($attendance) ? 'Edit hasil' : 'Isi hasil' ?></a></td>
             </tr>
           <?php endforeach; ?>
-          <?php if (empty($attendanceParticipants)): ?><tr><td colspan="5" class="table-empty">Belum ada peserta aktif untuk jenis layanan ini.</td></tr><?php endif; ?>
+          <?php if (empty($attendanceParticipants)): ?><tr><td colspan="6" class="table-empty">Belum ada peserta aktif untuk jenis layanan ini.</td></tr><?php endif; ?>
         </tbody>
       </table>
     </div>
@@ -191,10 +220,10 @@ $visitSummary = static function (?array $visit) use ($visitDetailLabels, $visitD
         <input type="text" name="nik" inputmode="numeric" maxlength="32" value="<?= rw_esc(old('nik', $edit['nik'] ?? '')) ?>" placeholder="Sesuai dokumen sumber">
       </label>
       <label>Tanggal Lahir
-        <input type="date" name="tanggal_lahir" value="<?= rw_esc(old('tanggal_lahir', $edit['tanggal_lahir'] ?? '')) ?>">
+        <input type="date" name="tanggal_lahir" value="<?= rw_esc(old('tanggal_lahir', $edit['tanggal_lahir'] ?? '')) ?>" <?= $workspaceService === 'posbindu' ? 'required' : '' ?>>
       </label>
       <label>Jenis Kelamin
-        <select name="jenis_kelamin">
+        <select name="jenis_kelamin" <?= $workspaceService === 'posbindu' ? 'required' : '' ?>>
           <option value="">Pilih bila diperlukan</option>
           <?php foreach ($genderOptions as $value => $label): ?>
             <option value="<?= rw_esc($value) ?>" <?= is_selected($selectedGender, $value) ?>><?= rw_esc($label) ?></option>
@@ -233,6 +262,9 @@ $visitSummary = static function (?array $visit) use ($visitDetailLabels, $visitD
       <label>No. HP Kontak
         <input type="text" name="no_hp" maxlength="40" value="<?= rw_esc(old('no_hp', $edit['no_hp'] ?? '')) ?>">
       </label>
+      <label class="full">Alamat Singkat <?= $workspaceService === 'posbindu' ? '(wajib untuk laporan)' : '' ?>
+        <input type="text" name="alamat" maxlength="255" value="<?= rw_esc(old('alamat', $edit['alamat'] ?? '')) ?>" <?= $workspaceService === 'posbindu' ? 'required' : '' ?>>
+      </label>
       <?php if ($isEditing): ?>
         <label>Status Peserta
           <select name="status">
@@ -245,11 +277,8 @@ $visitSummary = static function (?array $visit) use ($visitDetailLabels, $visitD
         <input type="hidden" name="status" value="aktif">
       <?php endif; ?>
       <details class="full health-form-section">
-        <summary><strong>Alamat dan catatan</strong> <span class="muted">(opsional)</span></summary>
+        <summary><strong>Catatan kader</strong> <span class="muted">(opsional)</span></summary>
         <div class="grid-form health-nested-grid">
-          <label class="full">Alamat Singkat
-            <input type="text" name="alamat" maxlength="255" value="<?= rw_esc(old('alamat', $edit['alamat'] ?? '')) ?>">
-          </label>
           <label class="full">Catatan Kader
             <textarea name="catatan" rows="3" maxlength="2000" placeholder="Catatan non-sensitif untuk kebutuhan pendampingan."><?= rw_esc(old('catatan', $edit['catatan'] ?? '')) ?></textarea>
           </label>
@@ -314,15 +343,18 @@ $visitSummary = static function (?array $visit) use ($visitDetailLabels, $visitD
     <input type="hidden" name="action" value="save_visit">
     <input type="hidden" name="peserta_id" value="<?= (int) $selectedParticipant['id'] ?>">
     <div class="health-selected-participant"><span>Peserta</span><strong><?= rw_esc($selectedParticipant['nama']) ?></strong><small><?= rw_esc($lifecycleOptions[$visitLifecycle] ?? 'Kelompok belum ditentukan') ?></small><a href="<?= $workspaceUrl('pemeriksaan') ?>">Ganti peserta</a></div>
+    <?php if ($workspaceService === 'posyandu' && $visitLifecycle === 'bayi_balita' && (empty($selectedParticipant['tanggal_lahir']) || empty($selectedParticipant['jenis_kelamin']))): ?>
+      <div class="full alert warning">Lengkapi tanggal lahir dan jenis kelamin pada Data Sasaran sebelum menyalin status pertumbuhan dari Buku KIA/ASIK.</div>
+    <?php endif; ?>
     <label>Tanggal Kunjungan
       <input type="date" name="tanggal" value="<?= rw_esc(old('tanggal', $selectedVisit['tanggal'] ?? $activityDate)) ?>" required>
     </label>
     <label>Kehadiran
       <select name="hadir"><option value="ya" <?= is_selected(old('hadir', $selectedVisit['hadir'] ?? 'ya'), 'ya') ?>>Hadir</option><option value="tidak" <?= is_selected(old('hadir', $selectedVisit['hadir'] ?? 'ya'), 'tidak') ?>>Tidak hadir</option></select>
     </label>
-    <label>Suhu Tubuh (°C, bila diukur)
+    <?php if ($workspaceService === 'posyandu'): ?><label>Suhu Tubuh (°C, bila diukur)
       <input type="number" name="sasaran[suhu_tubuh]" min="30" max="45" step="0.1" value="<?= rw_esc($sasaranOld['suhu_tubuh'] ?? '') ?>">
-    </label>
+    </label><?php endif; ?>
     <label>Jenis Layanan Kunjungan
       <input type="hidden" name="jenis_layanan" id="healthVisitType" value="<?= rw_esc($selectedVisitType) ?>">
       <span class="health-locked-value"><?= rw_esc($participantTypeOptions[$selectedVisitType] ?? $selectedVisitType) ?></span>
@@ -340,6 +372,16 @@ $visitSummary = static function (?array $visit) use ($visitDetailLabels, $visitD
         <label><?= $label ?><select name="sasaran[<?= $field ?>]"><?php foreach ($yesNoUnknownOptions as $value => $optionLabel): ?><option value="<?= $value ?>" <?= is_selected($sasaranOld[$field] ?? 'belum_diperiksa', $value) ?>><?= $optionLabel ?></option><?php endforeach; ?></select></label>
       <?php endforeach; ?>
       <label>Status Imunisasi<select name="sasaran[imunisasi]"><?php foreach (['tidak_diperiksa' => 'Tidak diperiksa', 'lengkap' => 'Lengkap sesuai usia', 'belum_lengkap' => 'Belum lengkap'] as $value => $label): ?><option value="<?= $value ?>" <?= is_selected($sasaranOld['imunisasi'] ?? 'tidak_diperiksa', $value) ?>><?= $label ?></option><?php endforeach; ?></select></label>
+      <details class="full health-form-section health-growth-status">
+        <summary><strong>Status pertumbuhan dari Buku KIA / ASIK</strong> <span class="muted">(salin bila sudah dinilai)</span></summary>
+        <p class="muted">Web tidak menebak status gizi. Pilih hasil yang sudah ditentukan memakai kurva pertumbuhan sesuai umur dan jenis kelamin.</p>
+        <div class="grid-form health-nested-grid">
+          <label>Berat Badan menurut Umur (BB/U)<select name="sasaran[status_bb_u]"><?php foreach (['belum_dinilai' => 'Belum dinilai', 'sangat_kurang' => 'Berat badan sangat kurang', 'kurang' => 'Berat badan kurang', 'normal' => 'Berat badan normal', 'risiko_lebih' => 'Risiko berat badan lebih'] as $value => $label): ?><option value="<?= $value ?>" <?= is_selected($sasaranOld['status_bb_u'] ?? 'belum_dinilai', $value) ?>><?= $label ?></option><?php endforeach; ?></select></label>
+          <label>Panjang/Tinggi menurut Umur (PB/TB-U)<select name="sasaran[status_pb_u]"><?php foreach (['belum_dinilai' => 'Belum dinilai', 'sangat_pendek' => 'Sangat pendek', 'pendek' => 'Pendek', 'normal' => 'Normal', 'tinggi' => 'Tinggi'] as $value => $label): ?><option value="<?= $value ?>" <?= is_selected($sasaranOld['status_pb_u'] ?? 'belum_dinilai', $value) ?>><?= $label ?></option><?php endforeach; ?></select></label>
+          <label>Berat menurut Panjang/Tinggi (BB/PB-TB)<select name="sasaran[status_bb_pb]"><?php foreach (['belum_dinilai' => 'Belum dinilai', 'gizi_buruk' => 'Gizi buruk', 'gizi_kurang' => 'Gizi kurang', 'gizi_baik' => 'Gizi baik', 'risiko_lebih' => 'Berisiko gizi lebih', 'gizi_lebih' => 'Gizi lebih', 'obesitas' => 'Obesitas'] as $value => $label): ?><option value="<?= $value ?>" <?= is_selected($sasaranOld['status_bb_pb'] ?? 'belum_dinilai', $value) ?>><?= $label ?></option><?php endforeach; ?></select></label>
+          <label>IMT menurut Umur (IMT/U, bila tersedia)<select name="sasaran[status_imt_u]"><?php foreach (['belum_dinilai' => 'Belum dinilai', 'gizi_buruk' => 'Gizi buruk', 'gizi_kurang' => 'Gizi kurang', 'gizi_baik' => 'Gizi baik', 'risiko_lebih' => 'Berisiko gizi lebih', 'gizi_lebih' => 'Gizi lebih', 'obesitas' => 'Obesitas'] as $value => $label): ?><option value="<?= $value ?>" <?= is_selected($sasaranOld['status_imt_u'] ?? 'belum_dinilai', $value) ?>><?= $label ?></option><?php endforeach; ?></select></label>
+        </div>
+      </details>
     <?php elseif ($workspaceService === 'posyandu' && $visitLifecycle === 'ibu_hamil_nifas'): ?>
       <label>Status Sasaran<select name="sasaran[status_ibu]"><option value="hamil" <?= is_selected($sasaranOld['status_ibu'] ?? 'hamil', 'hamil') ?>>Ibu hamil</option><option value="nifas_menyusui" <?= is_selected($sasaranOld['status_ibu'] ?? 'hamil', 'nifas_menyusui') ?>>Ibu nifas/menyusui</option></select></label>
       <label>Lingkar Lengan / LILA (cm)<input type="number" name="lingkar_lengan_cm" min="0" max="100" step="0.01" value="<?= rw_esc(old('lingkar_lengan_cm', $selectedVisit['lingkar_lengan_cm'] ?? '')) ?>"></label>
@@ -377,8 +419,9 @@ $visitSummary = static function (?array $visit) use ($visitDetailLabels, $visitD
     <?php endif; ?>
     <?php endif; ?>
     <?php if ($workspaceService === 'posbindu'): ?>
+    <div class="full health-guideline-note"><strong>Alur Posbindu:</strong> wawancara faktor risiko → pengukuran → konseling/tindak lanjut. Bagian di bawah hanya dibuka bila datanya memang diperiksa atau diberikan oleh tenaga kesehatan.</div>
     <details class="full health-form-section">
-      <summary><strong>Riwayat PTM dan faktor risiko laporan Puskesmas</strong></summary>
+      <summary><strong>Lengkapi riwayat PTM untuk laporan Puskesmas</strong> <span class="muted">(bila ditanyakan)</span></summary>
       <div class="grid-form health-nested-grid">
         <?php for ($i = 1; $i <= 3; $i++): ?>
           <label>Riwayat PTM Keluarga <?= $i ?><input type="text" name="posbindu[riwayat_keluarga_<?= $i ?>]" maxlength="160" value="<?= rw_esc($posbinduOld['riwayat_keluarga_' . $i] ?? '') ?>"></label>
@@ -392,7 +435,7 @@ $visitSummary = static function (?array $visit) use ($visitDetailLabels, $visitD
       </div>
     </details>
     <details class="full health-form-section">
-      <summary><strong>Diagnosis, terapi, dan edukasi</strong></summary>
+      <summary><strong>Diagnosis dan terapi dari tenaga kesehatan</strong> <span class="muted">(jangan diisi berdasarkan dugaan kader)</span></summary>
       <div class="grid-form health-nested-grid">
         <?php for ($i = 1; $i <= 3; $i++): ?>
           <label>Diagnosis <?= $i ?><input type="text" name="posbindu[diagnosis_<?= $i ?>]" maxlength="160" value="<?= rw_esc($posbinduOld['diagnosis_' . $i] ?? '') ?>"></label>

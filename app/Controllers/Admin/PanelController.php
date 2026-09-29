@@ -707,6 +707,8 @@ class PanelController extends BaseController
                     $error = 'Tanggal lahir belum valid.';
                 } elseif ($jenisKelamin !== '' && ! isset($genderOptions[$jenisKelamin])) {
                     $error = 'Jenis kelamin belum valid.';
+                } elseif ($jenis === 'posbindu' && ($tanggalLahir === '' || ! isset($genderOptions[$jenisKelamin]) || $alamat === '')) {
+                    $error = 'Tanggal lahir, jenis kelamin, dan alamat wajib dilengkapi agar laporan Posbindu dapat diekspor sesuai format Puskesmas.';
                 } elseif (strlen($provinsi) > 100 || strlen($kotaKabupaten) > 120 || strlen($pendidikan) > 80 || strlen($pekerjaan) > 120 || strlen($statusPerkawinan) > 80 || strlen($golonganDarah) > 10 || strlen($namaWali) > 160 || strlen($noHp) > 40 || strlen($alamat) > 255 || strlen($catatan) > 2000) {
                     $error = 'Salah satu data peserta terlalu panjang.';
                 } elseif (! isset($statusOptions[$status])) {
@@ -1054,7 +1056,7 @@ class PanelController extends BaseController
         }
 
         $rows = $db->table('kesehatan_peserta peserta')
-            ->select('peserta.id, peserta.nik, peserta.nama, peserta.rt, peserta.jenis_kelamin, kunjungan.id AS kunjungan_id, kunjungan.hadir, kunjungan.tekanan_sistolik, kunjungan.tekanan_diastolik, kunjungan.gula_darah, kunjungan.berat_kg, kunjungan.tinggi_cm, kunjungan.lingkar_perut_cm, kunjungan.posbindu_data_json')
+            ->select('peserta.*, kunjungan.id AS kunjungan_id, kunjungan.tanggal, kunjungan.hadir, kunjungan.jenis_layanan, kunjungan.tekanan_sistolik, kunjungan.tekanan_diastolik, kunjungan.gula_darah, kunjungan.jenis_gula_darah, kunjungan.berat_kg, kunjungan.tinggi_cm, kunjungan.lingkar_perut_cm, kunjungan.faktor_merokok, kunjungan.aktivitas_fisik, kunjungan.konsumsi_buah_sayur, kunjungan.layanan_diberikan, kunjungan.edukasi, kunjungan.tindak_lanjut, kunjungan.tujuan_rujukan, kunjungan.tanggal_tindak_lanjut, kunjungan.status_validasi, kunjungan.catatan, kunjungan.posbindu_data_json, kunjungan.sasaran_data_json')
             ->join('kesehatan_kunjungan kunjungan', 'kunjungan.peserta_id = peserta.id AND kunjungan.tanggal = ' . $db->escape($reportDate) . ' AND kunjungan.jenis_layanan = ' . $db->escape('posbindu'), 'left')
             ->where('peserta.status', 'aktif')
             ->where('peserta.jenis', 'posbindu')
@@ -1066,16 +1068,25 @@ class PanelController extends BaseController
 
         $present = 0;
         $complete = 0;
+        $attention = 0;
+        $referrals = 0;
         foreach ($rows as &$row) {
             $isPresent = ($row['hadir'] ?? '') === 'ya';
-            $coreComplete = $isPresent
-                && $row['tekanan_sistolik'] !== null
-                && $row['tekanan_diastolik'] !== null
-                && $row['berat_kg'] !== null
-                && $row['tinggi_cm'] !== null;
-            $row['report_status'] = ! $isPresent ? 'Belum dicatat' : ($coreComplete ? 'Siap dilaporkan' : 'Perlu dilengkapi');
+            $identityComplete = trim((string) ($row['nama'] ?? '')) !== ''
+                && trim((string) ($row['tanggal_lahir'] ?? '')) !== ''
+                && in_array((string) ($row['jenis_kelamin'] ?? ''), ['L', 'P'], true)
+                && trim((string) ($row['alamat'] ?? '')) !== '';
+            $hasResults = kesehatan_visit_has_results($row);
+            $coreComplete = $isPresent && $identityComplete && $hasResults;
+            $screening = kesehatan_visit_screening_status($row, $row);
+            $row['screening_status'] = $screening;
+            $row['report_status'] = ! $isPresent
+                ? 'Belum dicatat'
+                : (! $identityComplete ? 'Identitas wajib belum lengkap' : ($hasResults ? 'Siap diekspor' : 'Hasil belum diisi'));
             $present += $isPresent ? 1 : 0;
             $complete += $coreComplete ? 1 : 0;
+            $attention += $screening['key'] === 'perhatian' ? 1 : 0;
+            $referrals += $screening['key'] === 'rujukan' ? 1 : 0;
         }
         unset($row);
 
@@ -1085,6 +1096,8 @@ class PanelController extends BaseController
             'rows' => $rows,
             'presentCount' => $present,
             'completeCount' => $complete,
+            'attentionCount' => $attention,
+            'referralCount' => $referrals,
             'error' => session()->getFlashdata('error') ?: '',
             'success' => session()->getFlashdata('success') ?: '',
         ]);
