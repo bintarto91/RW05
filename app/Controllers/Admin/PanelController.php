@@ -972,18 +972,6 @@ class PanelController extends BaseController
             $participantsBuilder->groupStart()->like('nama', $filterSearch)->orLike('nama_wali', $filterSearch)->groupEnd();
         }
         $participants = $participantsBuilder->orderBy('status', 'ASC')->orderBy('nama', 'ASC')->get()->getResultArray();
-        $visitsBuilder = $db->table('kesehatan_kunjungan kunjungan')
-            ->select('kunjungan.*, peserta.nama, peserta.jenis, peserta.kelompok_siklus')
-            ->join('kesehatan_peserta peserta', 'peserta.id = kunjungan.peserta_id', 'inner');
-        if (isset($participantTypeOptions[$filterJenis])) {
-            $visitsBuilder->where('kunjungan.jenis_layanan', $filterJenis);
-        }
-        $visits = $visitsBuilder
-            ->orderBy('kunjungan.tanggal', 'DESC')
-            ->orderBy('kunjungan.id', 'DESC')
-            ->limit(40)
-            ->get()
-            ->getResultArray();
         $attendanceBuilder = $db->table('kesehatan_peserta')
             ->where('status', 'aktif')
             ->where('jenis', $activityJenis);
@@ -1014,7 +1002,6 @@ class PanelController extends BaseController
             'currentPage' => $filterJenis === 'posbindu' ? 'posbindu' : 'posyandu',
             'tableReady' => true,
             'participants' => $participants,
-            'visits' => $visits,
             'edit' => $edit,
             'selectedParticipant' => $selectedParticipant,
             'selectedVisit' => $selectedVisit,

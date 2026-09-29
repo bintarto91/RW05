@@ -144,7 +144,8 @@ $visitSummary = static function (?array $visit) use ($visitDetailLabels, $visitD
               <td><?= rw_esc($participant['rt'] ?? '-') ?></td>
               <td>
                 <?php $todayNotes = $visitSummary($attendance); ?>
-                <?= $todayNotes ? rw_esc(implode(' · ', $todayNotes)) : (($attendance['hadir'] ?? '') === 'ya' ? 'Hadir, hasil belum diisi' : (($attendance['hadir'] ?? '') === 'tidak' ? 'Tidak hadir' : 'Kehadiran belum disimpan')) ?>
+                <?php $todaySummary = $todayNotes ? implode(' · ', $todayNotes) : (($attendance['hadir'] ?? '') === 'ya' ? 'Hadir, hasil belum diisi' : (($attendance['hadir'] ?? '') === 'tidak' ? 'Tidak hadir' : 'Kehadiran belum disimpan')); ?>
+                <span class="health-result-summary" title="<?= rw_esc($todaySummary) ?>"><?= rw_esc(str_starts_with($todaySummary, 'Impor laporan Posbindu') ? 'Data hasil impor - klik Edit hasil untuk melengkapi' : $todaySummary) ?></span>
               </td>
               <td><a class="health-row-action" href="<?= rw_esc($workspaceUrl('pemeriksaan') . '&peserta_id=' . (int) $participant['id']) ?>"><?= $todayNotes ? 'Edit hasil' : 'Isi hasil' ?></a></td>
             </tr>
@@ -454,25 +455,9 @@ $visitSummary = static function (?array $visit) use ($visitDetailLabels, $visitD
       <p class="full muted">Validasi hasil kunjungan hanya dapat dilakukan oleh nakes/admin, lihat menu <a href="<?= site_url('admin/kesehatan-tindak-lanjut') ?>">Tindak Lanjut &amp; Rujukan</a>.</p>
     <?php endif; ?>
     <label class="full">Catatan Kunjungan<textarea name="catatan_kunjungan" rows="3" maxlength="2000" placeholder="Catatan singkat hasil kegiatan hari ini."><?= rw_esc(old('catatan_kunjungan', $selectedVisit['catatan'] ?? '')) ?></textarea></label>
-    <div class="full form-actions"><button type="submit">Simpan Kunjungan</button></div>
+    <div class="full form-actions"><button type="submit">Simpan Hasil Pemeriksaan</button></div>
   </form>
   <?php endif; ?>
-</section>
-
-<section class="panel">
-  <div class="section-heading"><div><h2>Riwayat <?= $workspaceService === 'posbindu' ? 'Pemeriksaan Posbindu' : 'Kunjungan Posyandu' ?></h2><p class="muted">Setiap hasil dapat dibuka kembali dan diperbaiki tanpa membuat catatan ganda.</p></div></div>
-  <div class="table-scroll">
-    <table>
-      <thead><tr><th>Tanggal</th><th>Peserta</th><th>Layanan</th><th>Hasil Tercatat</th><th>Tindak Lanjut</th><th>Validasi</th><th>Aksi</th></tr></thead>
-      <tbody>
-        <?php foreach ($visits as $visit): ?>
-          <?php $recordedResults = $visitSummary($visit); ?>
-          <tr><td><?= rw_esc(date('d/m/Y', strtotime((string) $visit['tanggal']))) ?><br><small><?= ($visit['hadir'] ?? '') === 'ya' ? 'Hadir' : 'Tidak hadir' ?></small></td><td><?= rw_esc($visit['nama']) ?><br><small><?= rw_esc($lifecycleOptions[$visit['kelompok_siklus'] ?? ''] ?? 'Kelompok belum ditentukan') ?></small></td><td><?= rw_esc($participantTypeOptions[$visit['jenis_layanan'] ?? $visit['jenis']] ?? ($visit['jenis_layanan'] ?? $visit['jenis'])) ?></td><td><?= $recordedResults ? rw_esc(implode(' · ', $recordedResults)) : 'Belum ada hasil pemeriksaan' ?></td><td><?= rw_esc($followupOptions[$visit['tindak_lanjut'] ?? 'selesai'] ?? 'Belum ditentukan') ?><?= ! empty($visit['tanggal_tindak_lanjut']) ? '<br><small>' . rw_esc(format_date_id($visit['tanggal_tindak_lanjut'])) . '</small>' : '' ?></td><td><?= ($visit['status_validasi'] ?? 'dicatat') === 'divalidasi' ? 'Divalidasi' : 'Dicatat kader' ?></td><td><a class="health-row-action" href="<?= rw_esc(site_url('admin/kesehatan-data?jenis=' . rawurlencode($workspaceService) . '&jenis_kegiatan=' . rawurlencode($workspaceService) . '&tab=pemeriksaan&tanggal_kegiatan=' . rawurlencode((string) $visit['tanggal']) . '&peserta_id=' . (int) $visit['peserta_id'])) ?>">Edit hasil</a></td></tr>
-        <?php endforeach; ?>
-        <?php if (empty($visits)): ?><tr><td colspan="7" class="table-empty">Belum ada catatan kunjungan.</td></tr><?php endif; ?>
-      </tbody>
-    </table>
-  </div>
 </section>
 <?php endif; ?>
 <script>
