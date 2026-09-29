@@ -595,6 +595,7 @@ class PanelController extends BaseController
                 'visits' => [],
                 'edit' => null,
                 'selectedParticipant' => null,
+                'selectedVisit' => null,
                 'participantTypeOptions' => $participantTypeOptions,
                 'lifecycleOptions' => $lifecycleOptions,
                 'followupOptions' => $followupOptions,
@@ -821,15 +822,17 @@ class PanelController extends BaseController
                 }
 
                 if ($error !== '') {
-                    return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenisLayanan) . '&jenis_kegiatan=' . rawurlencode($jenisLayanan) . '&tab=pemeriksaan&peserta_id=' . $participantId))
+                    return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenisLayanan) . '&jenis_kegiatan=' . rawurlencode($jenisLayanan) . '&tab=pemeriksaan&peserta_id=' . $participantId . '&tanggal_kegiatan=' . rawurlencode($tanggal)))
                         ->withInput()
                         ->with('error', $error);
                 }
 
                 if ($jenisLayanan === 'posyandu') {
-                    $waistCircumference = $systolic = $diastolic = $glucose = $glucoseContext = '';
-                    $smokingRisk = $physicalActivity = $fruitVegetable = '';
                     $posbinduDetails = [];
+                    if (! in_array((string) ($participant['kelompok_siklus'] ?? ''), ['usia_sekolah_remaja', 'dewasa', 'lansia'], true)) {
+                        $waistCircumference = $systolic = $diastolic = $glucose = $glucoseContext = '';
+                        $smokingRisk = $physicalActivity = $fruitVegetable = '';
+                    }
                 } else {
                     $headCircumference = $armCircumference = $gestationalAge = '';
                 }
@@ -874,7 +877,7 @@ class PanelController extends BaseController
                     $db->table('kesehatan_kunjungan')->insert($visitData);
                 }
 
-                return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenisLayanan) . '&jenis_kegiatan=' . rawurlencode($jenisLayanan) . '&tab=pemeriksaan&peserta_id=' . $participantId))->with('success', 'Kunjungan peserta berhasil dicatat.');
+                return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenisLayanan) . '&jenis_kegiatan=' . rawurlencode($jenisLayanan) . '&tab=pemeriksaan&peserta_id=' . $participantId . '&tanggal_kegiatan=' . rawurlencode($tanggal)))->with('success', 'Kunjungan peserta berhasil disimpan dan Catatan Hari Ini sudah diperbarui.');
             }
 
             if ($action === 'delete_participant') {
@@ -940,6 +943,15 @@ class PanelController extends BaseController
         $selectedParticipant = $selectedParticipantId > 0
             ? $db->table('kesehatan_peserta')->where('id', $selectedParticipantId)->get()->getRowArray()
             : null;
+        $selectedVisit = null;
+        if ($selectedParticipant) {
+            $selectedVisit = $db->table('kesehatan_kunjungan')
+                ->where('peserta_id', $selectedParticipantId)
+                ->where('tanggal', $activityDate)
+                ->where('jenis_layanan', (string) ($selectedParticipant['jenis'] ?? $activityJenis))
+                ->get()
+                ->getRowArray();
+        }
         $participantsBuilder = $db->table('kesehatan_peserta');
         if (isset($participantTypeOptions[$filterJenis])) {
             $participantsBuilder->where('jenis', $filterJenis);
@@ -996,6 +1008,7 @@ class PanelController extends BaseController
             'visits' => $visits,
             'edit' => $edit,
             'selectedParticipant' => $selectedParticipant,
+            'selectedVisit' => $selectedVisit,
             'participantTypeOptions' => $participantTypeOptions,
             'lifecycleOptions' => $lifecycleOptions,
             'followupOptions' => $followupOptions,
