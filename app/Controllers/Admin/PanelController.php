@@ -628,7 +628,9 @@ class PanelController extends BaseController
                     return redirect()->to(site_url('admin/kesehatan-data'))->with('error', 'Jenis layanan atau tanggal kegiatan belum valid.');
                 }
 
-                $attendanceBuilder = $db->table('kesehatan_peserta')->where('status', 'aktif');
+                $attendanceBuilder = $db->table('kesehatan_peserta')
+                    ->where('status', 'aktif')
+                    ->where('jenis', $jenis);
                 if ($jenis === 'posbindu') {
                     $attendanceBuilder->whereIn('kelompok_siklus', ['dewasa', 'lansia']);
                 }
@@ -659,7 +661,7 @@ class PanelController extends BaseController
                     }
                 }
 
-                return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenis) . '&jenis_kegiatan=' . rawurlencode($jenis) . '&tanggal_kegiatan=' . rawurlencode($tanggal)))
+                return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenis) . '&jenis_kegiatan=' . rawurlencode($jenis) . '&tab=kegiatan&tanggal_kegiatan=' . rawurlencode($tanggal)))
                     ->with('success', 'Daftar hadir kegiatan berhasil disimpan.');
             }
 
@@ -713,7 +715,7 @@ class PanelController extends BaseController
                 }
 
                 if ($error !== '') {
-                    return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenis) . ($participantId > 0 ? '&action=edit&id=' . $participantId : '')))
+                    return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenis) . '&jenis_kegiatan=' . rawurlencode($jenis) . '&tab=peserta' . ($participantId > 0 ? '&action=edit&id=' . $participantId : '')))
                         ->withInput()
                         ->with('error', $error);
                 }
@@ -748,7 +750,7 @@ class PanelController extends BaseController
                     $message = 'Data peserta berhasil ditambahkan.';
                 }
 
-                return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenis) . '&jenis_kegiatan=' . rawurlencode($jenis)))->with('success', $message);
+                return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenis) . '&jenis_kegiatan=' . rawurlencode($jenis) . '&tab=peserta'))->with('success', $message);
             }
 
             if ($action === 'save_visit') {
@@ -787,6 +789,8 @@ class PanelController extends BaseController
                     $error = 'Pilih peserta yang sudah terdaftar.';
                 } elseif (! isset($participantTypeOptions[$jenisLayanan])) {
                     $error = 'Pilih jenis layanan kunjungan.';
+                } elseif (($participant['jenis'] ?? '') !== $jenisLayanan) {
+                    $error = 'Jenis peserta tidak sesuai dengan layanan yang dipilih.';
                 } elseif ($jenisLayanan === 'posbindu' && ! in_array((string) ($participant['kelompok_siklus'] ?? ''), ['dewasa', 'lansia'], true)) {
                     $error = 'Skrining Posbindu hanya dapat dicatat untuk peserta dewasa atau lansia.';
                 } elseif (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggal) || ! strtotime($tanggal)) {
@@ -817,7 +821,7 @@ class PanelController extends BaseController
                 }
 
                 if ($error !== '') {
-                    return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenisLayanan) . '&jenis_kegiatan=' . rawurlencode($jenisLayanan) . '&peserta_id=' . $participantId))
+                    return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenisLayanan) . '&jenis_kegiatan=' . rawurlencode($jenisLayanan) . '&tab=pemeriksaan&peserta_id=' . $participantId))
                         ->withInput()
                         ->with('error', $error);
                 }
@@ -870,7 +874,7 @@ class PanelController extends BaseController
                     $db->table('kesehatan_kunjungan')->insert($visitData);
                 }
 
-                return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenisLayanan) . '&jenis_kegiatan=' . rawurlencode($jenisLayanan) . '&peserta_id=' . $participantId))->with('success', 'Kunjungan peserta berhasil dicatat.');
+                return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenisLayanan) . '&jenis_kegiatan=' . rawurlencode($jenisLayanan) . '&tab=pemeriksaan&peserta_id=' . $participantId))->with('success', 'Kunjungan peserta berhasil dicatat.');
             }
 
             if ($action === 'delete_participant') {
@@ -883,7 +887,7 @@ class PanelController extends BaseController
                     $db->transComplete();
                 }
 
-                return redirect()->to(site_url('admin/kesehatan-data?jenis=' . $returnService . '&jenis_kegiatan=' . $returnService))->with('success', 'Data peserta dan catatan kunjungannya berhasil dihapus.');
+                return redirect()->to(site_url('admin/kesehatan-data?jenis=' . $returnService . '&jenis_kegiatan=' . $returnService . '&tab=peserta'))->with('success', 'Data peserta dan catatan kunjungannya berhasil dihapus.');
             }
         }
 
@@ -893,6 +897,7 @@ class PanelController extends BaseController
                 ->join('kesehatan_kunjungan kunjungan', 'kunjungan.peserta_id = peserta.id', 'inner')
                 ->where('kunjungan.tanggal', $activityDate)
                 ->where('kunjungan.jenis_layanan', 'posbindu')
+                ->where('peserta.jenis', 'posbindu')
                 ->where('kunjungan.hadir', 'ya')
                 ->orderBy('peserta.nama', 'ASC')
                 ->get()
@@ -905,7 +910,8 @@ class PanelController extends BaseController
             $reportBuilder = $db->table('kesehatan_peserta peserta')
                 ->select('peserta.*, kunjungan.hadir, kunjungan.berat_kg, kunjungan.tinggi_cm, kunjungan.lingkar_perut_cm, kunjungan.tekanan_sistolik, kunjungan.tekanan_diastolik, kunjungan.gula_darah, kunjungan.tindak_lanjut, kunjungan.tujuan_rujukan, kunjungan.catatan AS catatan_kunjungan')
                 ->join('kesehatan_kunjungan kunjungan', "kunjungan.peserta_id = peserta.id AND kunjungan.tanggal = " . $db->escape($activityDate) . " AND kunjungan.jenis_layanan = " . $db->escape($activityJenis), 'left')
-                ->where('peserta.status', 'aktif');
+                ->where('peserta.status', 'aktif')
+                ->where('peserta.jenis', $activityJenis);
             if ($activityJenis === 'posbindu') {
                 $reportBuilder->whereIn('peserta.kelompok_siklus', ['dewasa', 'lansia']);
             }
@@ -957,7 +963,9 @@ class PanelController extends BaseController
             ->limit(40)
             ->get()
             ->getResultArray();
-        $attendanceBuilder = $db->table('kesehatan_peserta')->where('status', 'aktif');
+        $attendanceBuilder = $db->table('kesehatan_peserta')
+            ->where('status', 'aktif')
+            ->where('jenis', $activityJenis);
         if ($activityJenis === 'posbindu') {
             $attendanceBuilder->whereIn('kelompok_siklus', ['dewasa', 'lansia']);
         }
@@ -1027,6 +1035,7 @@ class PanelController extends BaseController
                 ->join('kesehatan_kunjungan kunjungan', 'kunjungan.peserta_id = peserta.id', 'inner')
                 ->where('kunjungan.tanggal', $reportDate)
                 ->where('kunjungan.jenis_layanan', 'posbindu')
+                ->where('peserta.jenis', 'posbindu')
                 ->where('kunjungan.hadir', 'ya')
                 ->orderBy('peserta.nama', 'ASC')
                 ->get()
@@ -1039,6 +1048,7 @@ class PanelController extends BaseController
             ->select('peserta.id, peserta.nik, peserta.nama, peserta.rt, peserta.jenis_kelamin, kunjungan.id AS kunjungan_id, kunjungan.hadir, kunjungan.tekanan_sistolik, kunjungan.tekanan_diastolik, kunjungan.gula_darah, kunjungan.berat_kg, kunjungan.tinggi_cm, kunjungan.lingkar_perut_cm, kunjungan.posbindu_data_json')
             ->join('kesehatan_kunjungan kunjungan', 'kunjungan.peserta_id = peserta.id AND kunjungan.tanggal = ' . $db->escape($reportDate) . ' AND kunjungan.jenis_layanan = ' . $db->escape('posbindu'), 'left')
             ->where('peserta.status', 'aktif')
+            ->where('peserta.jenis', 'posbindu')
             ->whereIn('peserta.kelompok_siklus', ['dewasa', 'lansia'])
             ->orderBy('peserta.rt', 'ASC')
             ->orderBy('peserta.nama', 'ASC')
