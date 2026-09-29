@@ -2108,3 +2108,67 @@ code {
 .health-flow-note{display:grid;gap:5px;margin:14px 0;padding:14px 16px;border-left:4px solid #0b6857;border-radius:10px;background:#eef8f4;color:#355e55}.health-flow-note strong{color:#0b4f42}.health-flow-note span{line-height:1.55}.health-row-action{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;padding:8px 12px;border-radius:999px;background:#e9f6f1;color:#0b5c50!important;font-weight:800;text-decoration:none}.health-row-action:hover{background:#0b5c50;color:#fff!important}
 .health-result-summary{display:-webkit-box;max-width:520px;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.45;color:#294e46}
 .health-day-recap{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:14px 0 18px}.health-day-recap div{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border:1px solid #d7e5e1;border-radius:13px;background:#f7fbfa}.health-day-recap strong{font-size:1.35rem;color:#0b4f42}.health-day-recap span{font-size:.78rem;color:#64736e}.health-day-recap .is-warning{background:#fff8e5;border-color:#efd99e}.health-day-recap .is-danger{background:#fff0ed;border-color:#efc1b7}.health-screening-status{display:inline-flex;align-items:center;white-space:nowrap;padding:6px 10px;border-radius:999px;background:#eef2f4;color:#4f5d61;font-size:.76rem;font-weight:800}.health-screening-status.is-tercatat{background:#e1f3e7;color:#17643a}.health-screening-status.is-perhatian{background:#fff1cf;color:#805b00}.health-screening-status.is-rujukan{background:#fde3de;color:#9a2f20}.health-screening-status.is-belum_diisi{background:#e8eef7;color:#3f5879}.health-status-reason{display:block;max-width:240px;margin-top:5px;color:#687771;line-height:1.35}.health-guideline-note{padding:13px 15px;border-left:4px solid #0b6857;border-radius:10px;background:#eef8f4;color:#355e55;line-height:1.5}.health-growth-status{border-color:#b9d8cf!important}@media(max-width:1050px){.health-day-recap{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:600px){.health-day-recap{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.health-mobile-account{display:none}
+
+@media(max-width:960px){
+	.health-admin-body{padding-bottom:env(safe-area-inset-bottom)}
+	.health-admin-shell{display:block}
+	.health-sidebar{position:sticky;top:0;z-index:60;display:block;width:100%;height:auto;min-height:0;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;border-right:0;border-bottom:1px solid rgba(255,255,255,.12);overflow:visible}
+	.health-sidebar .brand-admin{gap:10px;padding:8px 10px;border-radius:15px}
+	.health-sidebar .brand-mark{width:38px;height:38px;border-radius:11px}
+	.health-sidebar .brand-copy strong{font-size:1rem}
+	.health-sidebar .brand-copy span{margin-top:2px;font-size:.62rem}
+	.health-sidebar .admin-user,.health-sidebar>.sidebar-actions,.health-sidebar .nav-caption{display:none}
+	.health-sidebar .nav-group{margin-top:9px}
+	.health-sidebar .admin-nav{display:flex;gap:7px;padding-bottom:2px;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain}
+	.health-sidebar .admin-nav::-webkit-scrollbar{display:none}
+	.health-sidebar .admin-nav a{flex:0 0 auto;min-height:40px;padding:9px 12px;border-radius:12px;font-size:.78rem;white-space:nowrap}
+	.health-mobile-account{display:block;margin-top:7px}
+	.health-mobile-account>summary{cursor:pointer;color:#f4e8d8;font-size:.75rem;font-weight:800;text-align:right;list-style:none}
+	.health-mobile-account>summary::-webkit-details-marker{display:none}
+	.health-mobile-account>div{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;padding:11px;border:1px solid rgba(255,255,255,.12);border-radius:13px;background:#153f34}
+	.health-mobile-account strong,.health-mobile-account span{grid-column:1/-1}
+	.health-mobile-account span{font-size:.75rem;color:#c8d9d3}
+	.health-mobile-account a,.health-mobile-account button{display:flex;align-items:center;justify-content:center;min-height:40px;padding:8px;border:0;border-radius:10px;color:#fff;background:rgba(255,255,255,.09);font:inherit;font-size:.76rem;font-weight:800}
+	.health-mobile-account form{margin:0}
+	.health-mobile-account button{width:100%;color:#ffe1b7}
+	.health-admin-main{padding:14px 12px calc(24px + env(safe-area-inset-bottom))}
+	.health-topbar{padding:14px 16px;border-radius:17px}
+	.health-topbar .admin-kicker,.health-topbar span,.health-topbar .topbar-link{display:none}
+	.health-topbar strong{font-size:1.05rem}
+}
+
+@media(max-width:720px){
+	.health-admin-body .panel{padding:16px;border-radius:18px}
+	.health-admin-body .section-heading{gap:10px}
+	.health-admin-body .section-heading h1{font-size:2rem}
+	.health-admin-body .section-heading h2{font-size:1.5rem}
+	.health-admin-body .section-heading .form-actions{display:grid;width:100%;grid-template-columns:1fr;gap:8px}
+	.health-admin-body .section-heading .form-actions>a{display:flex;align-items:center;justify-content:center;min-height:42px}
+	.health-task-tabs.health-quick-actions{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:12px 0 16px}
+	.health-task-tabs.health-quick-actions a{display:flex;min-height:84px;padding:10px 6px;align-items:center;justify-content:flex-start;text-align:center;border-radius:14px}
+	.health-task-tabs .health-task-number{width:34px;height:34px;border-radius:10px;font-size:.9rem!important}
+	.health-task-tabs .health-task-copy{gap:0}
+	.health-task-tabs .health-task-copy strong{font-size:.76rem;line-height:1.25}
+	.health-task-tabs .health-task-copy small,.health-task-tabs .health-task-cta{display:none}
+	.health-day-recap{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+	.health-day-recap div{padding:10px 11px}
+	.health-flow-note{font-size:.84rem}
+	.health-mobile-table{overflow:visible;border-radius:0}
+	.health-mobile-table table{display:block;min-width:0!important;width:100%}
+	.health-mobile-table thead{display:none}
+	.health-mobile-table tbody{display:grid;gap:11px}
+	.health-mobile-table tr{display:block;padding:12px;border:1px solid #d8e6e2;border-radius:14px;background:#fff;box-shadow:0 6px 18px rgba(15,69,57,.06)}
+	.health-mobile-table td{display:grid;grid-template-columns:100px minmax(0,1fr);gap:10px;align-items:start;width:100%;padding:8px 0!important;border:0!important;text-align:left!important;overflow-wrap:anywhere}
+	.health-mobile-table td+td{border-top:1px solid #edf2f0!important}
+	.health-mobile-table td::before{content:attr(data-label);color:#687771;font-size:.69rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+	.health-mobile-table td[data-label="Peserta"]{padding-top:0!important}
+	.health-mobile-table td[data-label="Aksi"]{padding-bottom:0!important}
+	.health-mobile-table .table-actions{gap:8px}
+	.health-mobile-table .health-row-action{width:100%;min-height:42px}
+	.health-status-reason{max-width:none}
+	.health-selected-participant{grid-template-columns:1fr}
+	.health-selected-participant a{grid-column:1;grid-row:auto;margin-top:6px}
+	.health-report-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}

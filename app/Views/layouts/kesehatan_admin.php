@@ -17,13 +17,13 @@ $workspaceError = session()->getFlashdata('workspace_error') ?: '';
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title><?= rw_esc($currentLabel) ?> | Kesehatan RW 05</title>
   <link rel="icon" type="image/svg+xml" href="<?= base_url('favicon.svg') ?>?v=rw05-20260706">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=health-kemenkes-flow-20260929-6">
+  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=health-pwa-20260929-12">
 </head>
 <body class="admin-body health-admin-body">
   <div class="admin-shell health-admin-shell">
@@ -52,6 +52,17 @@ $workspaceError = session()->getFlashdata('workspace_error') ?: '';
           <?php endforeach; ?>
         </nav>
       </div>
+
+      <details class="health-mobile-account">
+        <summary>Akun &amp; menu lainnya</summary>
+        <div>
+          <strong><?= rw_esc(session('admin_nama') ?? 'Petugas') ?></strong>
+          <span><?= rw_esc($roleLabel) ?></span>
+          <a href="<?= site_url('kesehatan') ?>" target="_blank" rel="noreferrer">Halaman warga</a>
+          <?php if ($canReturnToRwAdmin): ?><a href="<?= site_url('admin') ?>">Panel RW</a><?php endif; ?>
+          <form method="post" action="<?= site_url('admin/logout') ?>"><?= csrf_field() ?><button type="submit">Logout</button></form>
+        </div>
+      </details>
 
       <div class="sidebar-actions">
         <a href="<?= site_url('kesehatan') ?>" target="_blank" rel="noreferrer">Halaman Kesehatan Warga</a>
@@ -82,5 +93,6 @@ $workspaceError = session()->getFlashdata('workspace_error') ?: '';
       <?= $this->renderSection('content') ?>
     </main>
   </div>
+  <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/service-worker.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}));}</script>
 </body>
 </html>

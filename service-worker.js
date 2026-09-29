@@ -1,11 +1,18 @@
-const CACHE_NAME = 'rw05-pwa-v10';
+const CACHE_NAME = 'rw05-pwa-v11';
 const APP_SHELL = [
   '/',
-  '/assets/style.css',
-  '/assets/script.js',
+  '/assets/style.css?v=pwa-20260929-11',
+  '/assets/script.js?v=pwa-20260929-11',
   '/assets/logo-rw05.png',
   '/manifest.webmanifest'
 ];
+const PUBLIC_CACHE_PATHS = new Set([
+  '/assets/style.css',
+  '/assets/script.js',
+  '/assets/logo-rw05.png',
+  '/favicon.svg',
+  '/manifest.webmanifest'
+]);
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -40,9 +47,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Do not cache dynamic pages, admin responses, or third-party resources.
-  const cacheableDestinations = ['style', 'script', 'image', 'font', 'manifest'];
-  if (requestUrl.origin !== self.location.origin || !cacheableDestinations.includes(event.request.destination)) {
+  // Cache hanya aset publik yang telah ditentukan. Aset admin dan halaman dinamis
+  // selalu diambil dari jaringan agar HTML baru tidak bercampur dengan CSS lama.
+  if (requestUrl.origin !== self.location.origin || !PUBLIC_CACHE_PATHS.has(requestUrl.pathname)) {
     return;
   }
 

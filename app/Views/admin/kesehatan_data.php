@@ -158,7 +158,7 @@ foreach ($attendanceParticipants as $dayParticipant) {
     <input type="hidden" name="action" value="save_attendance">
     <input type="hidden" name="jenis_kegiatan" value="<?= rw_esc($activityJenis) ?>">
     <input type="hidden" name="tanggal_kegiatan" value="<?= rw_esc($activityDate) ?>">
-    <div class="table-scroll">
+    <div class="table-scroll health-mobile-table">
       <table>
         <thead><tr><th>Hadir</th><th>Peserta</th><th>RT</th><th>Status</th><th>Hasil Hari Ini</th><th>Aksi</th></tr></thead>
         <tbody>
@@ -166,17 +166,17 @@ foreach ($attendanceParticipants as $dayParticipant) {
             <?php $attendance = $attendanceMap[(int) $participant['id']] ?? null; ?>
             <?php $screeningStatus = kesehatan_visit_screening_status($attendance, $participant); ?>
             <tr>
-              <td><input type="checkbox" name="hadir[<?= (int) $participant['id'] ?>]" value="1" <?= ($attendance['hadir'] ?? '') === 'ya' ? 'checked' : '' ?> aria-label="Hadir: <?= rw_esc($participant['nama']) ?>"></td>
-              <td><strong><?= rw_esc($participant['nama']) ?></strong><?= ! empty($participant['nama_wali']) ? '<br><small>Wali: ' . rw_esc($participant['nama_wali']) . '</small>' : '' ?></td>
-              <td><?= rw_esc($participant['rt'] ?? '-') ?></td>
-              <td><span class="health-screening-status is-<?= rw_esc($screeningStatus['key']) ?>" title="<?= rw_esc(implode(' · ', $screeningStatus['reasons'])) ?>"><?= rw_esc($screeningStatus['label']) ?></span><?php if ($screeningStatus['reasons']): ?><small class="health-status-reason"><?= rw_esc(implode(' · ', array_slice($screeningStatus['reasons'], 0, 2))) ?></small><?php endif; ?></td>
-              <td>
+              <td data-label="Hadir"><input type="checkbox" name="hadir[<?= (int) $participant['id'] ?>]" value="1" <?= ($attendance['hadir'] ?? '') === 'ya' ? 'checked' : '' ?> aria-label="Hadir: <?= rw_esc($participant['nama']) ?>"></td>
+              <td data-label="Peserta"><strong><?= rw_esc($participant['nama']) ?></strong><?= ! empty($participant['nama_wali']) ? '<br><small>Wali: ' . rw_esc($participant['nama_wali']) . '</small>' : '' ?></td>
+              <td data-label="RT"><?= rw_esc($participant['rt'] ?? '-') ?></td>
+              <td data-label="Status"><span class="health-screening-status is-<?= rw_esc($screeningStatus['key']) ?>" title="<?= rw_esc(implode(' · ', $screeningStatus['reasons'])) ?>"><?= rw_esc($screeningStatus['label']) ?></span><?php if ($screeningStatus['reasons']): ?><small class="health-status-reason"><?= rw_esc(implode(' · ', array_slice($screeningStatus['reasons'], 0, 2))) ?></small><?php endif; ?></td>
+              <td data-label="Hasil hari ini">
                 <?php $todayNotes = $visitSummary($attendance); ?>
                 <?php $todaySummary = $todayNotes ? implode(' · ', $todayNotes) : (($attendance['hadir'] ?? '') === 'ya' ? 'Hadir, hasil belum diisi' : (($attendance['hadir'] ?? '') === 'tidak' ? 'Tidak hadir' : 'Kehadiran belum disimpan')); ?>
                 <span class="health-result-summary" title="<?= rw_esc($todaySummary) ?>"><?= rw_esc(str_starts_with($todaySummary, 'Impor laporan Posbindu') ? 'Data hasil impor - klik Edit hasil untuk melengkapi' : $todaySummary) ?></span>
                 <?php if ($screeningStatus['bmi'] !== null): ?><small>IMT <?= rw_esc((string) $screeningStatus['bmi']) ?> kg/m²</small><?php endif; ?>
               </td>
-              <td><a class="health-row-action" href="<?= rw_esc($workspaceUrl('pemeriksaan') . '&peserta_id=' . (int) $participant['id']) ?>"><?= kesehatan_visit_has_results($attendance) ? 'Edit hasil' : 'Isi hasil' ?></a></td>
+              <td data-label="Aksi"><a class="health-row-action" href="<?= rw_esc($workspaceUrl('pemeriksaan') . '&peserta_id=' . (int) $participant['id']) ?>"><?= kesehatan_visit_has_results($attendance) ? 'Edit hasil' : 'Isi hasil' ?></a></td>
             </tr>
           <?php endforeach; ?>
           <?php if (empty($attendanceParticipants)): ?><tr><td colspan="6" class="table-empty">Belum ada peserta aktif untuk jenis layanan ini.</td></tr><?php endif; ?>
@@ -303,17 +303,17 @@ foreach ($attendanceParticipants as $dayParticipant) {
       <p class="muted">Gunakan tombol Isi hasil untuk mencatat pengukuran peserta.</p>
     </div>
   </div>
-  <div class="table-scroll">
+  <div class="table-scroll health-mobile-table">
     <table>
       <thead><tr><th>Peserta</th><th>Siklus Hidup</th><th>Kontak Lingkungan</th><th>Status</th><th>Aksi</th></tr></thead>
       <tbody>
         <?php foreach ($participants as $participant): ?>
           <tr>
-            <td><strong><?= rw_esc($participant['nama'] ?? '') ?></strong><br><small><?= ! empty($participant['nik']) ? 'NIK ' . rw_esc($participant['nik']) . ' · ' : '' ?><?= rw_esc($participant['tanggal_lahir'] ?? '-') ?><?= ! empty($participant['nama_wali']) ? ' · Wali: ' . rw_esc($participant['nama_wali']) : '' ?></small></td>
-            <td><?= rw_esc($lifecycleOptions[$participant['kelompok_siklus'] ?? ''] ?? 'Belum ditentukan') ?></td>
-            <td>RT <?= rw_esc($participant['rt'] ?? '-') ?><br><small><?= rw_esc($participant['no_hp'] ?? '') ?></small></td>
-            <td><?= rw_esc($statusOptions[$participant['status'] ?? ''] ?? ucfirst((string) ($participant['status'] ?? '-'))) ?></td>
-            <td><div class="table-actions"><a href="<?= site_url('admin/kesehatan-data?jenis=' . rawurlencode($workspaceService) . '&jenis_kegiatan=' . rawurlencode($workspaceService) . '&tab=pemeriksaan&peserta_id=' . (int) $participant['id']) ?>">Isi hasil</a><a href="<?= site_url('admin/kesehatan-data?jenis=' . rawurlencode($workspaceService) . '&jenis_kegiatan=' . rawurlencode($workspaceService) . '&tab=peserta&action=edit&id=' . (int) $participant['id']) ?>">Edit peserta</a><form method="post" action="<?= site_url('admin/kesehatan-data') ?>" onsubmit="return confirm('Hapus peserta dan seluruh catatan kunjungannya?')"><?= csrf_field() ?><input type="hidden" name="action" value="delete_participant"><input type="hidden" name="return_service" value="<?= rw_esc($workspaceService) ?>"><input type="hidden" name="id" value="<?= (int) $participant['id'] ?>"><button type="submit" class="btn-link-danger">Hapus</button></form></div></td>
+            <td data-label="Peserta"><strong><?= rw_esc($participant['nama'] ?? '') ?></strong><br><small><?= ! empty($participant['nik']) ? 'NIK ' . rw_esc($participant['nik']) . ' · ' : '' ?><?= rw_esc($participant['tanggal_lahir'] ?? '-') ?><?= ! empty($participant['nama_wali']) ? ' · Wali: ' . rw_esc($participant['nama_wali']) : '' ?></small></td>
+            <td data-label="Siklus hidup"><?= rw_esc($lifecycleOptions[$participant['kelompok_siklus'] ?? ''] ?? 'Belum ditentukan') ?></td>
+            <td data-label="Kontak">RT <?= rw_esc($participant['rt'] ?? '-') ?><br><small><?= rw_esc($participant['no_hp'] ?? '') ?></small></td>
+            <td data-label="Status"><?= rw_esc($statusOptions[$participant['status'] ?? ''] ?? ucfirst((string) ($participant['status'] ?? '-'))) ?></td>
+            <td data-label="Aksi"><div class="table-actions"><a href="<?= site_url('admin/kesehatan-data?jenis=' . rawurlencode($workspaceService) . '&jenis_kegiatan=' . rawurlencode($workspaceService) . '&tab=pemeriksaan&peserta_id=' . (int) $participant['id']) ?>">Isi hasil</a><a href="<?= site_url('admin/kesehatan-data?jenis=' . rawurlencode($workspaceService) . '&jenis_kegiatan=' . rawurlencode($workspaceService) . '&tab=peserta&action=edit&id=' . (int) $participant['id']) ?>">Edit peserta</a><form method="post" action="<?= site_url('admin/kesehatan-data') ?>" onsubmit="return confirm('Hapus peserta dan seluruh catatan kunjungannya?')"><?= csrf_field() ?><input type="hidden" name="action" value="delete_participant"><input type="hidden" name="return_service" value="<?= rw_esc($workspaceService) ?>"><input type="hidden" name="id" value="<?= (int) $participant['id'] ?>"><button type="submit" class="btn-link-danger">Hapus</button></form></div></td>
           </tr>
         <?php endforeach; ?>
         <?php if (empty($participants)): ?><tr><td colspan="5" class="table-empty">Belum ada peserta.</td></tr><?php endif; ?>

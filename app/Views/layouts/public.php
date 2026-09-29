@@ -31,10 +31,13 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title><?= rw_esc($pageTitle) ?> | Portal Warga</title>
   <meta name="description" content="Portal resmi RW 05 Desa Citeureup untuk layanan warga, kegiatan, pengurus, dan aspirasi masyarakat.">
   <meta name="theme-color" content="#12382a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="icon" type="image/svg+xml" href="<?= base_url('favicon.svg') ?>?v=rw05-20260706">
   <link rel="shortcut icon" href="<?= base_url('favicon.svg') ?>?v=rw05-20260706">
   <link rel="manifest" href="<?= base_url('manifest.webmanifest') ?>">
@@ -42,7 +45,7 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/style.css') ?>?v=ux-refresh-20260831">
+  <link rel="stylesheet" href="<?= base_url('assets/style.css') ?>?v=pwa-20260929-11">
 </head>
 <body>
 <header class="topbar">
@@ -153,6 +156,6 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
   <?php endif; ?>
   <button type="button" data-mobile-menu-trigger aria-label="Buka menu utama"><span aria-hidden="true">☰</span>Menu</button>
 </nav>
-<script src="<?= base_url('assets/script.js') ?>?v=ux-refresh-20260831"></script>
+<script src="<?= base_url('assets/script.js') ?>?v=pwa-20260929-11"></script>
 </body>
 </html>
