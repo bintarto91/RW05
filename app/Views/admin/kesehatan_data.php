@@ -9,6 +9,9 @@ $selectedLifecycle = old('kelompok_siklus', $edit['kelompok_siklus'] ?? 'bayi_ba
 $selectedGender = old('jenis_kelamin', $edit['jenis_kelamin'] ?? '');
 $selectedStatus = old('status', $edit['status'] ?? 'aktif');
 $selectedVisitType = old('jenis_layanan', $selectedParticipant['jenis'] ?? 'posyandu');
+$posbinduOld = old('posbindu');
+$posbinduOld = is_array($posbinduOld) ? $posbinduOld : [];
+$posbinduYesNoOptions = kesehatan_posbindu_yes_no_options();
 ?>
 <div class="section-heading">
   <div>
@@ -38,7 +41,10 @@ $selectedVisitType = old('jenis_layanan', $selectedParticipant['jenis'] ?? 'posy
       <h2>Kegiatan Hari Ini</h2>
       <p class="muted">Pilih layanan dan tanggal. Peserta aktif akan muncul otomatis untuk dicentang hadir.</p>
     </div>
-    <a href="<?= site_url('admin/kesehatan-data?print=1&jenis_kegiatan=' . rawurlencode($activityJenis) . '&tanggal_kegiatan=' . rawurlencode($activityDate)) ?>" target="_blank" rel="noopener noreferrer">Preview / Cetak</a>
+    <div class="form-actions">
+      <?php if ($activityJenis === 'posbindu'): ?><a href="<?= site_url('admin/kesehatan-data?export=posbindu-xlsx&jenis_kegiatan=posbindu&tanggal_kegiatan=' . rawurlencode($activityDate)) ?>">Download Excel Puskesmas</a><?php endif; ?>
+      <a href="<?= site_url('admin/kesehatan-data?print=1&jenis_kegiatan=' . rawurlencode($activityJenis) . '&tanggal_kegiatan=' . rawurlencode($activityDate)) ?>" target="_blank" rel="noopener noreferrer">Preview / Cetak</a>
+    </div>
   </div>
   <form method="get" action="<?= site_url('admin/kesehatan-data') ?>" class="grid-form">
     <label>Jenis Kegiatan
@@ -93,7 +99,7 @@ $selectedVisitType = old('jenis_layanan', $selectedParticipant['jenis'] ?? 'posy
       <input type="hidden" name="action" value="save_participant">
       <input type="hidden" name="id" value="<?= rw_esc((string) ($edit['id'] ?? '')) ?>">
       <label>Layanan Utama
-        <select name="jenis" required>
+        <select name="jenis" id="healthParticipantType" required>
           <?php foreach ($participantTypeOptions as $value => $label): ?>
             <option value="<?= rw_esc($value) ?>" <?= is_selected($selectedJenis, $value) ?>><?= rw_esc($label) ?></option>
           <?php endforeach; ?>
@@ -109,6 +115,9 @@ $selectedVisitType = old('jenis_layanan', $selectedParticipant['jenis'] ?? 'posy
       <label>Nama Peserta
         <input type="text" name="nama" maxlength="160" value="<?= rw_esc(old('nama', $edit['nama'] ?? '')) ?>" required>
       </label>
+      <label data-participant-service="posbindu">NIK
+        <input type="text" name="nik" inputmode="numeric" maxlength="32" value="<?= rw_esc(old('nik', $edit['nik'] ?? '')) ?>" placeholder="Sesuai dokumen sumber">
+      </label>
       <label>Tanggal Lahir
         <input type="date" name="tanggal_lahir" value="<?= rw_esc(old('tanggal_lahir', $edit['tanggal_lahir'] ?? '')) ?>">
       </label>
@@ -119,6 +128,24 @@ $selectedVisitType = old('jenis_layanan', $selectedParticipant['jenis'] ?? 'posy
             <option value="<?= rw_esc($value) ?>" <?= is_selected($selectedGender, $value) ?>><?= rw_esc($label) ?></option>
           <?php endforeach; ?>
         </select>
+      </label>
+      <label data-participant-service="posbindu">Provinsi Asal
+        <input type="text" name="provinsi" maxlength="100" value="<?= rw_esc(old('provinsi', $edit['provinsi'] ?? '')) ?>" placeholder="Contoh: Jawa Barat">
+      </label>
+      <label data-participant-service="posbindu">Kota/Kabupaten Asal
+        <input type="text" name="kota_kabupaten" maxlength="120" value="<?= rw_esc(old('kota_kabupaten', $edit['kota_kabupaten'] ?? '')) ?>" placeholder="Contoh: Kab. Bandung">
+      </label>
+      <label data-participant-service="posbindu">Status Pendidikan
+        <input type="text" name="pendidikan" maxlength="80" value="<?= rw_esc(old('pendidikan', $edit['pendidikan'] ?? '')) ?>">
+      </label>
+      <label data-participant-service="posbindu">Pekerjaan
+        <input type="text" name="pekerjaan" maxlength="120" value="<?= rw_esc(old('pekerjaan', $edit['pekerjaan'] ?? '')) ?>">
+      </label>
+      <label data-participant-service="posbindu">Status Perkawinan
+        <input type="text" name="status_perkawinan" maxlength="80" value="<?= rw_esc(old('status_perkawinan', $edit['status_perkawinan'] ?? '')) ?>">
+      </label>
+      <label data-participant-service="posbindu">Golongan Darah
+        <input type="text" name="golongan_darah" maxlength="10" value="<?= rw_esc(old('golongan_darah', $edit['golongan_darah'] ?? '')) ?>">
       </label>
       <label>Nama Orang Tua / Wali
         <input type="text" name="nama_wali" maxlength="160" value="<?= rw_esc(old('nama_wali', $edit['nama_wali'] ?? '')) ?>">
@@ -186,7 +213,7 @@ $selectedVisitType = old('jenis_layanan', $selectedParticipant['jenis'] ?? 'posy
         <?php foreach ($participants as $participant): ?>
           <tr>
             <td><?= rw_esc($participantTypeOptions[$participant['jenis'] ?? ''] ?? ucfirst((string) ($participant['jenis'] ?? '-'))) ?></td>
-            <td><strong><?= rw_esc($participant['nama'] ?? '') ?></strong><br><small><?= rw_esc($participant['tanggal_lahir'] ?? '-') ?><?= ! empty($participant['nama_wali']) ? ' · Wali: ' . rw_esc($participant['nama_wali']) : '' ?></small></td>
+            <td><strong><?= rw_esc($participant['nama'] ?? '') ?></strong><br><small><?= ! empty($participant['nik']) ? 'NIK ' . rw_esc($participant['nik']) . ' · ' : '' ?><?= rw_esc($participant['tanggal_lahir'] ?? '-') ?><?= ! empty($participant['nama_wali']) ? ' · Wali: ' . rw_esc($participant['nama_wali']) : '' ?></small></td>
             <td><?= rw_esc($lifecycleOptions[$participant['kelompok_siklus'] ?? ''] ?? 'Belum ditentukan') ?></td>
             <td>RT <?= rw_esc($participant['rt'] ?? '-') ?><br><small><?= rw_esc($participant['no_hp'] ?? '') ?></small></td>
             <td><?= rw_esc($statusOptions[$participant['status'] ?? ''] ?? ucfirst((string) ($participant['status'] ?? '-'))) ?></td>
@@ -239,6 +266,61 @@ $selectedVisitType = old('jenis_layanan', $selectedParticipant['jenis'] ?? 'posy
     <label data-health-service="posbindu">Kebiasaan Merokok<select name="faktor_merokok"><option value="">Tidak ditanyakan</option><option value="tidak">Tidak</option><option value="ya">Ya</option><option value="berhenti">Sudah berhenti</option></select></label>
     <label data-health-service="posbindu">Aktivitas Fisik<select name="aktivitas_fisik"><option value="">Tidak ditanyakan</option><option value="cukup">Cukup</option><option value="kurang">Kurang</option></select></label>
     <label data-health-service="posbindu">Konsumsi Buah & Sayur<select name="konsumsi_buah_sayur"><option value="">Tidak ditanyakan</option><option value="cukup">Cukup</option><option value="kurang">Kurang</option></select></label>
+    <details class="full health-form-section" data-health-service="posbindu" open>
+      <summary><strong>Riwayat PTM dan faktor risiko laporan Puskesmas</strong></summary>
+      <div class="grid-form health-nested-grid">
+        <?php for ($i = 1; $i <= 3; $i++): ?>
+          <label>Riwayat PTM Keluarga <?= $i ?><input type="text" name="posbindu[riwayat_keluarga_<?= $i ?>]" maxlength="160" value="<?= rw_esc($posbinduOld['riwayat_keluarga_' . $i] ?? '') ?>"></label>
+        <?php endfor; ?>
+        <?php for ($i = 1; $i <= 3; $i++): ?>
+          <label>Riwayat PTM Diri <?= $i ?><input type="text" name="posbindu[riwayat_diri_<?= $i ?>]" maxlength="160" value="<?= rw_esc($posbinduOld['riwayat_diri_' . $i] ?? '') ?>"></label>
+        <?php endfor; ?>
+        <?php foreach (['gula_berlebihan' => 'Gula Berlebihan', 'garam_berlebihan' => 'Garam Berlebihan', 'lemak_berlebihan' => 'Lemak Berlebihan', 'konsumsi_alkohol' => 'Konsumsi Alkohol'] as $field => $label): ?>
+          <label><?= rw_esc($label) ?><select name="posbindu[<?= rw_esc($field) ?>]"><option value="">Tidak ditanyakan</option><?php foreach ($posbinduYesNoOptions as $value => $optionLabel): ?><option value="<?= rw_esc($value) ?>" <?= is_selected($posbinduOld[$field] ?? '', $value) ?>><?= rw_esc($optionLabel) ?></option><?php endforeach; ?></select></label>
+        <?php endforeach; ?>
+      </div>
+    </details>
+    <details class="full health-form-section" data-health-service="posbindu">
+      <summary><strong>Diagnosis, terapi, dan edukasi</strong></summary>
+      <div class="grid-form health-nested-grid">
+        <?php for ($i = 1; $i <= 3; $i++): ?>
+          <label>Diagnosis <?= $i ?><input type="text" name="posbindu[diagnosis_<?= $i ?>]" maxlength="160" value="<?= rw_esc($posbinduOld['diagnosis_' . $i] ?? '') ?>"></label>
+        <?php endfor; ?>
+        <label>Rujuk RS<select name="posbindu[rujuk_rs]"><option value="">Belum ditentukan</option><?php foreach ($posbinduYesNoOptions as $value => $optionLabel): ?><option value="<?= rw_esc($value) ?>" <?= is_selected($posbinduOld['rujuk_rs'] ?? '', $value) ?>><?= rw_esc($optionLabel) ?></option><?php endforeach; ?></select></label>
+        <label class="full">Terapi Farmakologi<textarea name="posbindu[terapi_farmakologi]" rows="2" maxlength="2000"><?= rw_esc($posbinduOld['terapi_farmakologi'] ?? '') ?></textarea></label>
+        <label class="full">Konseling, Informasi, dan Edukasi Kesehatan<textarea name="posbindu[kie_kesehatan]" rows="2" maxlength="2000"><?= rw_esc($posbinduOld['kie_kesehatan'] ?? '') ?></textarea></label>
+      </div>
+    </details>
+    <details class="full health-form-section" data-health-service="posbindu">
+      <summary><strong>Pemeriksaan gangguan indera</strong></summary>
+      <div class="grid-form health-nested-grid">
+        <?php foreach ([
+          'katarak' => ['Katarak', 'Mata'],
+          'refraksi' => ['Kelainan Refraksi', 'Mata'],
+          'tuli' => ['Curiga Tuli Kongenital', 'Telinga'],
+          'omsk' => ['OMSK / Congek', 'Telinga'],
+          'serumen' => ['Serumen', 'Telinga'],
+        ] as $prefix => [$label, $organ]): ?>
+          <div class="full health-form-subheading"><strong><?= rw_esc($label) ?></strong></div>
+          <label><?= rw_esc($organ) ?> Kanan<input type="text" name="posbindu[<?= rw_esc($prefix) ?>_<?= $organ === 'Mata' ? 'mata' : 'telinga' ?>_kanan]" maxlength="80" value="<?= rw_esc($posbinduOld[$prefix . '_' . ($organ === 'Mata' ? 'mata' : 'telinga') . '_kanan'] ?? '') ?>"></label>
+          <label><?= rw_esc($organ) ?> Kiri<input type="text" name="posbindu[<?= rw_esc($prefix) ?>_<?= $organ === 'Mata' ? 'mata' : 'telinga' ?>_kiri]" maxlength="80" value="<?= rw_esc($posbinduOld[$prefix . '_' . ($organ === 'Mata' ? 'mata' : 'telinga') . '_kiri'] ?? '') ?>"></label>
+          <label>Rujuk RS<select name="posbindu[<?= rw_esc($prefix) ?>_rujuk_rs]"><option value="">Belum ditentukan</option><?php foreach ($posbinduYesNoOptions as $value => $optionLabel): ?><option value="<?= rw_esc($value) ?>" <?= is_selected($posbinduOld[$prefix . '_rujuk_rs'] ?? '', $value) ?>><?= rw_esc($optionLabel) ?></option><?php endforeach; ?></select></label>
+        <?php endforeach; ?>
+      </div>
+    </details>
+    <details class="full health-form-section" data-health-service="posbindu">
+      <summary><strong>Pemeriksaan IVA, SADANIS, dan Form UBM</strong></summary>
+      <div class="grid-form health-nested-grid">
+        <label>Hasil IVA<input type="text" name="posbindu[hasil_iva]" maxlength="160" value="<?= rw_esc($posbinduOld['hasil_iva'] ?? '') ?>"></label>
+        <label>Tindak Lanjut IVA Positif<input type="text" name="posbindu[tindak_lanjut_iva]" maxlength="255" value="<?= rw_esc($posbinduOld['tindak_lanjut_iva'] ?? '') ?>"></label>
+        <label>Hasil SADANIS<input type="text" name="posbindu[hasil_sadanis]" maxlength="160" value="<?= rw_esc($posbinduOld['hasil_sadanis'] ?? '') ?>"></label>
+        <label>Tindak Lanjut SADANIS<input type="text" name="posbindu[tindak_lanjut_sadanis]" maxlength="255" value="<?= rw_esc($posbinduOld['tindak_lanjut_sadanis'] ?? '') ?>"></label>
+        <label>Konseling UBM<input type="text" name="posbindu[ubm_konseling]" maxlength="255" value="<?= rw_esc($posbinduOld['ubm_konseling'] ?? '') ?>"></label>
+        <label>CAR<input type="text" name="posbindu[ubm_car]" maxlength="160" value="<?= rw_esc($posbinduOld['ubm_car'] ?? '') ?>"></label>
+        <label>Rujuk UBM<input type="text" name="posbindu[ubm_rujuk]" maxlength="160" value="<?= rw_esc($posbinduOld['ubm_rujuk'] ?? '') ?>"></label>
+        <label>Kondisi<input type="text" name="posbindu[ubm_kondisi]" maxlength="160" value="<?= rw_esc($posbinduOld['ubm_kondisi'] ?? '') ?>"></label>
+      </div>
+    </details>
     <div class="full health-form-section"><strong>4–5. Pelayanan, edukasi, validasi, dan tindak lanjut</strong></div>
     <label class="full">Layanan yang Diberikan<textarea name="layanan_diberikan" rows="2" maxlength="2000" placeholder="Contoh: penimbangan, pemeriksaan tekanan darah, PMT, atau pelayanan oleh nakes."><?= rw_esc(old('layanan_diberikan')) ?></textarea></label>
     <label class="full">Edukasi / Konseling<textarea name="edukasi" rows="2" maxlength="2000" placeholder="Tuliskan edukasi yang benar-benar diberikan."><?= rw_esc(old('edukasi')) ?></textarea></label>
@@ -278,6 +360,7 @@ $selectedVisitType = old('jenis_layanan', $selectedParticipant['jenis'] ?? 'posy
 <script>
 (() => {
   const visitType = document.getElementById('healthVisitType');
+  const participantType = document.getElementById('healthParticipantType');
   const followup = document.getElementById('healthFollowup');
   const syncHealthFields = () => {
     const selected = visitType?.value || 'posyandu';
@@ -287,8 +370,13 @@ $selectedVisitType = old('jenis_layanan', $selectedParticipant['jenis'] ?? 'posy
     document.querySelectorAll('[data-referral-field]').forEach((field) => {
       field.hidden = followup?.value !== 'rujuk_puskesmas';
     });
+    const participantSelected = participantType?.value || 'posyandu';
+    document.querySelectorAll('[data-participant-service]').forEach((field) => {
+      field.hidden = field.dataset.participantService !== participantSelected;
+    });
   };
   visitType?.addEventListener('change', syncHealthFields);
+  participantType?.addEventListener('change', syncHealthFields);
   followup?.addEventListener('change', syncHealthFields);
   syncHealthFields();
 })();

@@ -1479,6 +1479,94 @@ if (! function_exists('kesehatan_gender_options')) {
     }
 }
 
+if (! function_exists('kesehatan_posbindu_yes_no_options')) {
+    function kesehatan_posbindu_yes_no_options(): array
+    {
+        return [
+            'TIDAK' => 'Tidak',
+            'YA' => 'Ya',
+        ];
+    }
+}
+
+if (! function_exists('kesehatan_posbindu_detail_fields')) {
+    function kesehatan_posbindu_detail_fields(): array
+    {
+        return [
+            'riwayat_keluarga_1' => 160,
+            'riwayat_keluarga_2' => 160,
+            'riwayat_keluarga_3' => 160,
+            'riwayat_diri_1' => 160,
+            'riwayat_diri_2' => 160,
+            'riwayat_diri_3' => 160,
+            'gula_berlebihan' => 20,
+            'garam_berlebihan' => 20,
+            'lemak_berlebihan' => 20,
+            'konsumsi_alkohol' => 20,
+            'rujuk_rs' => 20,
+            'diagnosis_1' => 160,
+            'diagnosis_2' => 160,
+            'diagnosis_3' => 160,
+            'terapi_farmakologi' => 2000,
+            'kie_kesehatan' => 2000,
+            'katarak_mata_kanan' => 80,
+            'katarak_mata_kiri' => 80,
+            'katarak_rujuk_rs' => 20,
+            'refraksi_mata_kanan' => 80,
+            'refraksi_mata_kiri' => 80,
+            'refraksi_rujuk_rs' => 20,
+            'tuli_telinga_kanan' => 80,
+            'tuli_telinga_kiri' => 80,
+            'tuli_rujuk_rs' => 20,
+            'omsk_telinga_kanan' => 80,
+            'omsk_telinga_kiri' => 80,
+            'omsk_rujuk_rs' => 20,
+            'serumen_telinga_kanan' => 80,
+            'serumen_telinga_kiri' => 80,
+            'serumen_rujuk_rs' => 20,
+            'hasil_iva' => 160,
+            'tindak_lanjut_iva' => 255,
+            'hasil_sadanis' => 160,
+            'tindak_lanjut_sadanis' => 255,
+            'ubm_konseling' => 255,
+            'ubm_car' => 160,
+            'ubm_rujuk' => 160,
+            'ubm_kondisi' => 160,
+        ];
+    }
+}
+
+if (! function_exists('sanitize_kesehatan_posbindu_details')) {
+    function sanitize_kesehatan_posbindu_details($input): array
+    {
+        $input = is_array($input) ? $input : [];
+        $yesNoFields = [
+            'gula_berlebihan', 'garam_berlebihan', 'lemak_berlebihan', 'konsumsi_alkohol',
+            'rujuk_rs', 'katarak_rujuk_rs', 'refraksi_rujuk_rs', 'tuli_rujuk_rs',
+            'omsk_rujuk_rs', 'serumen_rujuk_rs',
+        ];
+        $result = [];
+        foreach (kesehatan_posbindu_detail_fields() as $field => $maxLength) {
+            $value = trim((string) ($input[$field] ?? ''));
+            if (in_array($field, $yesNoFields, true) && ! isset(kesehatan_posbindu_yes_no_options()[$value])) {
+                $value = '';
+            }
+            $result[$field] = substr($value, 0, $maxLength);
+        }
+
+        return $result;
+    }
+}
+
+if (! function_exists('decode_kesehatan_posbindu_details')) {
+    function decode_kesehatan_posbindu_details($json): array
+    {
+        $decoded = json_decode((string) $json, true);
+
+        return sanitize_kesehatan_posbindu_details(is_array($decoded) ? $decoded : []);
+    }
+}
+
 if (! function_exists('ensure_kesehatan_data_tables')) {
     function ensure_kesehatan_data_tables($db = null): bool
     {
@@ -1490,9 +1578,16 @@ if (! function_exists('ensure_kesehatan_data_tables')) {
                     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                     jenis VARCHAR(20) NOT NULL,
                     kelompok_siklus VARCHAR(40) NULL,
+                    nik VARCHAR(32) NULL,
                     nama VARCHAR(160) NOT NULL,
                     tanggal_lahir DATE NULL,
                     jenis_kelamin VARCHAR(1) NULL,
+                    provinsi VARCHAR(100) NULL,
+                    kota_kabupaten VARCHAR(120) NULL,
+                    pendidikan VARCHAR(80) NULL,
+                    pekerjaan VARCHAR(120) NULL,
+                    status_perkawinan VARCHAR(80) NULL,
+                    golongan_darah VARCHAR(10) NULL,
                     nama_wali VARCHAR(160) NULL,
                     rt VARCHAR(20) NULL,
                     no_hp VARCHAR(40) NULL,
@@ -1503,6 +1598,7 @@ if (! function_exists('ensure_kesehatan_data_tables')) {
                     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     KEY jenis_status (jenis, status),
+                    UNIQUE KEY nik_unique (nik),
                     KEY nama (nama),
                     KEY rt (rt)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci"
@@ -1533,6 +1629,7 @@ if (! function_exists('ensure_kesehatan_data_tables')) {
                     tujuan_rujukan VARCHAR(160) NULL,
                     tanggal_tindak_lanjut DATE NULL,
                     status_validasi VARCHAR(20) NOT NULL DEFAULT 'dicatat',
+                    posbindu_data_json LONGTEXT NULL,
                     catatan TEXT NULL,
                     dicatat_oleh INT UNSIGNED NULL,
                     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1543,6 +1640,13 @@ if (! function_exists('ensure_kesehatan_data_tables')) {
 
             $participantColumns = [
                 'kelompok_siklus' => "ALTER TABLE kesehatan_peserta ADD COLUMN kelompok_siklus VARCHAR(40) NULL AFTER jenis",
+                'nik' => "ALTER TABLE kesehatan_peserta ADD COLUMN nik VARCHAR(32) NULL AFTER kelompok_siklus",
+                'provinsi' => "ALTER TABLE kesehatan_peserta ADD COLUMN provinsi VARCHAR(100) NULL AFTER jenis_kelamin",
+                'kota_kabupaten' => "ALTER TABLE kesehatan_peserta ADD COLUMN kota_kabupaten VARCHAR(120) NULL AFTER provinsi",
+                'pendidikan' => "ALTER TABLE kesehatan_peserta ADD COLUMN pendidikan VARCHAR(80) NULL AFTER kota_kabupaten",
+                'pekerjaan' => "ALTER TABLE kesehatan_peserta ADD COLUMN pekerjaan VARCHAR(120) NULL AFTER pendidikan",
+                'status_perkawinan' => "ALTER TABLE kesehatan_peserta ADD COLUMN status_perkawinan VARCHAR(80) NULL AFTER pekerjaan",
+                'golongan_darah' => "ALTER TABLE kesehatan_peserta ADD COLUMN golongan_darah VARCHAR(10) NULL AFTER status_perkawinan",
                 'persetujuan_data' => "ALTER TABLE kesehatan_peserta ADD COLUMN persetujuan_data TINYINT(1) NOT NULL DEFAULT 0 AFTER status",
             ];
             foreach ($participantColumns as $column => $sql) {
@@ -1550,6 +1654,11 @@ if (! function_exists('ensure_kesehatan_data_tables')) {
                 if (! $exists) {
                     $db->query($sql);
                 }
+            }
+
+            $nikIndex = $db->query("SHOW INDEX FROM kesehatan_peserta WHERE Key_name = 'nik_unique'")->getRowArray();
+            if (! $nikIndex) {
+                $db->query('ALTER TABLE kesehatan_peserta ADD UNIQUE KEY nik_unique (nik)');
             }
 
             $visitColumns = [
@@ -1568,6 +1677,7 @@ if (! function_exists('ensure_kesehatan_data_tables')) {
                 'tujuan_rujukan' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN tujuan_rujukan VARCHAR(160) NULL AFTER tindak_lanjut",
                 'tanggal_tindak_lanjut' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN tanggal_tindak_lanjut DATE NULL AFTER tujuan_rujukan",
                 'status_validasi' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN status_validasi VARCHAR(20) NOT NULL DEFAULT 'dicatat' AFTER tanggal_tindak_lanjut",
+                'posbindu_data_json' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN posbindu_data_json LONGTEXT NULL AFTER status_validasi",
             ];
             foreach ($visitColumns as $column => $sql) {
                 $exists = $db->query("SHOW COLUMNS FROM kesehatan_kunjungan LIKE '" . $db->escapeString($column) . "'")->getRowArray();

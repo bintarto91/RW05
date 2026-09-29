@@ -1377,6 +1377,27 @@ tbody a[href*='delete'] {
 	margin: 6px 0 0;
 }
 
+details.health-form-section {
+	border: 1px solid var(--border);
+	border-left: 4px solid var(--forest-soft);
+}
+
+details.health-form-section summary {
+	cursor: pointer;
+	color: var(--forest);
+}
+
+.health-nested-grid {
+	margin-top: 16px;
+}
+
+.health-form-subheading {
+	padding: 8px 10px;
+	border-radius: 8px;
+	background: rgba(255, 255, 255, 0.7);
+	color: var(--forest);
+}
+
 .health-consent-check {
 	display: flex;
 	gap: 10px;

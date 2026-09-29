@@ -666,9 +666,16 @@ class PanelController extends BaseController
                 $participantId = (int) $this->request->getPost('id');
                 $jenis = trim((string) $this->request->getPost('jenis'));
                 $kelompokSiklus = trim((string) $this->request->getPost('kelompok_siklus'));
+                $nik = preg_replace('/\D+/', '', (string) $this->request->getPost('nik'));
                 $nama = trim((string) $this->request->getPost('nama'));
                 $tanggalLahir = trim((string) $this->request->getPost('tanggal_lahir'));
                 $jenisKelamin = trim((string) $this->request->getPost('jenis_kelamin'));
+                $provinsi = trim((string) $this->request->getPost('provinsi'));
+                $kotaKabupaten = trim((string) $this->request->getPost('kota_kabupaten'));
+                $pendidikan = trim((string) $this->request->getPost('pendidikan'));
+                $pekerjaan = trim((string) $this->request->getPost('pekerjaan'));
+                $statusPerkawinan = trim((string) $this->request->getPost('status_perkawinan'));
+                $golonganDarah = trim((string) $this->request->getPost('golongan_darah'));
                 $namaWali = trim((string) $this->request->getPost('nama_wali'));
                 $rt = normalize_rt_code($this->request->getPost('rt'));
                 $noHp = trim((string) $this->request->getPost('no_hp'));
@@ -677,6 +684,8 @@ class PanelController extends BaseController
                 $persetujuanData = $this->request->getPost('persetujuan_data') === '1' ? 1 : 0;
                 $catatan = trim((string) $this->request->getPost('catatan'));
                 $error = '';
+                $nikOwner = $nik !== '' ? $db->table('kesehatan_peserta')->select('id')->where('nik', $nik)->get()->getRowArray() : null;
+                $nikDuplicate = $nikOwner && (int) $nikOwner['id'] !== $participantId;
 
                 if (! isset($participantTypeOptions[$jenis])) {
                     $error = 'Pilih jenis peserta Posyandu atau Posbindu.';
@@ -684,13 +693,17 @@ class PanelController extends BaseController
                     $error = 'Pilih kelompok siklus hidup peserta.';
                 } elseif ($jenis === 'posbindu' && ! in_array($kelompokSiklus, ['dewasa', 'lansia'], true)) {
                     $error = 'Peserta Posbindu harus berada pada kelompok dewasa atau lansia.';
+                } elseif ($nik !== '' && (strlen($nik) < 8 || strlen($nik) > 32)) {
+                    $error = 'NIK harus berupa 8–32 angka sesuai dokumen sumber.';
+                } elseif ($nikDuplicate) {
+                    $error = 'NIK sudah digunakan oleh peserta lain.';
                 } elseif ($nama === '' || strlen($nama) > 160) {
                     $error = 'Nama peserta wajib diisi dan maksimal 160 karakter.';
                 } elseif ($tanggalLahir !== '' && (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggalLahir) || ! strtotime($tanggalLahir))) {
                     $error = 'Tanggal lahir belum valid.';
                 } elseif ($jenisKelamin !== '' && ! isset($genderOptions[$jenisKelamin])) {
                     $error = 'Jenis kelamin belum valid.';
-                } elseif (strlen($namaWali) > 160 || strlen($noHp) > 40 || strlen($alamat) > 255 || strlen($catatan) > 2000) {
+                } elseif (strlen($provinsi) > 100 || strlen($kotaKabupaten) > 120 || strlen($pendidikan) > 80 || strlen($pekerjaan) > 120 || strlen($statusPerkawinan) > 80 || strlen($golonganDarah) > 10 || strlen($namaWali) > 160 || strlen($noHp) > 40 || strlen($alamat) > 255 || strlen($catatan) > 2000) {
                     $error = 'Salah satu data peserta terlalu panjang.';
                 } elseif (! isset($statusOptions[$status])) {
                     $error = 'Status peserta belum valid.';
@@ -707,9 +720,16 @@ class PanelController extends BaseController
                 $data = [
                     'jenis' => $jenis,
                     'kelompok_siklus' => $kelompokSiklus,
+                    'nik' => $nik !== '' ? $nik : null,
                     'nama' => substr($nama, 0, 160),
                     'tanggal_lahir' => $tanggalLahir !== '' ? $tanggalLahir : null,
                     'jenis_kelamin' => $jenisKelamin !== '' ? $jenisKelamin : null,
+                    'provinsi' => substr($provinsi, 0, 100),
+                    'kota_kabupaten' => substr($kotaKabupaten, 0, 120),
+                    'pendidikan' => substr($pendidikan, 0, 80),
+                    'pekerjaan' => substr($pekerjaan, 0, 120),
+                    'status_perkawinan' => substr($statusPerkawinan, 0, 80),
+                    'golongan_darah' => substr($golonganDarah, 0, 10),
                     'nama_wali' => substr($namaWali, 0, 160),
                     'rt' => $rt !== '' ? substr($rt, 0, 20) : null,
                     'no_hp' => substr($noHp, 0, 40),
@@ -754,6 +774,7 @@ class PanelController extends BaseController
                 $referralDestination = trim((string) $this->request->getPost('tujuan_rujukan'));
                 $followupDate = trim((string) $this->request->getPost('tanggal_tindak_lanjut'));
                 $validationStatus = (string) $this->request->getPost('status_validasi') === 'divalidasi' ? 'divalidasi' : 'dicatat';
+                $posbinduDetails = sanitize_kesehatan_posbindu_details($this->request->getPost('posbindu'));
                 if (! admin_role_can_validate_kesehatan()) {
                     $validationStatus = 'dicatat';
                 }
@@ -803,6 +824,7 @@ class PanelController extends BaseController
                 if ($jenisLayanan === 'posyandu') {
                     $waistCircumference = $systolic = $diastolic = $glucose = $glucoseContext = '';
                     $smokingRisk = $physicalActivity = $fruitVegetable = '';
+                    $posbinduDetails = [];
                 } else {
                     $headCircumference = $armCircumference = $gestationalAge = '';
                 }
@@ -831,6 +853,7 @@ class PanelController extends BaseController
                     'tujuan_rujukan' => substr($referralDestination, 0, 160),
                     'tanggal_tindak_lanjut' => $followupDate !== '' ? $followupDate : null,
                     'status_validasi' => $validationStatus,
+                    'posbindu_data_json' => $jenisLayanan === 'posbindu' ? json_encode($posbinduDetails, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : null,
                     'catatan' => $catatan,
                     'dicatat_oleh' => (int) session('admin_id'),
                 ];
@@ -860,6 +883,20 @@ class PanelController extends BaseController
 
                 return redirect()->to(site_url('admin/kesehatan-data'))->with('success', 'Data peserta dan catatan kunjungannya berhasil dihapus.');
             }
+        }
+
+        if ($this->request->getGet('export') === 'posbindu-xlsx' && $activityJenis === 'posbindu') {
+            $exportRows = $db->table('kesehatan_peserta peserta')
+                ->select('peserta.*, kunjungan.tanggal AS tanggal_pemeriksaan, kunjungan.berat_kg, kunjungan.tinggi_cm, kunjungan.lingkar_perut_cm, kunjungan.tekanan_sistolik, kunjungan.tekanan_diastolik, kunjungan.gula_darah, kunjungan.faktor_merokok, kunjungan.aktivitas_fisik, kunjungan.konsumsi_buah_sayur, kunjungan.edukasi, kunjungan.tindak_lanjut, kunjungan.posbindu_data_json')
+                ->join('kesehatan_kunjungan kunjungan', 'kunjungan.peserta_id = peserta.id', 'inner')
+                ->where('kunjungan.tanggal', $activityDate)
+                ->where('kunjungan.jenis_layanan', 'posbindu')
+                ->where('kunjungan.hadir', 'ya')
+                ->orderBy('peserta.nama', 'ASC')
+                ->get()
+                ->getResultArray();
+
+            return $this->downloadPosbinduExcel($exportRows, $activityDate);
         }
 
         if ($this->request->getGet('print') === '1') {
@@ -963,6 +1000,144 @@ class PanelController extends BaseController
             'error' => session()->getFlashdata('error') ?: '',
             'success' => session()->getFlashdata('success') ?: '',
         ]);
+    }
+
+    private function downloadPosbinduExcel(array $rows, string $reportDate)
+    {
+        $columnCount = 61;
+        $blankRow = static fn (): array => array_fill(0, $columnCount, '');
+        $headerCell = static function (string $label, string $background): string {
+            $safe = htmlspecialchars($label, ENT_QUOTES | ENT_XML1, 'UTF-8');
+
+            return '<style bgcolor="' . $background . '" color="#FFFFFF" border="#FFFFFF" height="34"><middle><center><b><wraptext>' . $safe . '</wraptext></b></center></middle></style>';
+        };
+
+        $row1 = $blankRow();
+        $row1[0] = $headerCell('2.0', '#1F4E78');
+        $row1[1] = $headerCell('PUSKESMAS', '#1F4E78');
+
+        $row2 = $blankRow();
+        foreach ([
+            0 => ['TANGGAL PEMERIKSAAN*', '#1F4E78'],
+            1 => ['IDENTITAS PESERTA PUSKESMAS', '#548235'],
+            13 => ['RIWAYAT PENYAKIT TIDAK MENULAR PADA KELUARGA', '#BF6B28'],
+            16 => ['RIWAYAT PENYAKIT TIDAK MENULAR PADA DIRI SENDIRI', '#BF6B28'],
+            19 => ['FAKTOR RISIKO', '#BF6B28'],
+            26 => ['TEKANAN DARAH', '#00A6C8'],
+            28 => ['IMT', '#00A6C8'],
+            30 => ['LINGKAR PERUT (CM)', '#00A6C8'],
+            31 => ['PEMERIKSAAN GULA', '#00A6C8'],
+            32 => ['RUJUK RS', '#00A6C8'],
+            33 => ['DIAGNOSIS', '#548235'],
+            36 => ['TERAPI FARMAKOLOGI', '#548235'],
+            37 => ['KONSELING, INFORMASI DAN EDUKASI KESEHATAN', '#548235'],
+            38 => ['GANGGUAN INDERA', '#4472C4'],
+            53 => ['PEMERIKSAAN IVA & SADANIS', '#ED7D31'],
+            57 => ['FORM UBM', '#BF9000'],
+        ] as $index => [$label, $color]) {
+            $row2[$index] = $headerCell($label, $color);
+        }
+
+        $row3 = $blankRow();
+        $row3Labels = [
+            1 => 'NIK', 2 => 'NAMA PASIEN*', 3 => 'TANGGAL LAHIR*', 4 => 'JENIS KELAMIN*',
+            5 => 'PROVINSI ASAL PASIEN', 6 => 'KOTA/KAB. ASAL PASIEN', 7 => 'ALAMAT*', 8 => 'NO. TELP/HP',
+            9 => 'STATUS PENDIDIKAN', 10 => 'PEKERJAAN', 11 => 'STATUS PERKAWINAN', 12 => 'GOLONGAN DARAH',
+            13 => 'RIWAYAT 1', 14 => 'RIWAYAT 2', 15 => 'RIWAYAT 3', 16 => 'RIWAYAT 1', 17 => 'RIWAYAT 2', 18 => 'RIWAYAT 3',
+            19 => 'MEROKOK', 20 => 'KURANG AKTIFITAS FISIK', 21 => 'POLA MAKAN', 25 => 'KONSUMSI ALKOHOL',
+            26 => 'SISTOL', 27 => 'DIASTOL', 28 => 'TINGGI BADAN (CM)', 29 => 'BERAT BADAN (KG)',
+            30 => 'LINGKAR PERUT (CM)', 31 => 'PEMERIKSAAN GULA', 32 => 'RUJUK RS',
+            33 => 'DIAGNOSIS 1', 34 => 'DIAGNOSIS 2', 35 => 'DIAGNOSIS 3',
+            36 => 'TERAPI FARMAKOLOGI', 37 => 'KIE KESEHATAN',
+            38 => 'GANGGUAN PENGLIHATAN', 44 => 'GANGGUAN PENDENGARAN',
+            53 => 'PEMERIKSAAN IVA', 55 => 'PEMERIKSAAN SADANIS',
+            57 => 'KONSELING', 58 => 'CAR', 59 => 'RUJUK UBM', 60 => 'KONDISI',
+        ];
+        foreach ($row3Labels as $index => $label) {
+            $row3[$index] = $headerCell($label, $index >= 53 ? '#ED7D31' : ($index >= 38 ? '#4472C4' : '#5B9BD5'));
+        }
+
+        $row4 = $blankRow();
+        foreach ([
+            21 => 'GULA BERLEBIHAN', 22 => 'GARAM BERLEBIHAN', 23 => 'LEMAK BERLEBIHAN', 24 => 'KURANG MAKAN BUAH DAN SAYUR',
+            38 => 'KATARAK', 41 => 'KELAINAN REFRAKSI', 44 => 'CURIGA TULI KONGENITAL', 47 => '(OMSK/CONGEK)', 50 => 'SERUMEN',
+            53 => 'HASIL IVA', 54 => 'TINDAK LANJUT IVA POSITIF', 55 => 'HASIL SADANIS', 56 => 'TINDAK LANJUT SADANIS',
+        ] as $index => $label) {
+            $row4[$index] = $headerCell($label, $index >= 53 ? '#ED7D31' : '#4472C4');
+        }
+
+        $row5 = $blankRow();
+        foreach ([
+            38 => 'MATA KANAN', 39 => 'MATA KIRI', 40 => 'RUJUK RS', 41 => 'MATA KANAN', 42 => 'MATA KIRI', 43 => 'RUJUK RS',
+            44 => 'TELINGA KANAN', 45 => 'TELINGA KIRI', 46 => 'RUJUK RS', 47 => 'TELINGA KANAN', 48 => 'TELINGA KIRI', 49 => 'RUJUK RS',
+            50 => 'TELINGA KANAN', 51 => 'TELINGA KIRI', 52 => 'RUJUK RS',
+        ] as $index => $label) {
+            $row5[$index] = $headerCell($label, '#4472C4');
+        }
+
+        $data = [$row1, $row2, $row3, $row4, $row5];
+        foreach ($rows as $row) {
+            $detail = decode_kesehatan_posbindu_details($row['posbindu_data_json'] ?? '');
+            $smoking = match ((string) ($row['faktor_merokok'] ?? '')) {
+                'ya' => 'YA',
+                'tidak' => 'TIDAK',
+                'berhenti' => 'BERHENTI',
+                default => '',
+            };
+            $lowActivity = match ((string) ($row['aktivitas_fisik'] ?? '')) {
+                'kurang' => 'YA',
+                'cukup' => 'TIDAK',
+                default => '',
+            };
+            $lowFruitVegetable = match ((string) ($row['konsumsi_buah_sayur'] ?? '')) {
+                'kurang' => 'YA',
+                'cukup' => 'TIDAK',
+                default => '',
+            };
+            $gender = ($row['jenis_kelamin'] ?? '') === 'P' ? 'PEREMPUAN' : (($row['jenis_kelamin'] ?? '') === 'L' ? 'LAKI-LAKI' : '');
+            $examDate = ! empty($row['tanggal_pemeriksaan']) ? date('d/m/Y', strtotime((string) $row['tanggal_pemeriksaan'])) : '';
+            $birthDate = ! empty($row['tanggal_lahir']) ? date('d/m/Y', strtotime((string) $row['tanggal_lahir'])) : '';
+            $data[] = [
+                $examDate, "\0" . (string) ($row['nik'] ?? ''), (string) ($row['nama'] ?? ''), $birthDate, $gender,
+                (string) ($row['provinsi'] ?? ''), (string) ($row['kota_kabupaten'] ?? ''), (string) ($row['alamat'] ?? ''), (string) ($row['no_hp'] ?? ''),
+                (string) ($row['pendidikan'] ?? ''), (string) ($row['pekerjaan'] ?? ''), (string) ($row['status_perkawinan'] ?? ''), (string) ($row['golongan_darah'] ?? ''),
+                $detail['riwayat_keluarga_1'], $detail['riwayat_keluarga_2'], $detail['riwayat_keluarga_3'],
+                $detail['riwayat_diri_1'], $detail['riwayat_diri_2'], $detail['riwayat_diri_3'],
+                $smoking, $lowActivity, $detail['gula_berlebihan'], $detail['garam_berlebihan'], $detail['lemak_berlebihan'], $lowFruitVegetable, $detail['konsumsi_alkohol'],
+                $row['tekanan_sistolik'] ?? '', $row['tekanan_diastolik'] ?? '', $row['tinggi_cm'] ?? '', $row['berat_kg'] ?? '', $row['lingkar_perut_cm'] ?? '', $row['gula_darah'] ?? '',
+                $detail['rujuk_rs'] !== '' ? $detail['rujuk_rs'] : (($row['tindak_lanjut'] ?? '') === 'rujuk_puskesmas' ? 'YA' : ''),
+                $detail['diagnosis_1'], $detail['diagnosis_2'], $detail['diagnosis_3'], $detail['terapi_farmakologi'],
+                $detail['kie_kesehatan'] !== '' ? $detail['kie_kesehatan'] : (string) ($row['edukasi'] ?? ''),
+                $detail['katarak_mata_kanan'], $detail['katarak_mata_kiri'], $detail['katarak_rujuk_rs'],
+                $detail['refraksi_mata_kanan'], $detail['refraksi_mata_kiri'], $detail['refraksi_rujuk_rs'],
+                $detail['tuli_telinga_kanan'], $detail['tuli_telinga_kiri'], $detail['tuli_rujuk_rs'],
+                $detail['omsk_telinga_kanan'], $detail['omsk_telinga_kiri'], $detail['omsk_rujuk_rs'],
+                $detail['serumen_telinga_kanan'], $detail['serumen_telinga_kiri'], $detail['serumen_rujuk_rs'],
+                $detail['hasil_iva'], $detail['tindak_lanjut_iva'], $detail['hasil_sadanis'], $detail['tindak_lanjut_sadanis'],
+                $detail['ubm_konseling'], $detail['ubm_car'], $detail['ubm_rujuk'], $detail['ubm_kondisi'],
+            ];
+        }
+
+        $xlsx = SimpleXLSXGen::fromArray($data);
+        $xlsx->setDefaultFont('Arial')->setDefaultFontSize(10)->freezePanes('D6');
+        $xlsx->setColWidth('A', 15)->setColWidth('B', 20)->setColWidth('C', 26)->setColWidth('D:E', 16)->setColWidth('F:I', 24)->setColWidth('J:M', 18)->setColWidth('N:BI', 17);
+        foreach (['B1:BI1', 'A2:A5', 'B2:M2', 'N2:P2', 'Q2:S2', 'T2:Z2', 'AA2:AB2', 'AC2:AD2', 'AE2:AE5', 'AF2:AF5', 'AG2:AG5', 'AH2:AJ2', 'AK2:AK5', 'AL2:AL5', 'AM2:BA2', 'BB2:BE2', 'BF2:BI2', 'B3:B5', 'C3:C5', 'D3:D5', 'E3:E5', 'F3:F5', 'G3:G5', 'H3:H5', 'I3:I5', 'J3:J5', 'K3:K5', 'L3:L5', 'M3:M5', 'N3:N5', 'O3:O5', 'P3:P5', 'Q3:Q5', 'R3:R5', 'S3:S5', 'T3:T5', 'U3:U5', 'V3:Y3', 'Z3:Z5', 'AA3:AA5', 'AB3:AB5', 'AC3:AC5', 'AD3:AD5', 'AH3:AH5', 'AI3:AI5', 'AJ3:AJ5', 'AM3:AR3', 'AS3:BA3', 'AM4:AO4', 'AP4:AR4', 'AS4:AU4', 'AV4:AX4', 'AY4:BA4', 'BB3:BC3', 'BD3:BE3', 'BB4:BB5', 'BC4:BC5', 'BD4:BD5', 'BE4:BE5', 'BF3:BF5', 'BG3:BG5', 'BH3:BH5', 'BI3:BI5'] as $range) {
+            $xlsx->mergeCells($range);
+        }
+
+        $fileBase = 'laporan-posbindu-' . date('Ymd', strtotime($reportDate));
+        $tempFile = tempnam(WRITEPATH . 'cache', 'posbindu-xlsx-');
+        $xlsxFile = $tempFile . '.xlsx';
+        @unlink($tempFile);
+        $xlsx->saveAs($xlsxFile);
+        $binary = is_file($xlsxFile) ? file_get_contents($xlsxFile) : '';
+        @unlink($xlsxFile);
+
+        if ($binary === '') {
+            return $this->response->setStatusCode(500)->setBody('File Excel Posbindu gagal dibuat.');
+        }
+
+        return $this->response->download($fileBase . '.xlsx', $binary, true);
     }
 
     public function kesehatanDashboard(): string
