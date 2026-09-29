@@ -7,10 +7,6 @@ $navItems = [
     'kegiatan' => ['label' => 'Kegiatan', 'href' => site_url('admin/kegiatan')],
     'layanan' => ['label' => 'Layanan', 'href' => site_url('admin/layanan')],
     'edukasi' => ['label' => 'Materi Edukasi', 'href' => site_url('admin/edukasi')],
-    'kesehatan-jadwal' => ['label' => 'Jadwal Kesehatan', 'href' => site_url('admin/kesehatan-jadwal')],
-    'kesehatan-dashboard' => ['label' => 'Dashboard Kesehatan', 'href' => site_url('admin/kesehatan-dashboard')],
-    'kesehatan-data' => ['label' => 'Layanan Kesehatan', 'href' => site_url('admin/kesehatan-data')],
-    'kesehatan-tindak-lanjut' => ['label' => 'Tindak Lanjut & Rujukan', 'href' => site_url('admin/kesehatan-tindak-lanjut')],
     'pengajuan-surat' => ['label' => 'Pengajuan Surat', 'href' => site_url('admin/pengajuan-surat')],
     'pengurus' => ['label' => 'Pengurus', 'href' => site_url('admin/pengurus')],
     'warga' => ['label' => 'Data Warga', 'href' => site_url('admin/warga')],
@@ -19,6 +15,7 @@ $navItems = [
     'aspirasi' => ['label' => 'Aspirasi', 'href' => site_url('admin/aspirasi')],
     'akun' => ['label' => 'Akun Admin', 'href' => site_url('admin/akun')],
 ];
+$healthDashboard = ['label' => 'Buka Dashboard Kesehatan', 'href' => site_url('admin/kesehatan-dashboard')];
 $currentLabel = $navItems[$currentPage]['label'] ?? 'Panel Admin';
 $notificationCounts = ['pengajuan-surat' => 0, 'aspirasi' => 0];
 try {
@@ -43,7 +40,7 @@ $notificationTotal = array_sum($notificationCounts);
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=edukasi-dinamis-20260727">
+  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=panel-terpisah-20260929">
 </head>
 <body class="admin-body">
   <div class="admin-shell">
@@ -74,6 +71,17 @@ $notificationTotal = array_sum($notificationCounts);
             </a>
           <?php endforeach; ?>
         </nav>
+      </div>
+
+      <div class="nav-group admin-health-gateway">
+        <p class="nav-caption">Ruang kerja kesehatan</p>
+        <a href="<?= rw_esc($healthDashboard['href']) ?>">
+          <span>
+            <strong><?= rw_esc($healthDashboard['label']) ?></strong>
+            <small>Posyandu, Posbindu, jadwal, dan tindak lanjut</small>
+          </span>
+          <b aria-hidden="true">&#8594;</b>
+        </a>
       </div>
 
       <div class="sidebar-actions">

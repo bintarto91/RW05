@@ -242,6 +242,55 @@ h3,
 	font-weight: 800;
 }
 
+.admin-health-gateway {
+	padding-top: 18px;
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-health-gateway > a {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 15px;
+	border: 1px solid rgba(243, 212, 140, 0.28);
+	border-radius: 16px;
+	color: #fff;
+	background: linear-gradient(135deg, rgba(198, 135, 63, 0.24), rgba(255, 255, 255, 0.08));
+	box-shadow: 0 14px 28px rgba(8, 26, 20, 0.18);
+}
+
+.admin-health-gateway > a:hover {
+	border-color: rgba(243, 212, 140, 0.56);
+	transform: translateY(-1px);
+}
+
+.admin-health-gateway > a span {
+	display: grid;
+	gap: 4px;
+}
+
+.admin-health-gateway > a strong {
+	font-size: 0.92rem;
+}
+
+.admin-health-gateway > a small {
+	color: rgba(236, 228, 212, 0.72);
+	font-size: 0.7rem;
+	line-height: 1.45;
+}
+
+.admin-health-gateway > a b {
+	display: grid;
+	place-items: center;
+	width: 34px;
+	height: 34px;
+	flex: 0 0 34px;
+	border-radius: 11px;
+	color: var(--forest-deep);
+	background: #f3d48c;
+}
+
 .sidebar-actions {
 	display: grid;
 	gap: 10px;
