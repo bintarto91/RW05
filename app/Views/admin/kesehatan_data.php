@@ -39,10 +39,16 @@ $workspaceUrl = static fn (string $tab): string => site_url('admin/kesehatan-dat
 <?php if ($success !== ''): ?><div class="alert success"><?= rw_esc($success) ?></div><?php endif; ?>
 <?php if ($error !== ''): ?><div class="alert error"><?= rw_esc($error) ?></div><?php endif; ?>
 
-<nav class="health-task-tabs" aria-label="Langkah kerja <?= rw_esc($workspaceService) ?>">
-  <a href="<?= $workspaceUrl('kegiatan') ?>" class="<?= $activeStep === 'kegiatan' ? 'is-active' : '' ?>"><strong>1. Kehadiran</strong><span>Pilih tanggal dan tandai peserta hadir</span></a>
-  <a href="<?= $workspaceUrl('peserta') ?>" class="<?= $activeStep === 'peserta' ? 'is-active' : '' ?>"><strong>2. Daftar Peserta</strong><span>Tambah atau perbaiki data peserta</span></a>
-  <a href="<?= $workspaceUrl('pemeriksaan') ?>" class="<?= $activeStep === 'pemeriksaan' ? 'is-active' : '' ?>"><strong>3. Isi Hasil</strong><span>Catat pengukuran dan layanan</span></a>
+<nav class="health-task-tabs health-quick-actions" aria-label="Langkah kerja <?= rw_esc($workspaceService) ?>">
+  <a href="<?= $workspaceUrl('kegiatan') ?>" class="<?= $activeStep === 'kegiatan' ? 'is-active' : '' ?>">
+    <span class="health-task-number">1</span><span class="health-task-copy"><strong>Kehadiran</strong><small>Pilih tanggal dan tandai peserta hadir</small></span><span class="health-task-cta">Klik di sini →</span>
+  </a>
+  <a href="<?= $workspaceUrl('peserta') ?>" class="<?= $activeStep === 'peserta' ? 'is-active' : '' ?>">
+    <span class="health-task-number">2</span><span class="health-task-copy"><strong>Daftar Peserta</strong><small>Tambah atau perbaiki data peserta</small></span><span class="health-task-cta">Klik di sini →</span>
+  </a>
+  <a href="<?= $workspaceUrl('pemeriksaan') ?>" class="<?= $activeStep === 'pemeriksaan' ? 'is-active' : '' ?>">
+    <span class="health-task-number">3</span><span class="health-task-copy"><strong>Isi Hasil</strong><small>Catat pengukuran dan layanan</small></span><span class="health-task-cta">Klik di sini →</span>
+  </a>
 </nav>
 
 <?php if ($activeStep === 'kegiatan'): ?>
