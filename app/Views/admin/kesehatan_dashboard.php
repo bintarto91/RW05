@@ -15,7 +15,8 @@
 </section>
 
 <nav class="health-quick-actions" aria-label="Aksi cepat kesehatan">
-  <a href="<?= site_url('admin/kesehatan-data') ?>"><strong>Catat layanan</strong><span>Peserta, kehadiran, dan hasil kunjungan</span></a>
+  <a href="<?= site_url('admin/kesehatan-data?jenis=posyandu&jenis_kegiatan=posyandu') ?>"><strong>Buka Posyandu</strong><span>Peserta, kehadiran, dan pengukuran Posyandu</span></a>
+  <a href="<?= site_url('admin/posbindu-laporan') ?>"><strong>Buka Posbindu</strong><span>Pemeriksaan dan laporan Excel Posbindu</span></a>
   <a href="<?= site_url('admin/kesehatan-tindak-lanjut') ?>"><strong>Cek tindak lanjut</strong><span>Pemantauan, kunjungan rumah, dan rujukan</span></a>
   <a href="<?= site_url('admin/kesehatan-jadwal') ?>"><strong>Atur jadwal</strong><span>Publikasikan kegiatan untuk warga</span></a>
 </nav>

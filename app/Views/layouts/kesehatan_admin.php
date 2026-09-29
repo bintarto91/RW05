@@ -1,11 +1,11 @@
 <?php
 $currentPage = $currentPage ?? 'kesehatan-dashboard';
 $navItems = [
-    'kesehatan-dashboard' => ['label' => 'Ringkasan', 'href' => site_url('admin/kesehatan-dashboard')],
-    'posbindu-laporan' => ['label' => 'Laporan Posbindu', 'href' => site_url('admin/posbindu-laporan')],
-    'kesehatan-data' => ['label' => 'Peserta & Kunjungan', 'href' => site_url('admin/kesehatan-data')],
-    'kesehatan-tindak-lanjut' => ['label' => 'Tindak Lanjut & Rujukan', 'href' => site_url('admin/kesehatan-tindak-lanjut')],
-    'kesehatan-jadwal' => ['label' => 'Jadwal Kegiatan', 'href' => site_url('admin/kesehatan-jadwal')],
+    'kesehatan-dashboard' => ['label' => 'Beranda Kesehatan', 'href' => site_url('admin/kesehatan-dashboard')],
+    'posyandu' => ['label' => 'Posyandu', 'href' => site_url('admin/kesehatan-data?jenis=posyandu&jenis_kegiatan=posyandu')],
+    'posbindu' => ['label' => 'Posbindu', 'href' => site_url('admin/posbindu-laporan')],
+    'kesehatan-tindak-lanjut' => ['label' => 'Tindak Lanjut', 'href' => site_url('admin/kesehatan-tindak-lanjut')],
+    'kesehatan-jadwal' => ['label' => 'Jadwal', 'href' => site_url('admin/kesehatan-jadwal')],
 ];
 $currentLabel = $navItems[$currentPage]['label'] ?? 'Ruang Kerja Kesehatan';
 $role = (string) (session('admin_role') ?? '');
@@ -23,7 +23,7 @@ $workspaceError = session()->getFlashdata('workspace_error') ?: '';
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=posbindu-workflow-20260929">
+  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=health-simple-menu-20260929">
 </head>
 <body class="admin-body health-admin-body">
   <div class="admin-shell health-admin-shell">

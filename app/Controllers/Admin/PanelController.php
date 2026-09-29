@@ -589,7 +589,7 @@ class PanelController extends BaseController
 
         if (! $tableReady) {
             return view('admin/kesehatan_data', [
-                'currentPage' => 'kesehatan-data',
+                'currentPage' => $filterJenis === 'posbindu' ? 'posbindu' : 'posyandu',
                 'tableReady' => false,
                 'participants' => [],
                 'visits' => [],
@@ -659,7 +659,7 @@ class PanelController extends BaseController
                     }
                 }
 
-                return redirect()->to(site_url('admin/kesehatan-data?jenis_kegiatan=' . rawurlencode($jenis) . '&tanggal_kegiatan=' . rawurlencode($tanggal)))
+                return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenis) . '&jenis_kegiatan=' . rawurlencode($jenis) . '&tanggal_kegiatan=' . rawurlencode($tanggal)))
                     ->with('success', 'Daftar hadir kegiatan berhasil disimpan.');
             }
 
@@ -713,7 +713,7 @@ class PanelController extends BaseController
                 }
 
                 if ($error !== '') {
-                    return redirect()->to(site_url('admin/kesehatan-data' . ($participantId > 0 ? '?action=edit&id=' . $participantId : '')))
+                    return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenis) . ($participantId > 0 ? '&action=edit&id=' . $participantId : '')))
                         ->withInput()
                         ->with('error', $error);
                 }
@@ -748,7 +748,7 @@ class PanelController extends BaseController
                     $message = 'Data peserta berhasil ditambahkan.';
                 }
 
-                return redirect()->to(site_url('admin/kesehatan-data'))->with('success', $message);
+                return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenis) . '&jenis_kegiatan=' . rawurlencode($jenis)))->with('success', $message);
             }
 
             if ($action === 'save_visit') {
@@ -817,7 +817,7 @@ class PanelController extends BaseController
                 }
 
                 if ($error !== '') {
-                    return redirect()->to(site_url('admin/kesehatan-data?peserta_id=' . $participantId))
+                    return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenisLayanan) . '&jenis_kegiatan=' . rawurlencode($jenisLayanan) . '&peserta_id=' . $participantId))
                         ->withInput()
                         ->with('error', $error);
                 }
@@ -870,11 +870,12 @@ class PanelController extends BaseController
                     $db->table('kesehatan_kunjungan')->insert($visitData);
                 }
 
-                return redirect()->to(site_url('admin/kesehatan-data?peserta_id=' . $participantId))->with('success', 'Kunjungan peserta berhasil dicatat.');
+                return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenisLayanan) . '&jenis_kegiatan=' . rawurlencode($jenisLayanan) . '&peserta_id=' . $participantId))->with('success', 'Kunjungan peserta berhasil dicatat.');
             }
 
             if ($action === 'delete_participant') {
                 $participantId = (int) $this->request->getPost('id');
+                $returnService = (string) $this->request->getPost('return_service') === 'posbindu' ? 'posbindu' : 'posyandu';
                 if ($participantId > 0) {
                     $db->transStart();
                     $db->table('kesehatan_kunjungan')->where('peserta_id', $participantId)->delete();
@@ -882,7 +883,7 @@ class PanelController extends BaseController
                     $db->transComplete();
                 }
 
-                return redirect()->to(site_url('admin/kesehatan-data'))->with('success', 'Data peserta dan catatan kunjungannya berhasil dihapus.');
+                return redirect()->to(site_url('admin/kesehatan-data?jenis=' . $returnService . '&jenis_kegiatan=' . $returnService))->with('success', 'Data peserta dan catatan kunjungannya berhasil dihapus.');
             }
         }
 
@@ -944,9 +945,13 @@ class PanelController extends BaseController
             $participantsBuilder->groupStart()->like('nama', $filterSearch)->orLike('nama_wali', $filterSearch)->groupEnd();
         }
         $participants = $participantsBuilder->orderBy('status', 'ASC')->orderBy('nama', 'ASC')->get()->getResultArray();
-        $visits = $db->table('kesehatan_kunjungan kunjungan')
+        $visitsBuilder = $db->table('kesehatan_kunjungan kunjungan')
             ->select('kunjungan.*, peserta.nama, peserta.jenis, peserta.kelompok_siklus')
-            ->join('kesehatan_peserta peserta', 'peserta.id = kunjungan.peserta_id', 'inner')
+            ->join('kesehatan_peserta peserta', 'peserta.id = kunjungan.peserta_id', 'inner');
+        if (isset($participantTypeOptions[$filterJenis])) {
+            $visitsBuilder->where('kunjungan.jenis_layanan', $filterJenis);
+        }
+        $visits = $visitsBuilder
             ->orderBy('kunjungan.tanggal', 'DESC')
             ->orderBy('kunjungan.id', 'DESC')
             ->limit(40)
@@ -977,7 +982,7 @@ class PanelController extends BaseController
         $healthStats = kesehatan_health_stats($db);
 
         return view('admin/kesehatan_data', [
-            'currentPage' => 'kesehatan-data',
+            'currentPage' => $filterJenis === 'posbindu' ? 'posbindu' : 'posyandu',
             'tableReady' => true,
             'participants' => $participants,
             'visits' => $visits,
@@ -1056,7 +1061,7 @@ class PanelController extends BaseController
         unset($row);
 
         return view('admin/posbindu_laporan', [
-            'currentPage' => 'posbindu-laporan',
+            'currentPage' => 'posbindu',
             'reportDate' => $reportDate,
             'rows' => $rows,
             'presentCount' => $present,

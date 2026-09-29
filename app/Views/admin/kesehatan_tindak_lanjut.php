@@ -8,7 +8,8 @@
   </div>
   <div class="form-actions">
     <a href="<?= site_url('admin/kesehatan-dashboard') ?>">Dashboard Kesehatan</a>
-    <a href="<?= site_url('admin/kesehatan-data') ?>">Layanan Kesehatan</a>
+    <a href="<?= site_url('admin/kesehatan-data?jenis=posyandu&jenis_kegiatan=posyandu') ?>">Posyandu</a>
+    <a href="<?= site_url('admin/posbindu-laporan') ?>">Posbindu</a>
   </div>
 </div>
 
