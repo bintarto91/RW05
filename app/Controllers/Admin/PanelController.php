@@ -3,6 +3,7 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
+use App\Support\PosbinduWorkbook;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Shuchkin\SimpleXLSXGen;
@@ -1002,6 +1003,69 @@ class PanelController extends BaseController
         ]);
     }
 
+    public function posbinduLaporan()
+    {
+        $db = $this->db();
+        if (! ensure_kesehatan_data_tables($db)) {
+            return redirect()->to(site_url('admin/kesehatan-dashboard'))
+                ->with('workspace_error', 'Penyimpanan data Posbindu belum siap.');
+        }
+
+        $reportDate = trim((string) $this->request->getGet('tanggal'));
+        if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $reportDate) || ! strtotime($reportDate)) {
+            $reportDate = date('Y-m-d');
+        }
+
+        if ($this->request->getGet('export') === 'xlsx') {
+            $exportRows = $db->table('kesehatan_peserta peserta')
+                ->select('peserta.*, kunjungan.tanggal AS tanggal_pemeriksaan, kunjungan.berat_kg, kunjungan.tinggi_cm, kunjungan.lingkar_perut_cm, kunjungan.tekanan_sistolik, kunjungan.tekanan_diastolik, kunjungan.gula_darah, kunjungan.faktor_merokok, kunjungan.aktivitas_fisik, kunjungan.konsumsi_buah_sayur, kunjungan.edukasi, kunjungan.tindak_lanjut, kunjungan.posbindu_data_json')
+                ->join('kesehatan_kunjungan kunjungan', 'kunjungan.peserta_id = peserta.id', 'inner')
+                ->where('kunjungan.tanggal', $reportDate)
+                ->where('kunjungan.jenis_layanan', 'posbindu')
+                ->where('kunjungan.hadir', 'ya')
+                ->orderBy('peserta.nama', 'ASC')
+                ->get()
+                ->getResultArray();
+
+            return $this->downloadPosbinduExcel($exportRows, $reportDate);
+        }
+
+        $rows = $db->table('kesehatan_peserta peserta')
+            ->select('peserta.id, peserta.nik, peserta.nama, peserta.rt, peserta.jenis_kelamin, kunjungan.id AS kunjungan_id, kunjungan.hadir, kunjungan.tekanan_sistolik, kunjungan.tekanan_diastolik, kunjungan.gula_darah, kunjungan.berat_kg, kunjungan.tinggi_cm, kunjungan.lingkar_perut_cm, kunjungan.posbindu_data_json')
+            ->join('kesehatan_kunjungan kunjungan', 'kunjungan.peserta_id = peserta.id AND kunjungan.tanggal = ' . $db->escape($reportDate) . ' AND kunjungan.jenis_layanan = ' . $db->escape('posbindu'), 'left')
+            ->where('peserta.status', 'aktif')
+            ->whereIn('peserta.kelompok_siklus', ['dewasa', 'lansia'])
+            ->orderBy('peserta.rt', 'ASC')
+            ->orderBy('peserta.nama', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $present = 0;
+        $complete = 0;
+        foreach ($rows as &$row) {
+            $isPresent = ($row['hadir'] ?? '') === 'ya';
+            $coreComplete = $isPresent
+                && $row['tekanan_sistolik'] !== null
+                && $row['tekanan_diastolik'] !== null
+                && $row['berat_kg'] !== null
+                && $row['tinggi_cm'] !== null;
+            $row['report_status'] = ! $isPresent ? 'Belum dicatat' : ($coreComplete ? 'Siap dilaporkan' : 'Perlu dilengkapi');
+            $present += $isPresent ? 1 : 0;
+            $complete += $coreComplete ? 1 : 0;
+        }
+        unset($row);
+
+        return view('admin/posbindu_laporan', [
+            'currentPage' => 'posbindu-laporan',
+            'reportDate' => $reportDate,
+            'rows' => $rows,
+            'presentCount' => $present,
+            'completeCount' => $complete,
+            'error' => session()->getFlashdata('error') ?: '',
+            'success' => session()->getFlashdata('success') ?: '',
+        ]);
+    }
+
     private function downloadPosbinduExcel(array $rows, string $reportDate)
     {
         $columnCount = 61;
@@ -1098,7 +1162,7 @@ class PanelController extends BaseController
             $examDate = ! empty($row['tanggal_pemeriksaan']) ? date('d/m/Y', strtotime((string) $row['tanggal_pemeriksaan'])) : '';
             $birthDate = ! empty($row['tanggal_lahir']) ? date('d/m/Y', strtotime((string) $row['tanggal_lahir'])) : '';
             $data[] = [
-                $examDate, "\0" . (string) ($row['nik'] ?? ''), (string) ($row['nama'] ?? ''), $birthDate, $gender,
+                $examDate, (string) ($row['nik'] ?? ''), (string) ($row['nama'] ?? ''), $birthDate, $gender,
                 (string) ($row['provinsi'] ?? ''), (string) ($row['kota_kabupaten'] ?? ''), (string) ($row['alamat'] ?? ''), (string) ($row['no_hp'] ?? ''),
                 (string) ($row['pendidikan'] ?? ''), (string) ($row['pekerjaan'] ?? ''), (string) ($row['status_perkawinan'] ?? ''), (string) ($row['golongan_darah'] ?? ''),
                 $detail['riwayat_keluarga_1'], $detail['riwayat_keluarga_2'], $detail['riwayat_keluarga_3'],
@@ -1118,20 +1182,24 @@ class PanelController extends BaseController
             ];
         }
 
-        $xlsx = SimpleXLSXGen::fromArray($data);
-        $xlsx->setDefaultFont('Arial')->setDefaultFontSize(10)->freezePanes('D6');
-        $xlsx->setColWidth('A', 15)->setColWidth('B', 20)->setColWidth('C', 26)->setColWidth('D:E', 16)->setColWidth('F:I', 24)->setColWidth('J:M', 18)->setColWidth('N:BI', 17);
-        foreach (['B1:BI1', 'A2:A5', 'B2:M2', 'N2:P2', 'Q2:S2', 'T2:Z2', 'AA2:AB2', 'AC2:AD2', 'AE2:AE5', 'AF2:AF5', 'AG2:AG5', 'AH2:AJ2', 'AK2:AK5', 'AL2:AL5', 'AM2:BA2', 'BB2:BE2', 'BF2:BI2', 'B3:B5', 'C3:C5', 'D3:D5', 'E3:E5', 'F3:F5', 'G3:G5', 'H3:H5', 'I3:I5', 'J3:J5', 'K3:K5', 'L3:L5', 'M3:M5', 'N3:N5', 'O3:O5', 'P3:P5', 'Q3:Q5', 'R3:R5', 'S3:S5', 'T3:T5', 'U3:U5', 'V3:Y3', 'Z3:Z5', 'AA3:AA5', 'AB3:AB5', 'AC3:AC5', 'AD3:AD5', 'AH3:AH5', 'AI3:AI5', 'AJ3:AJ5', 'AM3:AR3', 'AS3:BA3', 'AM4:AO4', 'AP4:AR4', 'AS4:AU4', 'AV4:AX4', 'AY4:BA4', 'BB3:BC3', 'BD3:BE3', 'BB4:BB5', 'BC4:BC5', 'BD4:BD5', 'BE4:BE5', 'BF3:BF5', 'BG3:BG5', 'BH3:BH5', 'BI3:BI5'] as $range) {
-            $xlsx->mergeCells($range);
-        }
-
         $fileBase = 'laporan-posbindu-' . date('Ymd', strtotime($reportDate));
         $tempFile = tempnam(WRITEPATH . 'cache', 'posbindu-xlsx-');
         $xlsxFile = $tempFile . '.xlsx';
         @unlink($tempFile);
-        $xlsx->saveAs($xlsxFile);
-        $binary = is_file($xlsxFile) ? file_get_contents($xlsxFile) : '';
-        @unlink($xlsxFile);
+
+        try {
+            PosbinduWorkbook::create(
+                WRITEPATH . 'templates' . DIRECTORY_SEPARATOR . 'posbindu-report-template.xlsx',
+                $xlsxFile,
+                array_slice($data, 5)
+            );
+            $binary = is_file($xlsxFile) ? file_get_contents($xlsxFile) : '';
+        } catch (\Throwable $exception) {
+            log_message('error', 'Gagal membuat laporan Posbindu: {message}', ['message' => $exception->getMessage()]);
+            $binary = '';
+        } finally {
+            @unlink($xlsxFile);
+        }
 
         if ($binary === '') {
             return $this->response->setStatusCode(500)->setBody('File Excel Posbindu gagal dibuat.');

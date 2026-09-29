@@ -45,6 +45,7 @@ class AdminAuthFilter implements FilterInterface
             $healthWorkspacePaths = [
                 'admin/kesehatan-dashboard',
                 'admin/kesehatan-data',
+                'admin/posbindu-laporan',
                 'admin/kesehatan-tindak-lanjut',
                 'admin/kesehatan-jadwal',
             ];

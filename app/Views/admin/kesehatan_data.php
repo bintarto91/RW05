@@ -20,6 +20,7 @@ $posbinduYesNoOptions = kesehatan_posbindu_yes_no_options();
   </div>
   <div class="form-actions">
     <a href="<?= site_url('admin/kesehatan-dashboard') ?>">Dashboard Kesehatan</a>
+    <a href="<?= site_url('admin/posbindu-laporan') ?>">Buka Alur Laporan Posbindu</a>
     <a href="<?= site_url('admin/kesehatan-tindak-lanjut') ?>">Tindak Lanjut & Rujukan</a>
     <a href="<?= site_url('kesehatan') ?>" target="_blank" rel="noopener noreferrer">Lihat Halaman Warga</a>
   </div>
@@ -42,7 +43,7 @@ $posbinduYesNoOptions = kesehatan_posbindu_yes_no_options();
       <p class="muted">Pilih layanan dan tanggal. Peserta aktif akan muncul otomatis untuk dicentang hadir.</p>
     </div>
     <div class="form-actions">
-      <?php if ($activityJenis === 'posbindu'): ?><a href="<?= site_url('admin/kesehatan-data?export=posbindu-xlsx&jenis_kegiatan=posbindu&tanggal_kegiatan=' . rawurlencode($activityDate)) ?>">Download Excel Puskesmas</a><?php endif; ?>
+      <?php if ($activityJenis === 'posbindu'): ?><a href="<?= site_url('admin/posbindu-laporan?tanggal=' . rawurlencode($activityDate)) ?>">Kelola Laporan Posbindu</a><?php endif; ?>
       <a href="<?= site_url('admin/kesehatan-data?print=1&jenis_kegiatan=' . rawurlencode($activityJenis) . '&tanggal_kegiatan=' . rawurlencode($activityDate)) ?>" target="_blank" rel="noopener noreferrer">Preview / Cetak</a>
     </div>
   </div>
