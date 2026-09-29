@@ -13,6 +13,8 @@ $selectedStatus = old('status', $edit['status'] ?? 'aktif');
 $selectedVisitType = old('jenis_layanan', $selectedParticipant['jenis'] ?? $workspaceService);
 $posbinduOld = old('posbindu');
 $posbinduOld = is_array($posbinduOld) ? $posbinduOld : decode_kesehatan_posbindu_details($selectedVisit['posbindu_data_json'] ?? '');
+$sasaranOld = old('sasaran');
+$sasaranOld = is_array($sasaranOld) ? sanitize_kesehatan_sasaran_details($sasaranOld) : decode_kesehatan_sasaran_details($selectedVisit['sasaran_data_json'] ?? '');
 $posbinduYesNoOptions = kesehatan_posbindu_yes_no_options();
 $activeStep = (string) service('request')->getGet('tab');
 if ($selectedParticipant) {
@@ -22,8 +24,59 @@ if ($selectedParticipant) {
 } elseif (! in_array($activeStep, ['kegiatan', 'peserta', 'pemeriksaan'], true)) {
     $activeStep = 'kegiatan';
 }
-$workspaceUrl = static fn (string $tab): string => site_url('admin/kesehatan-data?jenis=' . rawurlencode($workspaceService) . '&jenis_kegiatan=' . rawurlencode($workspaceService) . '&tab=' . rawurlencode($tab));
+$workspaceUrl = static fn (string $tab): string => site_url('admin/kesehatan-data?jenis=' . rawurlencode($workspaceService) . '&jenis_kegiatan=' . rawurlencode($workspaceService) . '&tab=' . rawurlencode($tab) . '&tanggal_kegiatan=' . rawurlencode($activityDate));
 $visitLifecycle = (string) ($selectedParticipant['kelompok_siklus'] ?? '');
+$yesNoUnknownOptions = ['belum_diperiksa' => 'Belum diperiksa', 'ya' => 'Ya', 'tidak' => 'Tidak', 'tidak_berlaku' => 'Tidak berlaku'];
+$visitDetailLabels = [
+    'suhu_tubuh' => 'Suhu tubuh', 'status_ibu' => 'Status ibu', 'kenaikan_bb' => 'Kenaikan BB', 'asi_eksklusif' => 'ASI eksklusif',
+    'pmt_lokal' => 'PMT lokal', 'vitamin_a' => 'Vitamin A', 'obat_cacing' => 'Obat cacing',
+    'imunisasi' => 'Imunisasi', 'perkembangan' => 'Perkembangan', 'ttd' => 'Tablet tambah darah',
+    'kelas_ibu' => 'Kelas ibu', 'anemia' => 'Skrining anemia', 'kesehatan_jiwa' => 'Kesehatan jiwa',
+    'napza' => 'Risiko NAPZA', 'kolesterol' => 'Kolesterol', 'adl' => 'ADL/AKS',
+    'skilas' => 'SKILAS', 'lingkar_betis' => 'Lingkar betis', 'tanda_bahaya' => 'Tanda bahaya',
+    'gejala_sakit' => 'Gejala/keluhan',
+];
+$visitDetailValues = [
+    'hamil' => 'Hamil', 'nifas_menyusui' => 'Nifas/menyusui', 'naik' => 'Naik', 'tidak_naik' => 'Tidak naik',
+    'belum_dinilai' => 'Belum dinilai', 'ya' => 'Ya', 'tidak' => 'Tidak', 'tidak_berlaku' => 'Tidak berlaku',
+    'belum_diperiksa' => 'Belum diperiksa', 'lengkap' => 'Lengkap', 'belum_lengkap' => 'Belum lengkap',
+    'tidak_diperiksa' => 'Tidak diperiksa', 'sesuai' => 'Sesuai', 'meragukan' => 'Meragukan',
+    'penyimpangan' => 'Ada penyimpangan', 'curiga' => 'Curiga anemia', 'normal' => 'Normal',
+    'bermasalah' => 'Ada masalah', 'berisiko' => 'Berisiko', 'mandiri' => 'Mandiri',
+    'ketergantungan_ringan' => 'Ketergantungan ringan', 'ketergantungan_sedang' => 'Ketergantungan sedang',
+    'ketergantungan_berat' => 'Ketergantungan berat', 'ketergantungan_total' => 'Ketergantungan total',
+    'perlu_tindak_lanjut' => 'Perlu tindak lanjut', 'ada' => 'Ada',
+];
+$visitSummary = static function (?array $visit) use ($visitDetailLabels, $visitDetailValues): array {
+    if (! $visit) return [];
+    $parts = [];
+    foreach ([
+        'berat_kg' => ['BB', 'kg'], 'tinggi_cm' => ['TB/PB', 'cm'], 'lingkar_kepala_cm' => ['LK', 'cm'],
+        'lingkar_lengan_cm' => ['LILA', 'cm'], 'lingkar_perut_cm' => ['LP', 'cm'],
+    ] as $field => [$label, $unit]) {
+        if (($visit[$field] ?? null) !== null && (string) $visit[$field] !== '') $parts[] = $label . ' ' . $visit[$field] . ' ' . $unit;
+    }
+    if (($visit['usia_kehamilan_minggu'] ?? null) !== null) $parts[] = 'Kehamilan ' . $visit['usia_kehamilan_minggu'] . ' minggu';
+    if (($visit['tekanan_sistolik'] ?? null) !== null || ($visit['tekanan_diastolik'] ?? null) !== null) $parts[] = 'TD ' . ($visit['tekanan_sistolik'] ?? '-') . '/' . ($visit['tekanan_diastolik'] ?? '-') . ' mmHg';
+    if (($visit['gula_darah'] ?? null) !== null) {
+        $glucoseLabels = ['sewaktu' => 'sewaktu', 'puasa' => 'puasa', 'dua_jam_pp' => '2 jam setelah makan'];
+        $glucoseContext = $glucoseLabels[$visit['jenis_gula_darah'] ?? ''] ?? '';
+        $parts[] = 'Gula darah ' . $visit['gula_darah'] . ' mg/dL' . ($glucoseContext !== '' ? ' (' . $glucoseContext . ')' : '');
+    }
+    if (! empty($visit['faktor_merokok'])) $parts[] = 'Merokok: ' . (['tidak' => 'Tidak', 'ya' => 'Ya', 'berhenti' => 'Sudah berhenti'][$visit['faktor_merokok']] ?? $visit['faktor_merokok']);
+    if (! empty($visit['aktivitas_fisik'])) $parts[] = 'Aktivitas fisik: ' . (['cukup' => 'Cukup', 'kurang' => 'Kurang'][$visit['aktivitas_fisik']] ?? $visit['aktivitas_fisik']);
+    if (! empty($visit['konsumsi_buah_sayur'])) $parts[] = 'Buah/sayur: ' . (['cukup' => 'Cukup', 'kurang' => 'Kurang'][$visit['konsumsi_buah_sayur']] ?? $visit['konsumsi_buah_sayur']);
+    $details = decode_kesehatan_sasaran_details($visit['sasaran_data_json'] ?? '');
+    foreach ($details as $field => $value) {
+        if ($value === '' || in_array($value, ['belum_diperiksa', 'tidak_diperiksa', 'tidak_berlaku'], true)) continue;
+        $suffix = $field === 'kolesterol' ? ' mg/dL' : ($field === 'lingkar_betis' ? ' cm' : ($field === 'suhu_tubuh' ? ' °C' : ''));
+        $parts[] = ($visitDetailLabels[$field] ?? $field) . ': ' . ($visitDetailValues[$value] ?? $value) . $suffix;
+    }
+    foreach (['layanan_diberikan', 'edukasi', 'catatan'] as $field) {
+        if (! empty($visit[$field])) $parts[] = (string) $visit[$field];
+    }
+    return $parts;
+};
 ?>
 <div class="section-heading">
   <div>
@@ -43,13 +96,13 @@ $visitLifecycle = (string) ($selectedParticipant['kelompok_siklus'] ?? '');
 
 <nav class="health-task-tabs health-quick-actions" aria-label="Langkah kerja <?= rw_esc($workspaceService) ?>">
   <a href="<?= $workspaceUrl('kegiatan') ?>" class="<?= $activeStep === 'kegiatan' ? 'is-active' : '' ?>">
-    <span class="health-task-number">1</span><span class="health-task-copy"><strong>Kehadiran</strong><small>Pilih tanggal dan tandai peserta hadir</small></span><span class="health-task-cta">Klik di sini →</span>
+    <span class="health-task-number">1</span><span class="health-task-copy"><strong>Hari Buka &amp; Kehadiran</strong><small>Simpan peserta datang atau tidak datang</small></span><span class="health-task-cta">Klik di sini →</span>
   </a>
   <a href="<?= $workspaceUrl('peserta') ?>" class="<?= $activeStep === 'peserta' ? 'is-active' : '' ?>">
-    <span class="health-task-number">2</span><span class="health-task-copy"><strong>Daftar Peserta</strong><small>Tambah atau perbaiki data peserta</small></span><span class="health-task-cta">Klik di sini →</span>
+    <span class="health-task-number">2</span><span class="health-task-copy"><strong>Data Sasaran</strong><small>Tambah atau perbaiki identitas sasaran</small></span><span class="health-task-cta">Klik di sini →</span>
   </a>
   <a href="<?= $workspaceUrl('pemeriksaan') ?>" class="<?= $activeStep === 'pemeriksaan' ? 'is-active' : '' ?>">
-    <span class="health-task-number">3</span><span class="health-task-copy"><strong>Isi Hasil</strong><small>Catat pengukuran dan layanan</small></span><span class="health-task-cta">Klik di sini →</span>
+    <span class="health-task-number">3</span><span class="health-task-copy"><strong>Hasil Pelayanan</strong><small>Isi langkah 2-5 dan edit hasil</small></span><span class="health-task-cta">Klik di sini →</span>
   </a>
 </nav>
 
@@ -58,7 +111,7 @@ $visitLifecycle = (string) ($selectedParticipant['kelompok_siklus'] ?? '');
   <div class="section-heading">
     <div>
       <h2>Kegiatan Hari Ini</h2>
-      <p class="muted">Pilih tanggal kegiatan. Daftar peserta aktif langsung ditampilkan di bawah.</p>
+      <p class="muted">Pilih tanggal kegiatan. Simpan kehadiran lebih dulu, kemudian isi hasil peserta yang hadir.</p>
     </div>
     <div class="form-actions">
       <?php if ($activityJenis === 'posbindu'): ?><a href="<?= site_url('admin/posbindu-laporan?tanggal=' . rawurlencode($activityDate)) ?>">Kelola Laporan Posbindu</a><?php endif; ?>
@@ -73,6 +126,7 @@ $visitLifecycle = (string) ($selectedParticipant['kelompok_siklus'] ?? '');
       <input type="date" name="tanggal_kegiatan" value="<?= rw_esc($activityDate) ?>" required onchange="this.form.submit()">
     </label>
   </form>
+  <div class="health-flow-note"><strong>Apa fungsi Simpan Kehadiran?</strong><span>Tombol ini hanya menyimpan siapa yang hadir atau tidak hadir pada tanggal tersebut. Setelah tersimpan, gunakan tombol <b>Isi hasil</b> untuk mencatat pengukuran dan pelayanan. Menyimpan ulang kehadiran tidak menghapus hasil pemeriksaan yang sudah ada.</span></div>
   <form method="post" action="<?= site_url('admin/kesehatan-data') ?>">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="save_attendance">
@@ -80,7 +134,7 @@ $visitLifecycle = (string) ($selectedParticipant['kelompok_siklus'] ?? '');
     <input type="hidden" name="tanggal_kegiatan" value="<?= rw_esc($activityDate) ?>">
     <div class="table-scroll">
       <table>
-        <thead><tr><th>Hadir</th><th>Peserta</th><th>RT</th><th>Catatan Hari Ini</th></tr></thead>
+        <thead><tr><th>Hadir</th><th>Peserta</th><th>RT</th><th>Hasil Hari Ini</th><th>Aksi</th></tr></thead>
         <tbody>
           <?php foreach ($attendanceParticipants as $participant): ?>
             <?php $attendance = $attendanceMap[(int) $participant['id']] ?? null; ?>
@@ -89,31 +143,17 @@ $visitLifecycle = (string) ($selectedParticipant['kelompok_siklus'] ?? '');
               <td><strong><?= rw_esc($participant['nama']) ?></strong><?= ! empty($participant['nama_wali']) ? '<br><small>Wali: ' . rw_esc($participant['nama_wali']) . '</small>' : '' ?></td>
               <td><?= rw_esc($participant['rt'] ?? '-') ?></td>
               <td>
-                <?php
-                $todayNotes = [];
-                if (! empty($attendance['catatan'])) {
-                    $todayNotes[] = (string) $attendance['catatan'];
-                } elseif ($attendance) {
-                    if ($attendance['berat_kg'] !== null) $todayNotes[] = 'BB ' . $attendance['berat_kg'] . ' kg';
-                    if ($attendance['tinggi_cm'] !== null) $todayNotes[] = 'TB/PB ' . $attendance['tinggi_cm'] . ' cm';
-                    if ($attendance['lingkar_kepala_cm'] !== null) $todayNotes[] = 'LK ' . $attendance['lingkar_kepala_cm'] . ' cm';
-                    if ($attendance['lingkar_lengan_cm'] !== null) $todayNotes[] = 'LILA ' . $attendance['lingkar_lengan_cm'] . ' cm';
-                    if ($attendance['tekanan_sistolik'] !== null) $todayNotes[] = 'TD ' . $attendance['tekanan_sistolik'] . '/' . $attendance['tekanan_diastolik'];
-                    if ($attendance['gula_darah'] !== null) $todayNotes[] = 'Gula ' . $attendance['gula_darah'] . ' mg/dL';
-                    if (! empty($attendance['layanan_diberikan'])) $todayNotes[] = (string) $attendance['layanan_diberikan'];
-                    if (! empty($attendance['edukasi'])) $todayNotes[] = (string) $attendance['edukasi'];
-                    if (empty($todayNotes)) $todayNotes[] = ($attendance['hadir'] ?? '') === 'ya' ? 'Hadir, hasil belum diisi' : 'Tidak hadir';
-                }
-                ?>
-                <?= $todayNotes ? rw_esc(implode(' · ', $todayNotes)) : 'Belum dicatat' ?>
+                <?php $todayNotes = $visitSummary($attendance); ?>
+                <?= $todayNotes ? rw_esc(implode(' · ', $todayNotes)) : (($attendance['hadir'] ?? '') === 'ya' ? 'Hadir, hasil belum diisi' : (($attendance['hadir'] ?? '') === 'tidak' ? 'Tidak hadir' : 'Kehadiran belum disimpan')) ?>
               </td>
+              <td><a class="health-row-action" href="<?= rw_esc($workspaceUrl('pemeriksaan') . '&peserta_id=' . (int) $participant['id']) ?>"><?= $todayNotes ? 'Edit hasil' : 'Isi hasil' ?></a></td>
             </tr>
           <?php endforeach; ?>
-          <?php if (empty($attendanceParticipants)): ?><tr><td colspan="4" class="table-empty">Belum ada peserta aktif untuk jenis layanan ini.</td></tr><?php endif; ?>
+          <?php if (empty($attendanceParticipants)): ?><tr><td colspan="5" class="table-empty">Belum ada peserta aktif untuk jenis layanan ini.</td></tr><?php endif; ?>
         </tbody>
       </table>
     </div>
-    <div class="form-actions"><button type="submit"<?= empty($attendanceParticipants) ? ' disabled' : '' ?>>Simpan Daftar Hadir</button></div>
+    <div class="form-actions"><button type="submit"<?= empty($attendanceParticipants) ? ' disabled' : '' ?>>Simpan Kehadiran Tanggal Ini</button></div>
   </form>
 </section>
 <?php endif; ?>
@@ -279,6 +319,9 @@ $visitLifecycle = (string) ($selectedParticipant['kelompok_siklus'] ?? '');
     <label>Kehadiran
       <select name="hadir"><option value="ya" <?= is_selected(old('hadir', $selectedVisit['hadir'] ?? 'ya'), 'ya') ?>>Hadir</option><option value="tidak" <?= is_selected(old('hadir', $selectedVisit['hadir'] ?? 'ya'), 'tidak') ?>>Tidak hadir</option></select>
     </label>
+    <label>Suhu Tubuh (°C, bila diukur)
+      <input type="number" name="sasaran[suhu_tubuh]" min="30" max="45" step="0.1" value="<?= rw_esc($sasaranOld['suhu_tubuh'] ?? '') ?>">
+    </label>
     <label>Jenis Layanan Kunjungan
       <input type="hidden" name="jenis_layanan" id="healthVisitType" value="<?= rw_esc($selectedVisitType) ?>">
       <span class="health-locked-value"><?= rw_esc($participantTypeOptions[$selectedVisitType] ?? $selectedVisitType) ?></span>
@@ -289,9 +332,23 @@ $visitLifecycle = (string) ($selectedParticipant['kelompok_siklus'] ?? '');
     <?php if ($workspaceService === 'posyandu' && $visitLifecycle === 'bayi_balita'): ?>
       <label>Lingkar Kepala (cm)<input type="number" name="lingkar_kepala_cm" min="0" max="100" step="0.01" value="<?= rw_esc(old('lingkar_kepala_cm', $selectedVisit['lingkar_kepala_cm'] ?? '')) ?>"></label>
       <label>Lingkar Lengan / LILA (cm)<input type="number" name="lingkar_lengan_cm" min="0" max="100" step="0.01" value="<?= rw_esc(old('lingkar_lengan_cm', $selectedVisit['lingkar_lengan_cm'] ?? '')) ?>"></label>
+      <div class="full health-form-section"><strong>3. Pencatatan tumbuh kembang bayi/balita</strong><p class="muted">Mengikuti komponen Kartu Bantu Kemenkes. Pilih “belum diperiksa” bila layanan tidak dilakukan hari ini.</p></div>
+      <label>Kenaikan Berat Badan<select name="sasaran[kenaikan_bb]"><?php foreach (['belum_dinilai' => 'Belum dinilai', 'naik' => 'Naik', 'tidak_naik' => 'Tidak naik'] as $value => $label): ?><option value="<?= $value ?>" <?= is_selected($sasaranOld['kenaikan_bb'] ?? 'belum_dinilai', $value) ?>><?= $label ?></option><?php endforeach; ?></select></label>
+      <label>Perkembangan<select name="sasaran[perkembangan]"><?php foreach (['belum_diperiksa' => 'Belum diperiksa', 'sesuai' => 'Sesuai umur', 'meragukan' => 'Meragukan', 'penyimpangan' => 'Ada penyimpangan'] as $value => $label): ?><option value="<?= $value ?>" <?= is_selected($sasaranOld['perkembangan'] ?? 'belum_diperiksa', $value) ?>><?= $label ?></option><?php endforeach; ?></select></label>
+      <?php foreach (['asi_eksklusif' => 'ASI Eksklusif', 'pmt_lokal' => 'PMT Lokal', 'vitamin_a' => 'Vitamin A', 'obat_cacing' => 'Obat Cacing'] as $field => $label): ?>
+        <label><?= $label ?><select name="sasaran[<?= $field ?>]"><?php foreach ($yesNoUnknownOptions as $value => $optionLabel): ?><option value="<?= $value ?>" <?= is_selected($sasaranOld[$field] ?? 'belum_diperiksa', $value) ?>><?= $optionLabel ?></option><?php endforeach; ?></select></label>
+      <?php endforeach; ?>
+      <label>Status Imunisasi<select name="sasaran[imunisasi]"><?php foreach (['tidak_diperiksa' => 'Tidak diperiksa', 'lengkap' => 'Lengkap sesuai usia', 'belum_lengkap' => 'Belum lengkap'] as $value => $label): ?><option value="<?= $value ?>" <?= is_selected($sasaranOld['imunisasi'] ?? 'tidak_diperiksa', $value) ?>><?= $label ?></option><?php endforeach; ?></select></label>
     <?php elseif ($workspaceService === 'posyandu' && $visitLifecycle === 'ibu_hamil_nifas'): ?>
+      <label>Status Sasaran<select name="sasaran[status_ibu]"><option value="hamil" <?= is_selected($sasaranOld['status_ibu'] ?? 'hamil', 'hamil') ?>>Ibu hamil</option><option value="nifas_menyusui" <?= is_selected($sasaranOld['status_ibu'] ?? 'hamil', 'nifas_menyusui') ?>>Ibu nifas/menyusui</option></select></label>
       <label>Lingkar Lengan / LILA (cm)<input type="number" name="lingkar_lengan_cm" min="0" max="100" step="0.01" value="<?= rw_esc(old('lingkar_lengan_cm', $selectedVisit['lingkar_lengan_cm'] ?? '')) ?>"></label>
       <label>Usia Kehamilan (minggu, bila sedang hamil)<input type="number" name="usia_kehamilan_minggu" min="0" max="45" value="<?= rw_esc(old('usia_kehamilan_minggu', $selectedVisit['usia_kehamilan_minggu'] ?? '')) ?>"></label>
+      <label>Tekanan Sistolik<input type="number" name="tekanan_sistolik" min="0" max="300" value="<?= rw_esc(old('tekanan_sistolik', $selectedVisit['tekanan_sistolik'] ?? '')) ?>"></label>
+      <label>Tekanan Diastolik<input type="number" name="tekanan_diastolik" min="0" max="300" value="<?= rw_esc(old('tekanan_diastolik', $selectedVisit['tekanan_diastolik'] ?? '')) ?>"></label>
+      <div class="full health-form-section"><strong>3. Pemeriksaan ibu hamil/nifas/menyusui</strong><p class="muted">Isi pelayanan yang benar-benar diperiksa atau diberikan pada kunjungan ini.</p></div>
+      <?php foreach (['ttd' => 'Tablet Tambah Darah', 'kelas_ibu' => 'Kelas Ibu'] as $field => $label): ?>
+        <label><?= $label ?><select name="sasaran[<?= $field ?>]"><?php foreach ($yesNoUnknownOptions as $value => $optionLabel): ?><option value="<?= $value ?>" <?= is_selected($sasaranOld[$field] ?? 'belum_diperiksa', $value) ?>><?= $optionLabel ?></option><?php endforeach; ?></select></label>
+      <?php endforeach; ?>
     <?php endif; ?>
     <?php $needsAdultScreening = $workspaceService === 'posbindu' || ($workspaceService === 'posyandu' && in_array($visitLifecycle, ['usia_sekolah_remaja', 'dewasa', 'lansia'], true)); ?>
     <?php if ($needsAdultScreening): ?>
@@ -304,6 +361,19 @@ $visitLifecycle = (string) ($selectedParticipant['kelompok_siklus'] ?? '');
     <label>Kebiasaan Merokok<select name="faktor_merokok"><option value="" <?= is_selected(old('faktor_merokok', $selectedVisit['faktor_merokok'] ?? ''), '') ?>>Tidak ditanyakan</option><option value="tidak" <?= is_selected(old('faktor_merokok', $selectedVisit['faktor_merokok'] ?? ''), 'tidak') ?>>Tidak</option><option value="ya" <?= is_selected(old('faktor_merokok', $selectedVisit['faktor_merokok'] ?? ''), 'ya') ?>>Ya</option><option value="berhenti" <?= is_selected(old('faktor_merokok', $selectedVisit['faktor_merokok'] ?? ''), 'berhenti') ?>>Sudah berhenti</option></select></label>
     <label>Aktivitas Fisik<select name="aktivitas_fisik"><option value="" <?= is_selected(old('aktivitas_fisik', $selectedVisit['aktivitas_fisik'] ?? ''), '') ?>>Tidak ditanyakan</option><option value="cukup" <?= is_selected(old('aktivitas_fisik', $selectedVisit['aktivitas_fisik'] ?? ''), 'cukup') ?>>Cukup</option><option value="kurang" <?= is_selected(old('aktivitas_fisik', $selectedVisit['aktivitas_fisik'] ?? ''), 'kurang') ?>>Kurang</option></select></label>
     <label>Konsumsi Buah & Sayur<select name="konsumsi_buah_sayur"><option value="" <?= is_selected(old('konsumsi_buah_sayur', $selectedVisit['konsumsi_buah_sayur'] ?? ''), '') ?>>Tidak ditanyakan</option><option value="cukup" <?= is_selected(old('konsumsi_buah_sayur', $selectedVisit['konsumsi_buah_sayur'] ?? ''), 'cukup') ?>>Cukup</option><option value="kurang" <?= is_selected(old('konsumsi_buah_sayur', $selectedVisit['konsumsi_buah_sayur'] ?? ''), 'kurang') ?>>Kurang</option></select></label>
+    <?php if ($workspaceService === 'posyandu' && $visitLifecycle === 'usia_sekolah_remaja'): ?>
+      <label>Skrining Anemia<select name="sasaran[anemia]"><option value="belum_diperiksa" <?= is_selected($sasaranOld['anemia'] ?? 'belum_diperiksa', 'belum_diperiksa') ?>>Belum diperiksa</option><option value="tidak" <?= is_selected($sasaranOld['anemia'] ?? '', 'tidak') ?>>Tidak ada tanda anemia</option><option value="curiga" <?= is_selected($sasaranOld['anemia'] ?? '', 'curiga') ?>>Curiga anemia</option></select></label>
+      <label>Tablet Tambah Darah<select name="sasaran[ttd]"><?php foreach ($yesNoUnknownOptions as $value => $optionLabel): ?><option value="<?= $value ?>" <?= is_selected($sasaranOld['ttd'] ?? 'belum_diperiksa', $value) ?>><?= $optionLabel ?></option><?php endforeach; ?></select></label>
+      <label>Skrining Kesehatan Jiwa<select name="sasaran[kesehatan_jiwa]"><option value="belum_diperiksa" <?= is_selected($sasaranOld['kesehatan_jiwa'] ?? 'belum_diperiksa', 'belum_diperiksa') ?>>Belum diperiksa</option><option value="normal" <?= is_selected($sasaranOld['kesehatan_jiwa'] ?? '', 'normal') ?>>Normal</option><option value="bermasalah" <?= is_selected($sasaranOld['kesehatan_jiwa'] ?? '', 'bermasalah') ?>>Ada masalah</option></select></label>
+      <label>Risiko NAPZA<select name="sasaran[napza]"><option value="belum_diperiksa" <?= is_selected($sasaranOld['napza'] ?? 'belum_diperiksa', 'belum_diperiksa') ?>>Belum diperiksa</option><option value="tidak" <?= is_selected($sasaranOld['napza'] ?? '', 'tidak') ?>>Tidak berisiko</option><option value="berisiko" <?= is_selected($sasaranOld['napza'] ?? '', 'berisiko') ?>>Berisiko</option></select></label>
+    <?php elseif ($workspaceService === 'posyandu' && in_array($visitLifecycle, ['dewasa', 'lansia'], true)): ?>
+      <label>Kolesterol (mg/dL, bila diperiksa)<input type="number" name="sasaran[kolesterol]" min="0" max="1000" step="0.01" value="<?= rw_esc($sasaranOld['kolesterol'] ?? '') ?>"></label>
+      <?php if ($visitLifecycle === 'lansia'): ?>
+        <label>Lingkar Betis (cm, bila digunakan)<input type="number" name="sasaran[lingkar_betis]" min="0" max="100" step="0.01" value="<?= rw_esc($sasaranOld['lingkar_betis'] ?? '') ?>"></label>
+        <label>Status Kemandirian ADL/AKS<select name="sasaran[adl]"><?php foreach (['belum_diperiksa' => 'Belum diperiksa', 'mandiri' => 'Mandiri', 'ketergantungan_ringan' => 'Ketergantungan ringan', 'ketergantungan_sedang' => 'Ketergantungan sedang', 'ketergantungan_berat' => 'Ketergantungan berat', 'ketergantungan_total' => 'Ketergantungan total'] as $value => $label): ?><option value="<?= $value ?>" <?= is_selected($sasaranOld['adl'] ?? 'belum_diperiksa', $value) ?>><?= $label ?></option><?php endforeach; ?></select></label>
+        <label>Skrining Lansia Sederhana (SKILAS)<select name="sasaran[skilas]"><option value="belum_diperiksa" <?= is_selected($sasaranOld['skilas'] ?? 'belum_diperiksa', 'belum_diperiksa') ?>>Belum diperiksa</option><option value="normal" <?= is_selected($sasaranOld['skilas'] ?? '', 'normal') ?>>Tidak ditemukan penurunan</option><option value="perlu_tindak_lanjut" <?= is_selected($sasaranOld['skilas'] ?? '', 'perlu_tindak_lanjut') ?>>Perlu skrining lanjutan</option></select></label>
+      <?php endif; ?>
+    <?php endif; ?>
     <?php endif; ?>
     <?php if ($workspaceService === 'posbindu'): ?>
     <details class="full health-form-section">
@@ -363,6 +433,10 @@ $visitLifecycle = (string) ($selectedParticipant['kelompok_siklus'] ?? '');
     </details>
     <?php endif; ?>
     <div class="full health-form-section"><strong>4–5. Pelayanan, edukasi, validasi, dan tindak lanjut</strong></div>
+    <?php if ($workspaceService === 'posyandu'): ?>
+      <label>Tanda Bahaya<select name="sasaran[tanda_bahaya]"><option value="belum_diperiksa" <?= is_selected($sasaranOld['tanda_bahaya'] ?? 'belum_diperiksa', 'belum_diperiksa') ?>>Belum diperiksa</option><option value="tidak" <?= is_selected($sasaranOld['tanda_bahaya'] ?? '', 'tidak') ?>>Tidak ditemukan</option><option value="ada" <?= is_selected($sasaranOld['tanda_bahaya'] ?? '', 'ada') ?>>Ada tanda bahaya</option></select></label>
+      <label>Gejala / Keluhan Hari Ini<input type="text" name="sasaran[gejala_sakit]" maxlength="255" value="<?= rw_esc($sasaranOld['gejala_sakit'] ?? '') ?>" placeholder="Kosongkan bila tidak ada atau tidak ditanyakan"></label>
+    <?php endif; ?>
     <label class="full">Layanan yang Diberikan<textarea name="layanan_diberikan" rows="2" maxlength="2000" placeholder="Contoh: penimbangan, imunisasi, vitamin A, PMT, atau pelayanan oleh tenaga kesehatan."><?= rw_esc(old('layanan_diberikan', $selectedVisit['layanan_diberikan'] ?? '')) ?></textarea></label>
     <label class="full">Edukasi / Konseling<textarea name="edukasi" rows="2" maxlength="2000" placeholder="Tuliskan edukasi yang benar-benar diberikan."><?= rw_esc(old('edukasi', $selectedVisit['edukasi'] ?? '')) ?></textarea></label>
     <label>Tindak Lanjut<select name="tindak_lanjut" id="healthFollowup"><?php foreach ($followupOptions as $value => $label): ?><option value="<?= rw_esc($value) ?>" <?= is_selected(old('tindak_lanjut', $selectedVisit['tindak_lanjut'] ?? 'selesai'), $value) ?>><?= rw_esc($label) ?></option><?php endforeach; ?></select></label>
@@ -386,13 +460,14 @@ $visitLifecycle = (string) ($selectedParticipant['kelompok_siklus'] ?? '');
 </section>
 
 <section class="panel">
-  <h2>Riwayat <?= $workspaceService === 'posbindu' ? 'Pemeriksaan Posbindu' : 'Kunjungan Posyandu' ?></h2>
+  <div class="section-heading"><div><h2>Riwayat <?= $workspaceService === 'posbindu' ? 'Pemeriksaan Posbindu' : 'Kunjungan Posyandu' ?></h2><p class="muted">Setiap hasil dapat dibuka kembali dan diperbaiki tanpa membuat catatan ganda.</p></div></div>
   <div class="table-scroll">
     <table>
-      <thead><tr><th>Tanggal</th><th>Peserta</th><th>Layanan</th><th>Pengukuran</th><th>Tindak Lanjut</th><th>Validasi</th><th>Catatan</th></tr></thead>
+      <thead><tr><th>Tanggal</th><th>Peserta</th><th>Layanan</th><th>Hasil Tercatat</th><th>Tindak Lanjut</th><th>Validasi</th><th>Aksi</th></tr></thead>
       <tbody>
         <?php foreach ($visits as $visit): ?>
-          <tr><td><?= rw_esc(date('d/m/Y', strtotime((string) $visit['tanggal']))) ?><br><small><?= rw_esc($visit['hadir']) ?></small></td><td><?= rw_esc($visit['nama']) ?><br><small><?= rw_esc($lifecycleOptions[$visit['kelompok_siklus'] ?? ''] ?? 'Kelompok belum ditentukan') ?></small></td><td><?= rw_esc($participantTypeOptions[$visit['jenis_layanan'] ?? $visit['jenis']] ?? ($visit['jenis_layanan'] ?? $visit['jenis'])) ?></td><td><?= $visit['berat_kg'] !== null ? 'BB ' . rw_esc($visit['berat_kg']) . ' kg · ' : '' ?><?= $visit['tinggi_cm'] !== null ? 'TB ' . rw_esc($visit['tinggi_cm']) . ' cm · ' : '' ?><?= $visit['lingkar_perut_cm'] !== null ? 'LP ' . rw_esc($visit['lingkar_perut_cm']) . ' cm · ' : '' ?><?= $visit['tekanan_sistolik'] !== null ? 'TD ' . rw_esc($visit['tekanan_sistolik']) . '/' . rw_esc($visit['tekanan_diastolik']) . ' · ' : '' ?><?= $visit['gula_darah'] !== null ? 'Gula ' . rw_esc($visit['gula_darah']) : '-' ?></td><td><?= rw_esc($followupOptions[$visit['tindak_lanjut'] ?? 'selesai'] ?? 'Belum ditentukan') ?><?= ! empty($visit['tanggal_tindak_lanjut']) ? '<br><small>' . rw_esc(format_date_id($visit['tanggal_tindak_lanjut'])) . '</small>' : '' ?></td><td><?= ($visit['status_validasi'] ?? 'dicatat') === 'divalidasi' ? 'Divalidasi' : 'Dicatat kader' ?></td><td><?= nl2br(rw_esc($visit['catatan'] ?? '-')) ?></td></tr>
+          <?php $recordedResults = $visitSummary($visit); ?>
+          <tr><td><?= rw_esc(date('d/m/Y', strtotime((string) $visit['tanggal']))) ?><br><small><?= ($visit['hadir'] ?? '') === 'ya' ? 'Hadir' : 'Tidak hadir' ?></small></td><td><?= rw_esc($visit['nama']) ?><br><small><?= rw_esc($lifecycleOptions[$visit['kelompok_siklus'] ?? ''] ?? 'Kelompok belum ditentukan') ?></small></td><td><?= rw_esc($participantTypeOptions[$visit['jenis_layanan'] ?? $visit['jenis']] ?? ($visit['jenis_layanan'] ?? $visit['jenis'])) ?></td><td><?= $recordedResults ? rw_esc(implode(' · ', $recordedResults)) : 'Belum ada hasil pemeriksaan' ?></td><td><?= rw_esc($followupOptions[$visit['tindak_lanjut'] ?? 'selesai'] ?? 'Belum ditentukan') ?><?= ! empty($visit['tanggal_tindak_lanjut']) ? '<br><small>' . rw_esc(format_date_id($visit['tanggal_tindak_lanjut'])) . '</small>' : '' ?></td><td><?= ($visit['status_validasi'] ?? 'dicatat') === 'divalidasi' ? 'Divalidasi' : 'Dicatat kader' ?></td><td><a class="health-row-action" href="<?= rw_esc(site_url('admin/kesehatan-data?jenis=' . rawurlencode($workspaceService) . '&jenis_kegiatan=' . rawurlencode($workspaceService) . '&tab=pemeriksaan&tanggal_kegiatan=' . rawurlencode((string) $visit['tanggal']) . '&peserta_id=' . (int) $visit['peserta_id'])) ?>">Edit hasil</a></td></tr>
         <?php endforeach; ?>
         <?php if (empty($visits)): ?><tr><td colspan="7" class="table-empty">Belum ada catatan kunjungan.</td></tr><?php endif; ?>
       </tbody>

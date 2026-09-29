@@ -663,7 +663,7 @@ class PanelController extends BaseController
                 }
 
                 return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenis) . '&jenis_kegiatan=' . rawurlencode($jenis) . '&tab=kegiatan&tanggal_kegiatan=' . rawurlencode($tanggal)))
-                    ->with('success', 'Daftar hadir kegiatan berhasil disimpan.');
+                    ->with('success', 'Kehadiran berhasil disimpan. Selanjutnya klik Isi hasil pada peserta yang diperiksa.');
             }
 
             if ($action === 'save_participant') {
@@ -779,6 +779,7 @@ class PanelController extends BaseController
                 $followupDate = trim((string) $this->request->getPost('tanggal_tindak_lanjut'));
                 $validationStatus = (string) $this->request->getPost('status_validasi') === 'divalidasi' ? 'divalidasi' : 'dicatat';
                 $posbinduDetails = sanitize_kesehatan_posbindu_details($this->request->getPost('posbindu'));
+                $sasaranDetails = sanitize_kesehatan_sasaran_details($this->request->getPost('sasaran'));
                 if (! admin_role_can_validate_kesehatan()) {
                     $validationStatus = 'dicatat';
                 }
@@ -829,9 +830,16 @@ class PanelController extends BaseController
 
                 if ($jenisLayanan === 'posyandu') {
                     $posbinduDetails = [];
-                    if (! in_array((string) ($participant['kelompok_siklus'] ?? ''), ['usia_sekolah_remaja', 'dewasa', 'lansia'], true)) {
+                    $participantLifecycle = (string) ($participant['kelompok_siklus'] ?? '');
+                    if ($participantLifecycle === 'bayi_balita') {
                         $waistCircumference = $systolic = $diastolic = $glucose = $glucoseContext = '';
                         $smokingRisk = $physicalActivity = $fruitVegetable = '';
+                        $gestationalAge = '';
+                    } elseif ($participantLifecycle === 'ibu_hamil_nifas') {
+                        $headCircumference = $waistCircumference = $glucose = $glucoseContext = '';
+                        $smokingRisk = $physicalActivity = $fruitVegetable = '';
+                    } else {
+                        $headCircumference = $gestationalAge = '';
                     }
                 } else {
                     $headCircumference = $armCircumference = $gestationalAge = '';
@@ -862,6 +870,7 @@ class PanelController extends BaseController
                     'tanggal_tindak_lanjut' => $followupDate !== '' ? $followupDate : null,
                     'status_validasi' => $validationStatus,
                     'posbindu_data_json' => $jenisLayanan === 'posbindu' ? json_encode($posbinduDetails, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : null,
+                    'sasaran_data_json' => json_encode($sasaranDetails, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
                     'catatan' => $catatan,
                     'dicatat_oleh' => (int) session('admin_id'),
                 ];
@@ -877,7 +886,7 @@ class PanelController extends BaseController
                     $db->table('kesehatan_kunjungan')->insert($visitData);
                 }
 
-                return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenisLayanan) . '&jenis_kegiatan=' . rawurlencode($jenisLayanan) . '&tab=pemeriksaan&peserta_id=' . $participantId . '&tanggal_kegiatan=' . rawurlencode($tanggal)))->with('success', 'Kunjungan peserta berhasil disimpan dan Catatan Hari Ini sudah diperbarui.');
+                return redirect()->to(site_url('admin/kesehatan-data?jenis=' . rawurlencode($jenisLayanan) . '&jenis_kegiatan=' . rawurlencode($jenisLayanan) . '&tab=kegiatan&tanggal_kegiatan=' . rawurlencode($tanggal)))->with('success', 'Hasil pelayanan berhasil disimpan. Ringkasan sudah tampil di bawah dan dapat dibuka kembali melalui tombol Edit hasil.');
             }
 
             if ($action === 'delete_participant') {

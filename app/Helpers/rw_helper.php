@@ -1567,6 +1567,84 @@ if (! function_exists('decode_kesehatan_posbindu_details')) {
     }
 }
 
+if (! function_exists('kesehatan_sasaran_detail_fields')) {
+    function kesehatan_sasaran_detail_fields(): array
+    {
+        return [
+            'suhu_tubuh' => 20,
+            'status_ibu' => 30,
+            'kenaikan_bb' => 30,
+            'asi_eksklusif' => 20,
+            'pmt_lokal' => 20,
+            'vitamin_a' => 20,
+            'obat_cacing' => 20,
+            'imunisasi' => 20,
+            'perkembangan' => 30,
+            'ttd' => 20,
+            'kelas_ibu' => 20,
+            'anemia' => 20,
+            'kesehatan_jiwa' => 20,
+            'napza' => 20,
+            'kolesterol' => 20,
+            'adl' => 40,
+            'skilas' => 40,
+            'lingkar_betis' => 20,
+            'tanda_bahaya' => 20,
+            'gejala_sakit' => 255,
+        ];
+    }
+}
+
+if (! function_exists('sanitize_kesehatan_sasaran_details')) {
+    function sanitize_kesehatan_sasaran_details($input): array
+    {
+        $input = is_array($input) ? $input : [];
+        $allowed = [
+            'status_ibu' => ['hamil', 'nifas_menyusui'],
+            'kenaikan_bb' => ['naik', 'tidak_naik', 'belum_dinilai'],
+            'asi_eksklusif' => ['ya', 'tidak', 'tidak_berlaku', 'belum_diperiksa'],
+            'pmt_lokal' => ['ya', 'tidak', 'tidak_berlaku', 'belum_diperiksa'],
+            'vitamin_a' => ['ya', 'tidak', 'tidak_berlaku', 'belum_diperiksa'],
+            'obat_cacing' => ['ya', 'tidak', 'tidak_berlaku', 'belum_diperiksa'],
+            'imunisasi' => ['lengkap', 'belum_lengkap', 'tidak_diperiksa'],
+            'perkembangan' => ['sesuai', 'meragukan', 'penyimpangan', 'belum_diperiksa'],
+            'ttd' => ['ya', 'tidak', 'tidak_berlaku', 'belum_diperiksa'],
+            'kelas_ibu' => ['ya', 'tidak', 'tidak_berlaku', 'belum_diperiksa'],
+            'anemia' => ['tidak', 'curiga', 'belum_diperiksa'],
+            'kesehatan_jiwa' => ['normal', 'bermasalah', 'belum_diperiksa'],
+            'napza' => ['tidak', 'berisiko', 'belum_diperiksa'],
+            'adl' => ['mandiri', 'ketergantungan_ringan', 'ketergantungan_sedang', 'ketergantungan_berat', 'ketergantungan_total', 'belum_diperiksa'],
+            'skilas' => ['normal', 'perlu_tindak_lanjut', 'belum_diperiksa'],
+            'tanda_bahaya' => ['tidak', 'ada', 'belum_diperiksa'],
+        ];
+        $result = [];
+        foreach (kesehatan_sasaran_detail_fields() as $field => $maxLength) {
+            $value = trim((string) ($input[$field] ?? ''));
+            if (isset($allowed[$field]) && ! in_array($value, $allowed[$field], true)) {
+                $value = '';
+            }
+            if (in_array($field, ['kolesterol', 'lingkar_betis'], true) && $value !== '' && (! is_numeric($value) || (float) $value < 0 || (float) $value > 1000)) {
+                $value = '';
+            }
+            if ($field === 'suhu_tubuh' && $value !== '' && (! is_numeric($value) || (float) $value < 30 || (float) $value > 45)) {
+                $value = '';
+            }
+            $result[$field] = substr($value, 0, $maxLength);
+        }
+
+        return $result;
+    }
+}
+
+if (! function_exists('decode_kesehatan_sasaran_details')) {
+    function decode_kesehatan_sasaran_details($json): array
+    {
+        $decoded = json_decode((string) $json, true);
+
+        return sanitize_kesehatan_sasaran_details(is_array($decoded) ? $decoded : []);
+    }
+}
+
 if (! function_exists('ensure_kesehatan_data_tables')) {
     function ensure_kesehatan_data_tables($db = null): bool
     {
@@ -1630,6 +1708,7 @@ if (! function_exists('ensure_kesehatan_data_tables')) {
                     tanggal_tindak_lanjut DATE NULL,
                     status_validasi VARCHAR(20) NOT NULL DEFAULT 'dicatat',
                     posbindu_data_json LONGTEXT NULL,
+                    sasaran_data_json LONGTEXT NULL,
                     catatan TEXT NULL,
                     dicatat_oleh INT UNSIGNED NULL,
                     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1678,6 +1757,7 @@ if (! function_exists('ensure_kesehatan_data_tables')) {
                 'tanggal_tindak_lanjut' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN tanggal_tindak_lanjut DATE NULL AFTER tujuan_rujukan",
                 'status_validasi' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN status_validasi VARCHAR(20) NOT NULL DEFAULT 'dicatat' AFTER tanggal_tindak_lanjut",
                 'posbindu_data_json' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN posbindu_data_json LONGTEXT NULL AFTER status_validasi",
+                'sasaran_data_json' => "ALTER TABLE kesehatan_kunjungan ADD COLUMN sasaran_data_json LONGTEXT NULL AFTER posbindu_data_json",
             ];
             foreach ($visitColumns as $column => $sql) {
                 $exists = $db->query("SHOW COLUMNS FROM kesehatan_kunjungan LIKE '" . $db->escapeString($column) . "'")->getRowArray();
