@@ -81,11 +81,11 @@ $summaryStats = [
           <?php endforeach; ?>
         </div>
         <div class="structure-path" aria-label="Urutan struktur organisasi">
-          <span>Pembina</span>
+          <span>Pembina &amp; Penasihat</span>
           <span>Ketua RW</span>
-          <span>RT</span>
+          <span>Inti &amp; Wilayah</span>
           <span>Bidang</span>
-          <span>Unit</span>
+          <span>Unit &amp; Mitra</span>
         </div>
       </aside>
     </div>

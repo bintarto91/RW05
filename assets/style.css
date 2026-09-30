@@ -3343,6 +3343,58 @@ section[id],
   background: #f0cf83;
 }
 
+.org-chart-level-pembina .org-chart-node,
+.org-chart-level-ketua .org-chart-node {
+  border-color: #d7b66c;
+  background: #fffaf0;
+}
+
+.org-chart-level-pembina .org-chart-node > span,
+.org-chart-level-ketua .org-chart-node > span {
+  color: var(--green-900);
+  background: #f0cf83;
+}
+
+.org-chart-level-ketua .org-chart-nodes {
+  justify-content: center;
+}
+
+.org-chart-level-ketua .org-chart-node {
+  width: min(300px, 100%);
+  min-height: 92px;
+  grid-template-columns: 48px minmax(0, 1fr);
+  text-align: center;
+}
+
+.org-chart-level-ketua .org-chart-node > span {
+  width: 48px;
+  height: 48px;
+}
+
+.org-chart-level-ketua .org-chart-node div {
+  text-align: left;
+}
+
+.org-chart-level-wilayah .org-chart-nodes,
+.org-chart-level-bidang .org-chart-nodes,
+.org-chart-level-unit .org-chart-nodes,
+.org-chart-level-mitra .org-chart-nodes {
+  align-items: stretch;
+}
+
+.org-chart-level-wilayah .org-chart-node {
+  border-color: #e6b08e;
+}
+
+.org-chart-level-unit .org-chart-node {
+  border-color: #b9cbe4;
+}
+
+.org-chart-level-mitra .org-chart-node {
+  border-style: dashed;
+  border-color: #b8c8d9;
+}
+
 .structure-frame {
   display: grid;
   gap: 14px;

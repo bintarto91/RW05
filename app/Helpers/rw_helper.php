@@ -2203,10 +2203,13 @@ if (! function_exists('pengurus_chart_groups')) {
     function pengurus_chart_groups(array $rows): array
     {
         $groups = [
-            'pimpinan' => ['label' => 'Pimpinan RW', 'items' => []],
-            'inti' => ['label' => 'Sekretariat & Keuangan', 'items' => []],
-            'bidang' => ['label' => 'Bidang & Pelaksana', 'items' => []],
-            'rt' => ['label' => 'Koordinator RT', 'items' => []],
+            'pembina' => ['label' => 'Pembina & Penasihat', 'items' => []],
+            'ketua' => ['label' => 'Ketua RW 05', 'items' => []],
+            'inti' => ['label' => 'Sekretaris & Bendahara', 'items' => []],
+            'wilayah' => ['label' => 'Koordinator Wilayah', 'items' => []],
+            'bidang' => ['label' => 'Bidang Utama', 'items' => []],
+            'unit' => ['label' => 'Unit Pelaksana', 'items' => []],
+            'mitra' => ['label' => 'Mitra / Lembaga Pendukung RW', 'items' => []],
         ];
 
         foreach ($rows as $row) {
@@ -2216,12 +2219,18 @@ if (! function_exists('pengurus_chart_groups')) {
 
             $jabatan = strtolower(trim((string) ($row['jabatan'] ?? '')));
             $rt = trim((string) ($row['rt'] ?? ''));
-            if (preg_match('/(pembina|penasihat|ketua rw|wakil ketua)/i', $jabatan)) {
-                $key = 'pimpinan';
+            if (preg_match('/(pembina|penasihat)/i', $jabatan)) {
+                $key = 'pembina';
+            } elseif (preg_match('/^(wakil\s+)?ketua\s+rw\b/i', $jabatan)) {
+                $key = 'ketua';
             } elseif (preg_match('/(sekretaris|bendahara)/i', $jabatan)) {
                 $key = 'inti';
-            } elseif ($rt !== '' || preg_match('/ketua\s*rt/i', $jabatan)) {
-                $key = 'rt';
+            } elseif ($rt !== '' || preg_match('/(ketua\s*rt|koordinator\s+wilayah)/i', $jabatan)) {
+                $key = 'wilayah';
+            } elseif (preg_match('/(unit|pkk|posyandu|posbindu)/i', $jabatan)) {
+                $key = 'unit';
+            } elseif (preg_match('/(mitra|karang\s+taruna|dkm|keagamaan|linmas|siskamling|lembaga\s+pendukung)/i', $jabatan)) {
+                $key = 'mitra';
             } else {
                 $key = 'bidang';
             }

@@ -1070,6 +1070,36 @@ h2 {
 	background: #fffaf0;
 }
 
+.admin-org-chart-panel .org-chart-level-pembina .org-chart-node,
+.admin-org-chart-panel .org-chart-level-ketua .org-chart-node {
+	border-color: #d7b66c;
+	background: #fffaf0;
+}
+
+.admin-org-chart-panel .org-chart-level-pembina .org-chart-node > span,
+.admin-org-chart-panel .org-chart-level-ketua .org-chart-node > span {
+	color: var(--forest);
+	background: #f0cf83;
+}
+
+.admin-org-chart-panel .org-chart-level-ketua .org-chart-node {
+	width: min(300px, 100%);
+	min-height: 88px;
+}
+
+.admin-org-chart-panel .org-chart-level-wilayah .org-chart-node {
+	border-color: #e6b08e;
+}
+
+.admin-org-chart-panel .org-chart-level-unit .org-chart-node {
+	border-color: #b9cbe4;
+}
+
+.admin-org-chart-panel .org-chart-level-mitra .org-chart-node {
+	border-style: dashed;
+	border-color: #b8c8d9;
+}
+
 .copy-feedback {
 	font-size: 0.9rem;
 	font-weight: 700;
