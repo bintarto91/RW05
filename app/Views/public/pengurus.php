@@ -54,6 +54,17 @@ $summaryStats = [
                   <section class="org-diagram-group org-diagram-group-<?= rw_esc($groupKey) ?><?= empty($group['items']) ? ' is-empty' : '' ?>">
                     <h3><?= rw_esc($group['label']) ?></h3>
                     <div class="org-chart-nodes">
+                      <?php if (in_array($groupKey, ['penasihat', 'wilayah'], true) && $group['items']): ?>
+                        <article class="org-chart-node org-chart-node-stack">
+                          <span><?= rw_esc(strtoupper(substr((string) ($group['items'][0]['nama'] ?? 'P'), 0, 1))) ?></span>
+                          <div>
+                            <?php foreach ($group['items'] as $person): ?>
+                              <strong><?= rw_esc($person['nama'] ?? '') ?></strong>
+                              <small><?= rw_esc($person['jabatan'] ?? '') ?><?= ! empty($person['rt']) ? ' · RT ' . rw_esc($person['rt']) : '' ?></small>
+                            <?php endforeach; ?>
+                          </div>
+                        </article>
+                      <?php else: ?>
                       <?php foreach ($group['items'] as $person): ?>
                         <article class="org-chart-node">
                           <span><?= rw_esc(strtoupper(substr((string) ($person['nama'] ?? 'P'), 0, 1))) ?></span>
@@ -63,6 +74,7 @@ $summaryStats = [
                           </div>
                         </article>
                       <?php endforeach; ?>
+                      <?php endif; ?>
                       <?php if (empty($group['items'])): ?><span class="org-diagram-empty">Belum diisi</span><?php endif; ?>
                     </div>
                   </section>
