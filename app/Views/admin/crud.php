@@ -76,6 +76,39 @@
   </section>
 <?php endif; ?>
 
+<?php if (! empty($config['orgChart'])): ?>
+  <?php $chartGroups = pengurus_chart_groups($rows ?? []); ?>
+  <section class="panel admin-org-chart-panel">
+    <div class="section-heading compact-heading">
+      <div>
+        <p class="admin-kicker">Preview otomatis</p>
+        <h2>Diagram Kepengurusan</h2>
+        <p class="muted">Diagram ini dibuat langsung dari data pengurus aktif. Nama, jabatan, atau urutan yang diubah di bawah akan otomatis memperbarui diagram dan halaman warga.</p>
+      </div>
+      <a class="btn-light" href="<?= site_url('pengurus') ?>" target="_blank" rel="noopener noreferrer">Lihat Halaman Warga</a>
+    </div>
+    <?php if ($chartGroups): ?>
+      <div class="org-chart" aria-label="Diagram kepengurusan RW 05">
+        <?php foreach ($chartGroups as $groupKey => $group): ?>
+          <section class="org-chart-level org-chart-level-<?= rw_esc($groupKey) ?>">
+            <h3><?= rw_esc($group['label']) ?></h3>
+            <div class="org-chart-nodes">
+              <?php foreach ($group['items'] as $person): ?>
+                <article class="org-chart-node">
+                  <span><?= rw_esc(strtoupper(substr((string) ($person['nama'] ?? 'P'), 0, 1))) ?></span>
+                  <div><strong><?= rw_esc($person['nama'] ?? '') ?></strong><small><?= rw_esc($person['jabatan'] ?? '') ?><?= ! empty($person['rt']) ? ' · RT ' . rw_esc($person['rt']) : '' ?></small></div>
+                </article>
+              <?php endforeach; ?>
+            </div>
+          </section>
+        <?php endforeach; ?>
+      </div>
+    <?php else: ?>
+      <p class="empty-state">Belum ada pengurus aktif. Tambahkan data pertama agar diagram terbentuk otomatis.</p>
+    <?php endif; ?>
+  </section>
+<?php endif; ?>
+
 <section class="panel">
   <h2><?= $edit ? 'Edit Data' : 'Tambah Data' ?></h2>
   <form method="post" action="<?= site_url('admin/' . $page) ?>" class="grid-form">
@@ -131,15 +164,15 @@
               <?php endif; ?>
             </td>
           <?php endforeach; ?>
-          <td>
-            <a href="<?= site_url('admin/' . $page . '?action=edit&id=' . ($row['id'] ?? 0)) ?>">Edit</a>
+          <td><div class="table-actions">
+            <a class="btn-table-edit" href="<?= site_url('admin/' . $page . '?action=edit&id=' . ($row['id'] ?? 0)) ?>">Edit</a>
             <form method="post" action="<?= site_url('admin/' . $page) ?>" class="inline-form" onsubmit="return confirm('Hapus data ini?')">
               <?= csrf_field() ?>
               <input type="hidden" name="action" value="delete">
               <input type="hidden" name="id" value="<?= (int) ($row['id'] ?? 0) ?>">
               <button type="submit" class="btn-link-danger">Hapus</button>
             </form>
-          </td>
+          </div></td>
         </tr>
       <?php endforeach; ?>
       <?php if (empty($rows)): ?>

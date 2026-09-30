@@ -15,17 +15,24 @@ $navItems = [
     'aspirasi' => ['label' => 'Aspirasi', 'href' => site_url('admin/aspirasi')],
     'akun' => ['label' => 'Akun Admin', 'href' => site_url('admin/akun')],
 ];
+$isSuperAdmin = (string) session('admin_role') === 'superadmin';
+if (! $isSuperAdmin) {
+    unset($navItems['akun'], $navItems['import']);
+}
 $healthDashboard = ['label' => 'Buka Dashboard Kesehatan', 'href' => site_url('admin/kesehatan-dashboard')];
 $currentLabel = $navItems[$currentPage]['label'] ?? 'Panel Admin';
-$notificationCounts = ['pengajuan-surat' => 0, 'aspirasi' => 0];
+$notificationCounts = ['pengajuan-surat' => 0, 'aspirasi' => 0, 'akun' => 0];
 try {
     $db = db_connect();
     if (ensure_pengajuan_surat_table($db)) {
         $notificationCounts['pengajuan-surat'] = (int) ($db->query("SELECT COUNT(*) AS total FROM pengajuan_surat WHERE status='menunggu'")->getRowArray()['total'] ?? 0);
     }
     $notificationCounts['aspirasi'] = (int) ($db->query("SELECT COUNT(*) AS total FROM aspirasi WHERE status='baru'")->getRowArray()['total'] ?? 0);
+    if ($isSuperAdmin && ensure_admin_users_table($db)) {
+        $notificationCounts['akun'] = (int) ($db->query("SELECT COUNT(*) AS total FROM admin_users WHERE status='menunggu'")->getRowArray()['total'] ?? 0);
+    }
 } catch (Throwable $exception) {
-    $notificationCounts = ['pengajuan-surat' => 0, 'aspirasi' => 0];
+    $notificationCounts = ['pengajuan-surat' => 0, 'aspirasi' => 0, 'akun' => 0];
 }
 $notificationTotal = array_sum($notificationCounts);
 ?>
@@ -40,7 +47,7 @@ $notificationTotal = array_sum($notificationCounts);
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=panel-terpisah-20260929">
+  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=admin-refresh-20260930">
 </head>
 <body class="admin-body">
   <div class="admin-shell">
@@ -110,6 +117,9 @@ $notificationTotal = array_sum($notificationCounts);
           <?php endif; ?>
           <?php if ($notificationCounts['aspirasi'] > 0): ?>
             <a href="<?= site_url('admin/aspirasi') ?>"><strong><?= rw_esc((string) $notificationCounts['aspirasi']) ?></strong> aspirasi baru</a>
+          <?php endif; ?>
+          <?php if ($isSuperAdmin && $notificationCounts['akun'] > 0): ?>
+            <a href="<?= site_url('admin/akun') ?>"><strong><?= rw_esc((string) $notificationCounts['akun']) ?></strong> pendaftaran akun menunggu persetujuan</a>
           <?php endif; ?>
         </section>
       <?php endif; ?>

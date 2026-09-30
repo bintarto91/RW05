@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>">
+  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=admin-refresh-20260930">
 </head>
 <body class="login-page">
   <div class="login-shell">
@@ -16,7 +16,7 @@
 
       <div class="login-brand-card">
         <div class="login-brand-head">
-          <span class="brand-mark" aria-hidden="true">RW</span>
+          <span class="brand-mark login-logo-mark"><img src="<?= base_url('assets/logo-rw05.png') ?>" alt="Logo RW 05"></span>
           <div>
             <strong>RW 05 Desa Citeureup</strong>
             <p>Panel admin ini menjadi bagian dari website yang sama, jadi pengurus bisa memperbarui konten warga dari satu tempat.</p>
@@ -46,7 +46,12 @@
         <input type="password" name="password" required>
       </label>
       <button type="submit">Masuk ke Dashboard</button>
-      <div class="login-note">Jika lupa akses login, hubungi pengelola website untuk reset akun admin.</div>
+      <div class="login-register-callout">
+        <strong>Belum memiliki akun?</strong>
+        <span>Pengurus RW dan kader dapat mendaftar. Akun baru tetap harus disetujui Super Admin.</span>
+        <a href="<?= site_url('admin/daftar') ?>">Daftar akun baru</a>
+      </div>
+      <div class="login-note">Jika lupa akses login, hubungi Super Admin untuk reset akun.</div>
     </form>
   </div>
 </body>

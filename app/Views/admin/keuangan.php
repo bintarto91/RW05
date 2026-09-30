@@ -240,15 +240,15 @@ $showPanitiaDetail = $selectedUnit === '' || $selectedUnit === 'panitia';
           <td><?= rw_esc($row['kategori'] ?? '') ?></td>
           <td><?= rw_esc(fmt_currency($row['nominal'] ?? 0)) ?></td>
           <td><?= nl2br(rw_esc($row['keterangan'] ?? '')) ?></td>
-          <td>
-            <a href="<?= site_url('admin/keuangan?action=edit&id=' . ($row['id'] ?? 0) . '&start=' . rawurlencode($selectedStart) . '&end=' . rawurlencode($selectedEnd) . ($selectedUnit !== '' ? '&unit=' . rawurlencode($selectedUnit) : '')) ?>">Edit</a> |
+          <td><div class="table-actions">
+            <a class="btn-table-edit" href="<?= site_url('admin/keuangan?action=edit&id=' . ($row['id'] ?? 0) . '&start=' . rawurlencode($selectedStart) . '&end=' . rawurlencode($selectedEnd) . ($selectedUnit !== '' ? '&unit=' . rawurlencode($selectedUnit) : '')) ?>">Edit</a>
             <form method="post" action="<?= site_url('admin/keuangan?start=' . rawurlencode($selectedStart) . '&end=' . rawurlencode($selectedEnd) . ($selectedUnit !== '' ? '&unit=' . rawurlencode($selectedUnit) : '')) ?>" class="inline-form" onsubmit="return confirm('Hapus transaksi ini?')">
               <?= csrf_field() ?>
               <input type="hidden" name="action" value="delete">
               <input type="hidden" name="id" value="<?= (int) ($row['id'] ?? 0) ?>">
               <button type="submit" class="btn-link-danger">Hapus</button>
             </form>
-          </td>
+          </div></td>
         </tr>
       <?php endforeach; ?>
       <?php if (empty($rows)): ?>

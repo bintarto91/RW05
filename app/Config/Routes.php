@@ -22,6 +22,8 @@ $routes->post('aspirasi', 'PublicController::submitAspirasi');
 
 $routes->get('admin/login', 'Admin\AuthController::login');
 $routes->post('admin/login', 'Admin\AuthController::attemptLogin');
+$routes->get('admin/daftar', 'Admin\AuthController::register');
+$routes->post('admin/daftar', 'Admin\AuthController::submitRegistration');
 $routes->post('admin/logout', 'Admin\AuthController::logout');
 
 $routes->group('admin', ['filter' => 'adminauth'], static function ($routes) {

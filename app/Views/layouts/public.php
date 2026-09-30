@@ -45,7 +45,7 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/style.css') ?>?v=pwa-20260929-11">
+  <link rel="stylesheet" href="<?= base_url('assets/style.css') ?>?v=pwa-20260930-12">
 </head>
 <body>
 <header class="topbar">
@@ -78,10 +78,10 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
           <details class="menu-more menu-health">
             <summary class="<?= $currentPage === 'kesehatan' ? 'is-active' : '' ?>">Kesehatan</summary>
             <div class="menu-more-panel">
-              <a href="<?= site_url('kesehatan') ?>">Ringkasan Kesehatan</a>
-              <a href="<?= site_url('posyandu') ?>">Posyandu</a>
-              <a href="<?= site_url('posbindu') ?>">Posbindu</a>
-              <a href="<?= site_url('edukasi-kesehatan') ?>">Edukasi Kesehatan</a>
+              <a href="<?= site_url('kesehatan') ?>"><span class="health-menu-icon" aria-hidden="true">+</span><span>Ringkasan Kesehatan</span></a>
+              <a href="<?= site_url('posyandu') ?>"><span class="health-menu-icon" aria-hidden="true">PY</span><span>Posyandu</span></a>
+              <a href="<?= site_url('posbindu') ?>"><span class="health-menu-icon" aria-hidden="true">PB</span><span>Posbindu</span></a>
+              <a href="<?= site_url('edukasi-kesehatan') ?>"><span class="health-menu-icon" aria-hidden="true">i</span><span>Edukasi Kesehatan</span></a>
             </div>
           </details>
         <?php else: ?>
@@ -156,6 +156,6 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
   <?php endif; ?>
   <button type="button" data-mobile-menu-trigger aria-label="Buka menu utama"><span aria-hidden="true">☰</span>Menu</button>
 </nav>
-<script src="<?= base_url('assets/script.js') ?>?v=pwa-20260929-11"></script>
+<script src="<?= base_url('assets/script.js') ?>?v=pwa-20260930-12"></script>
 </body>
 </html>

@@ -2099,6 +2099,10 @@ if (! function_exists('ensure_admin_users_table')) {
                 'role' => "ALTER TABLE admin_users ADD COLUMN role VARCHAR(40) NOT NULL DEFAULT 'admin' AFTER password_hash",
                 'status' => "ALTER TABLE admin_users ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'aktif' AFTER role",
                 'session_version' => "ALTER TABLE admin_users ADD COLUMN session_version INT UNSIGNED NOT NULL DEFAULT 1 AFTER status",
+                'no_hp' => "ALTER TABLE admin_users ADD COLUMN no_hp VARCHAR(30) NULL AFTER session_version",
+                'catatan_pendaftaran' => "ALTER TABLE admin_users ADD COLUMN catatan_pendaftaran VARCHAR(500) NULL AFTER no_hp",
+                'approved_at' => "ALTER TABLE admin_users ADD COLUMN approved_at DATETIME NULL AFTER catatan_pendaftaran",
+                'approved_by' => "ALTER TABLE admin_users ADD COLUMN approved_by INT UNSIGNED NULL AFTER approved_at",
                 'created_at' => "ALTER TABLE admin_users ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER session_version",
                 'updated_at' => "ALTER TABLE admin_users ADD COLUMN updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at",
             ];
@@ -2135,6 +2139,55 @@ if (! function_exists('admin_role_options')) {
             'kader_kesehatan' => 'Kader Posyandu/Posbindu',
             'nakes' => 'Tenaga Kesehatan Pendamping',
         ];
+    }
+}
+
+if (! function_exists('admin_registration_role_options')) {
+    function admin_registration_role_options(): array
+    {
+        return [
+            'admin' => 'Pengurus RW',
+            'ketua_rw' => 'Ketua RW',
+            'sekretaris' => 'Sekretaris',
+            'bendahara' => 'Bendahara',
+            'operator' => 'Operator Data',
+            'kader_kesehatan' => 'Kader Posyandu/Posbindu',
+            'nakes' => 'Tenaga Kesehatan Pendamping',
+        ];
+    }
+}
+
+if (! function_exists('pengurus_chart_groups')) {
+    function pengurus_chart_groups(array $rows): array
+    {
+        $groups = [
+            'pimpinan' => ['label' => 'Pimpinan RW', 'items' => []],
+            'inti' => ['label' => 'Sekretariat & Keuangan', 'items' => []],
+            'bidang' => ['label' => 'Bidang & Pelaksana', 'items' => []],
+            'rt' => ['label' => 'Koordinator RT', 'items' => []],
+        ];
+
+        foreach ($rows as $row) {
+            if (($row['status'] ?? 'aktif') !== 'aktif') {
+                continue;
+            }
+
+            $jabatan = strtolower(trim((string) ($row['jabatan'] ?? '')));
+            $rt = trim((string) ($row['rt'] ?? ''));
+            if (preg_match('/(pembina|penasihat|ketua rw|wakil ketua)/i', $jabatan)) {
+                $key = 'pimpinan';
+            } elseif (preg_match('/(sekretaris|bendahara)/i', $jabatan)) {
+                $key = 'inti';
+            } elseif ($rt !== '' || preg_match('/ketua\s*rt/i', $jabatan)) {
+                $key = 'rt';
+            } else {
+                $key = 'bidang';
+            }
+
+            $groups[$key]['items'][] = $row;
+        }
+
+        return array_filter($groups, static fn (array $group): bool => $group['items'] !== []);
     }
 }
 

@@ -26,6 +26,10 @@ class PanelController extends BaseController
         $db = $this->db();
         $suratTableReady = ensure_pengajuan_surat_table($db);
         $financeTableReady = ensure_keuangan_transaksi_table($db);
+        $adminUsersReady = ensure_admin_users_table($db);
+        $pendingRegistrations = $adminUsersReady && (string) session('admin_role') === 'superadmin'
+            ? (int) ($db->query("SELECT COUNT(*) AS total FROM admin_users WHERE status='menunggu'")->getRowArray()['total'] ?? 0)
+            : 0;
 
         $totalKegiatan = (int) ($db->query('SELECT COUNT(*) AS total FROM kegiatan')->getRowArray()['total'] ?? 0);
         $kegiatanPublish = (int) ($db->query("SELECT COUNT(*) AS total FROM kegiatan WHERE status='publish'")->getRowArray()['total'] ?? 0);
@@ -97,6 +101,9 @@ class PanelController extends BaseController
         $latestKegiatan = $db->table('kegiatan')->orderBy('tanggal', 'DESC')->orderBy('id', 'DESC')->limit(4)->get()->getResultArray();
 
         $workItems = [];
+        if ($pendingRegistrations > 0) {
+            $workItems[] = ['label' => 'Setujui pendaftaran akun', 'detail' => $pendingRegistrations . ' akun pengurus/kader menunggu pemeriksaan', 'href' => site_url('admin/akun')];
+        }
         if ($suratMenunggu > 0) {
             $workItems[] = ['label' => 'Tinjau pengajuan surat', 'detail' => $suratMenunggu . ' pengajuan surat menunggu verifikasi', 'href' => site_url('admin/pengajuan-surat')];
         }
@@ -1457,15 +1464,7 @@ class PanelController extends BaseController
             'order' => ['urutan' => 'ASC', 'id' => 'ASC'],
             'description' => 'Isi struktur organisasi dari Ketua RW, Sekretaris, Bendahara, seksi-seksi, hingga Ketua RT. Bisa ditambah satu per satu atau upload CSV dari template.',
             'importType' => 'pengurus',
-            'imageUpload' => [
-                'title' => 'Gambar Struktur Organisasi',
-                'description' => 'Upload gambar bagan struktur organisasi bila sudah dibuat dari Canva, PowerPoint, atau desain lain. Format yang didukung: JPG, PNG, atau WebP maksimal 2 MB.',
-                'imageUrl' => $this->pengurusStructureImageUrl(),
-                'uploadUrl' => site_url('admin/pengurus/struktur-gambar'),
-                'deleteUrl' => site_url('admin/pengurus/struktur-gambar/delete'),
-                'descriptionValue' => $this->pengurusStructureDescription(),
-                'descriptionSaveUrl' => site_url('admin/pengurus/struktur-penjelasan'),
-            ],
+            'orgChart' => true,
             'fields' => [
                 'urutan' => ['label' => 'Urutan', 'type' => 'number', 'default' => 0],
                 'nama' => ['label' => 'Nama', 'type' => 'text', 'required' => true],
@@ -2156,7 +2155,7 @@ class PanelController extends BaseController
         $db = $this->db();
         ensure_admin_users_table($db);
         $admin = $db->table('admin_users')
-            ->select('id, nama, username, role, status, created_at, password_hash')
+            ->select('id, nama, username, role, status, no_hp, catatan_pendaftaran, created_at, password_hash')
             ->where('id', (int) session('admin_id'))
             ->get()
             ->getRowArray();
@@ -2168,6 +2167,25 @@ class PanelController extends BaseController
         if ($this->request->getMethod() === 'POST') {
             $action = (string) $this->request->getPost('action');
             $roleOptions = admin_role_options();
+
+            if ($action === 'approve_user') {
+                $userId = (int) $this->request->getPost('user_id');
+                $target = $db->table('admin_users')->where('id', $userId)->get()->getRowArray();
+                if (! $target) {
+                    return redirect()->to(site_url('admin/akun'))->with('error', 'Pendaftaran akun tidak ditemukan.');
+                }
+                if (($target['role'] ?? '') === 'superadmin') {
+                    return redirect()->to(site_url('admin/akun'))->with('error', 'Pendaftaran mandiri tidak dapat dijadikan Super Admin secara otomatis.');
+                }
+                $db->table('admin_users')->where('id', $userId)->update([
+                    'status' => 'aktif',
+                    'approved_at' => date('Y-m-d H:i:s'),
+                    'approved_by' => (int) $admin['id'],
+                    'session_version' => ((int) ($target['session_version'] ?? 1)) + 1,
+                ]);
+
+                return redirect()->to(site_url('admin/akun'))->with('success', 'Pendaftaran akun disetujui. Pengguna sekarang dapat login.');
+            }
 
             if ($action === 'change_password') {
                 $currentPassword = (string) $this->request->getPost('current_password');
@@ -2213,7 +2231,7 @@ class PanelController extends BaseController
                 if (! isset($roleOptions[$role])) {
                     $role = 'admin';
                 }
-                if (! in_array($status, ['aktif', 'nonaktif'], true)) {
+                if (! in_array($status, ['aktif', 'nonaktif', 'menunggu'], true)) {
                     $status = 'aktif';
                 }
                 if ($userId === (int) $admin['id']) {
@@ -2276,7 +2294,7 @@ class PanelController extends BaseController
         $editId = (int) $this->request->getGet('edit_user');
         if ($editId > 0) {
             $editUser = $db->table('admin_users')
-                ->select('id, nama, username, role, status, created_at')
+                ->select('id, nama, username, role, status, no_hp, catatan_pendaftaran, created_at')
                 ->where('id', $editId)
                 ->get()
                 ->getRowArray();
@@ -2285,7 +2303,7 @@ class PanelController extends BaseController
         return view('admin/akun', [
             'currentPage' => 'akun',
             'admin' => $admin,
-            'users' => $db->table('admin_users')->select('id, nama, username, role, status, created_at')->orderBy('id', 'ASC')->get()->getResultArray(),
+            'users' => $db->table('admin_users')->select('id, nama, username, role, status, no_hp, catatan_pendaftaran, approved_at, created_at')->orderBy("FIELD(status, 'menunggu', 'aktif', 'nonaktif')", '', false)->orderBy('id', 'ASC')->get()->getResultArray(),
             'editUser' => $editUser,
             'roleOptions' => admin_role_options(),
             'error' => session()->getFlashdata('error') ?: '',

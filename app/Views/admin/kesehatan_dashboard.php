@@ -4,7 +4,7 @@
 <section class="health-dashboard-hero">
   <div>
     <span class="health-dashboard-eyebrow">Posyandu ILP & Posbindu PTM</span>
-    <h1>Dashboard Pelayanan Kesehatan</h1>
+    <div class="dashboard-title-row health-title-row"><b aria-hidden="true">+</b><h1>Dashboard Pelayanan Kesehatan</h1></div>
     <p>Pusat kerja kader dan tenaga kesehatan untuk mencatat kunjungan, melihat sasaran, serta memastikan tindak lanjut warga tidak terlewat.</p>
   </div>
   <div class="health-dashboard-date">
@@ -15,10 +15,10 @@
 </section>
 
 <nav class="health-quick-actions" aria-label="Aksi cepat kesehatan">
-  <a href="<?= site_url('admin/kesehatan-data?jenis=posyandu&jenis_kegiatan=posyandu') ?>"><strong>Buka Posyandu</strong><span>Peserta, kehadiran, dan pengukuran Posyandu</span></a>
-  <a href="<?= site_url('admin/posbindu-laporan') ?>"><strong>Buka Posbindu</strong><span>Pemeriksaan dan laporan Excel Posbindu</span></a>
-  <a href="<?= site_url('admin/kesehatan-tindak-lanjut') ?>"><strong>Cek tindak lanjut</strong><span>Pemantauan, kunjungan rumah, dan rujukan</span></a>
-  <a href="<?= site_url('admin/kesehatan-jadwal') ?>"><strong>Atur jadwal</strong><span>Publikasikan kegiatan untuk warga</span></a>
+  <a href="<?= site_url('admin/kesehatan-data?jenis=posyandu&jenis_kegiatan=posyandu') ?>"><b aria-hidden="true">PY</b><strong>Buka Posyandu</strong><span>Peserta, kehadiran, dan pengukuran Posyandu</span></a>
+  <a href="<?= site_url('admin/posbindu-laporan') ?>"><b aria-hidden="true">PB</b><strong>Buka Posbindu</strong><span>Pemeriksaan dan laporan Excel Posbindu</span></a>
+  <a href="<?= site_url('admin/kesehatan-tindak-lanjut') ?>"><b aria-hidden="true">TL</b><strong>Cek tindak lanjut</strong><span>Pemantauan, kunjungan rumah, dan rujukan</span></a>
+  <a href="<?= site_url('admin/kesehatan-jadwal') ?>"><b aria-hidden="true">JD</b><strong>Atur jadwal</strong><span>Publikasikan kegiatan untuk warga</span></a>
 </nav>
 
 <?php if (! ($tableReady ?? false)): ?>

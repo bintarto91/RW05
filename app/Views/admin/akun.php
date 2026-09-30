@@ -5,6 +5,7 @@
 $editUser = $editUser ?? null;
 $isEditUser = ! empty($editUser);
 $roleOptions = $roleOptions ?? admin_role_options();
+$pendingCount = count(array_filter($users ?? [], static fn (array $user): bool => ($user['status'] ?? '') === 'menunggu'));
 ?>
 <h1>Akun Admin</h1>
 <p class="muted">Buat beberapa akun login untuk pengurus yang berbeda. Akun nonaktif tidak bisa masuk ke dashboard.</p>
@@ -34,8 +35,8 @@ $roleOptions = $roleOptions ?? admin_role_options();
       <strong class="info-value"><?= rw_esc($admin['status'] ?: 'aktif') ?></strong>
     </article>
     <article class="info-card">
-      <span class="info-label">Total Akun</span>
-      <strong class="info-value"><?= rw_esc((string) count($users ?? [])) ?></strong>
+      <span class="info-label">Menunggu Persetujuan</span>
+      <strong class="info-value"><?= rw_esc((string) $pendingCount) ?></strong>
     </article>
   </div>
 </section>
@@ -64,6 +65,7 @@ $roleOptions = $roleOptions ?? admin_role_options();
     <label>Status
       <select name="status">
         <option value="aktif" <?= is_selected(old('status', $editUser['status'] ?? 'aktif'), 'aktif') ?>>Aktif</option>
+        <option value="menunggu" <?= is_selected(old('status', $editUser['status'] ?? 'aktif'), 'menunggu') ?>>Menunggu Persetujuan</option>
         <option value="nonaktif" <?= is_selected(old('status', $editUser['status'] ?? 'aktif'), 'nonaktif') ?>>Nonaktif</option>
       </select>
       <?php if (($editUser['id'] ?? 0) === ($admin['id'] ?? -1)): ?>
@@ -93,6 +95,7 @@ $roleOptions = $roleOptions ?? admin_role_options();
         <th>Nama</th>
         <th>Username</th>
         <th>Role</th>
+        <th>Kontak / Keterangan</th>
         <th>Status</th>
         <th>Dibuat</th>
         <th>Aksi</th>
@@ -104,23 +107,35 @@ $roleOptions = $roleOptions ?? admin_role_options();
           <td><strong><?= rw_esc($user['nama']) ?></strong><?= (int) $user['id'] === (int) $admin['id'] ? '<br><small>Akun sedang dipakai</small>' : '' ?></td>
           <td><?= rw_esc($user['username']) ?></td>
           <td><?= rw_esc($roleOptions[$user['role'] ?? 'admin'] ?? ($user['role'] ?: 'Admin Umum')) ?></td>
+          <td>
+            <strong><?= rw_esc($user['no_hp'] ?: '-') ?></strong>
+            <?php if (! empty($user['catatan_pendaftaran'])): ?><br><small><?= rw_esc($user['catatan_pendaftaran']) ?></small><?php endif; ?>
+          </td>
           <td><span class="badge status-<?= ($user['status'] ?? '') === 'aktif' ? 'selesai' : 'menunggu' ?>"><?= rw_esc($user['status'] ?: 'aktif') ?></span></td>
           <td><?= rw_esc(fmt_date($user['created_at'])) ?></td>
-          <td>
-            <a href="<?= site_url('admin/akun?edit_user=' . (int) $user['id']) ?>">Edit</a>
+          <td><div class="table-actions">
+            <?php if (($user['status'] ?? '') === 'menunggu'): ?>
+              <form method="post" action="<?= site_url('admin/akun') ?>" class="inline-form">
+                <?= csrf_field() ?>
+                <input type="hidden" name="action" value="approve_user">
+                <input type="hidden" name="user_id" value="<?= rw_esc((string) $user['id']) ?>">
+                <button type="submit" class="btn-approve">Setujui</button>
+              </form>
+            <?php endif; ?>
+            <a class="btn-table-edit" href="<?= site_url('admin/akun?edit_user=' . (int) $user['id']) ?>">Edit</a>
             <?php if ((int) $user['id'] !== (int) $admin['id']): ?>
-              <form method="post" action="<?= site_url('admin/akun') ?>" class="inline-form" onsubmit="return confirm('Hapus akun admin ini?')" style="display:inline">
+              <form method="post" action="<?= site_url('admin/akun') ?>" class="inline-form" onsubmit="return confirm('Hapus akun admin ini?')">
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="delete_user">
                 <input type="hidden" name="user_id" value="<?= rw_esc((string) $user['id']) ?>">
                 <button type="submit" class="btn-link-danger">Hapus</button>
               </form>
             <?php endif; ?>
-          </td>
+          </div></td>
         </tr>
       <?php endforeach; ?>
       <?php if (empty($users)): ?>
-        <tr><td colspan="6" class="table-empty">Belum ada akun admin.</td></tr>
+        <tr><td colspan="7" class="table-empty">Belum ada akun admin.</td></tr>
       <?php endif; ?>
     </tbody>
   </table>

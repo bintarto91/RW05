@@ -3,13 +3,13 @@
 <?= $this->section('content') ?>
 <?php
 $pengurusAktif = is_array($pengurus ?? null) ? $pengurus : [];
-$hasStructureImage = ! empty($strukturPengurusImage);
+$chartGroups = pengurus_chart_groups($pengurusAktif);
 $rtList = array_values(array_unique(array_filter(array_map(static fn (array $row): string => trim((string) ($row['rt'] ?? '')), $pengurusAktif))));
 $jabatanList = array_values(array_unique(array_filter(array_map(static fn (array $row): string => trim((string) ($row['jabatan'] ?? '')), $pengurusAktif))));
 $summaryStats = [
     [
-        'value' => $hasStructureImage ? 'Aktif' : (string) count($pengurusAktif),
-        'label' => $hasStructureImage ? 'Gambar struktur' : 'Pengurus aktif',
+        'value' => (string) count($pengurusAktif),
+        'label' => 'Pengurus aktif',
     ],
     [
         'value' => $rtList ? (string) count($rtList) : '-',
@@ -26,36 +26,52 @@ $summaryStats = [
     <div data-reveal>
       <p class="eyebrow">Pengurus RW</p>
       <h1>Struktur Pengurus Rukun Warga 05.</h1>
-      <p class="hero-text">Acuan susunan pengurus mengikuti gambar struktur yang diupload dari dashboard admin.</p>
+      <p class="hero-text">Diagram dibentuk otomatis dari data pengurus aktif dan selalu mengikuti perubahan terbaru dari dashboard admin.</p>
     </div>
     <div class="page-callout" data-reveal>
-      <span><?= $hasStructureImage ? 'Acuan aktif' : 'Pengurus aktif' ?></span>
-      <strong><?= $hasStructureImage ? 'Gambar Resmi' : rw_esc((string) count($pengurusAktif)) . ' orang' ?></strong>
-      <p><?= $hasStructureImage ? 'Jika gambar diganti dari admin, halaman warga memakai gambar terbaru.' : 'Data dapat diperbarui dari panel admin.' ?></p>
+      <span>Data terhubung otomatis</span>
+      <strong><?= rw_esc((string) count($pengurusAktif)) ?> orang</strong>
+      <p>Perubahan nama, jabatan, status, atau urutan langsung memperbarui diagram ini.</p>
     </div>
   </div>
 </section>
 
 <section class="section white-section pengurus-section">
   <div class="container">
-    <div class="structure-showcase <?= $hasStructureImage ? 'structure-showcase-official' : '' ?>">
-      <?php if ($hasStructureImage): ?>
-        <figure class="structure-frame" data-reveal>
-          <div class="structure-image-shell">
-            <img src="<?= rw_esc($strukturPengurusImage) ?>" alt="Struktur organisasi pengurus RW 05">
+    <div class="structure-showcase structure-showcase-auto">
+      <section class="public-org-chart" data-reveal aria-label="Diagram struktur pengurus RW 05">
+        <div class="public-org-chart-head">
+          <div><p class="eyebrow">Diagram otomatis</p><h2>Struktur Pengurus RW 05</h2></div>
+          <span>Terhubung dengan data admin</span>
+        </div>
+        <?php if ($chartGroups): ?>
+          <div class="org-chart">
+            <?php foreach ($chartGroups as $groupKey => $group): ?>
+              <section class="org-chart-level org-chart-level-<?= rw_esc($groupKey) ?>">
+                <h3><?= rw_esc($group['label']) ?></h3>
+                <div class="org-chart-nodes">
+                  <?php foreach ($group['items'] as $person): ?>
+                    <article class="org-chart-node">
+                      <span><?= rw_esc(strtoupper(substr((string) ($person['nama'] ?? 'P'), 0, 1))) ?></span>
+                      <div>
+                        <strong><?= rw_esc($person['nama'] ?? '') ?></strong>
+                        <small><?= rw_esc($person['jabatan'] ?? '') ?><?= ! empty($person['rt']) ? ' · RT ' . rw_esc($person['rt']) : '' ?></small>
+                      </div>
+                    </article>
+                  <?php endforeach; ?>
+                </div>
+              </section>
+            <?php endforeach; ?>
           </div>
-          <figcaption>
-            <strong>Bagan struktur resmi</strong>
-            <span>Gambar ini menjadi acuan utama susunan pengurus RW 05.</span>
-            <a href="<?= rw_esc($strukturPengurusImage) ?>" target="_blank" rel="noopener noreferrer">Lihat gambar penuh</a>
-          </figcaption>
-        </figure>
-      <?php endif; ?>
+        <?php else: ?>
+          <p class="empty-state">Data pengurus aktif belum tersedia.</p>
+        <?php endif; ?>
+      </section>
 
       <aside class="structure-summary-panel" data-reveal>
         <p class="eyebrow">Sumber data pengurus</p>
-        <h2><?= $hasStructureImage ? 'Mengikuti gambar struktur terbaru.' : 'Belum ada gambar struktur.' ?></h2>
-        <p><?= $hasStructureImage ? 'Gambar menjadi acuan struktur, sedangkan rincian nama dan jabatan di bawahnya diambil dari data Pengurus pada dashboard admin.' : 'Upload gambar struktur dari dashboard admin, atau gunakan daftar pengurus aktif di bawah ini sebagai tampilan sementara.' ?></p>
+        <h2>Selalu mengikuti data terbaru.</h2>
+        <p>Diagram dan daftar nama memakai sumber data yang sama. Admin cukup mengubah satu data pengurus tanpa membuat ulang gambar.</p>
         <div class="structure-stats">
           <?php foreach ($summaryStats as $stat): ?>
             <div>
@@ -81,14 +97,9 @@ $summaryStats = [
       </article>
     <?php endif; ?>
 
-    <article class="structure-note" data-reveal>
-      <strong>Catatan tampilan</strong>
-      <p>Kalau gambar struktur berubah, sesuaikan juga data nama dan jabatan di dashboard admin menu Pengurus agar rincian di bawah ini ikut benar.</p>
-    </article>
-
     <div class="org-detail" data-reveal>
       <div class="section-title left">
-        <p class="eyebrow"><?= $hasStructureImage ? 'Rincian pengurus' : 'Daftar sementara' ?></p>
+        <p class="eyebrow">Rincian pengurus</p>
         <h2>Nama dan jabatan pengurus RW 05.</h2>
         <p>Data ini diambil langsung dari dashboard admin, bukan ditulis manual di halaman warga.</p>
       </div>

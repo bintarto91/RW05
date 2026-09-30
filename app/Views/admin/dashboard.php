@@ -4,7 +4,7 @@
 <section class="dashboard-hero">
   <div>
     <span class="dashboard-eyebrow">Hari ini, <?= rw_esc(fmt_date(date('Y-m-d'))) ?></span>
-    <h1>Dashboard RW 05</h1>
+    <div class="dashboard-title-row"><img src="<?= base_url('assets/logo-rw05.png') ?>" alt=""><h1>Dashboard RW 05</h1></div>
     <p class="muted">Selamat datang, <?= rw_esc(session('admin_nama') ?? 'Admin') ?>. Pantau data warga, kegiatan, layanan, aspirasi, dan ringkasan keuangan dari satu halaman.</p>
   </div>
   <div class="hero-summary hero-notification-summary" aria-label="Ringkasan notifikasi baru">
@@ -22,8 +22,10 @@
 </section>
 
 <div class="stat-grid">
+  <?php $statIcons = ['attention' => 'AS', 'letter' => 'SR', 'people' => 'WR', 'program' => 'PR', 'agenda' => 'KG']; ?>
   <?php foreach ($stats as $item): ?>
     <a class="stat dashboard-stat <?= rw_esc('stat-' . $item['tone']) ?>" href="<?= rw_esc($item['href']) ?>">
+      <b class="dashboard-stat-icon" aria-hidden="true"><?= rw_esc($statIcons[$item['tone']] ?? 'RW') ?></b>
       <span><?= rw_esc($item['label']) ?></span>
       <strong><?= rw_esc($item['value']) ?></strong>
       <small><?= rw_esc($item['meta']) ?></small>
