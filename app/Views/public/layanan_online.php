@@ -37,18 +37,16 @@ $oldSuratData = is_array($oldSuratData) ? $oldSuratData : [];
         <strong>Catatan keamanan</strong>
         <p>Jangan tulis NIK, nomor KK lengkap, foto KTP, atau dokumen sensitif di form publik ini. Dokumen pendukung cukup disampaikan saat pengurus meminta.</p>
       </div>
-      <form method="get" action="<?= site_url('layanan-online') ?>" class="online-check-form">
+      <form method="post" action="<?= site_url('layanan-online/status') ?>" class="online-check-form">
+        <?= csrf_field() ?>
         <label>Kode pengajuan
-          <input type="text" name="kode" placeholder="Contoh: RW05-20260702-ABC123" value="<?= rw_esc($lookupCode ?? '') ?>">
+          <input type="text" name="kode" placeholder="Contoh: RW05-20260702-ABC123" value="<?= rw_esc($lookupCode ?? '') ?>" autocomplete="off" required>
         </label>
-        <label>Nama pemohon
-          <input type="text" name="nama" placeholder="Minimal 3 huruf" value="<?= rw_esc($lookupName ?? '') ?>">
-        </label>
-        <label>RT
-          <input type="text" name="rt" placeholder="Contoh: 01" value="<?= rw_esc($lookupRt ?? '') ?>">
+        <label>4 angka terakhir WhatsApp
+          <input type="password" name="verifikasi" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="Contoh: 6789" autocomplete="one-time-code" required>
         </label>
         <button type="submit" class="btn secondary full-button">Cek Status</button>
-        <p class="form-note">Gunakan kode pengajuan untuk hasil paling tepat. Kalau lupa, cari memakai nama pemohon dan RT.</p>
+        <p class="form-note">Untuk menjaga privasi, status hanya dapat dibuka dengan kode pengajuan dan 4 angka terakhir nomor WhatsApp pemohon.</p>
       </form>
     </aside>
 
@@ -57,7 +55,7 @@ $oldSuratData = is_array($oldSuratData) ? $oldSuratData : [];
       <?php if (! empty($successCode)): ?>
         <div class="alert success">
           Pengajuan berhasil dikirim. Simpan kode ini untuk cek status: <strong><?= rw_esc($successCode) ?></strong><br>
-          <a href="<?= site_url('layanan-online?kode=' . rawurlencode($successCode)) ?>">Cek status pengajuan ini</a>
+          <span>Untuk mengecek status, masukkan kode tersebut bersama 4 angka terakhir nomor WhatsApp Anda.</span>
         </div>
       <?php endif; ?>
       <?php if (! empty($error)): ?>
@@ -65,9 +63,6 @@ $oldSuratData = is_array($oldSuratData) ? $oldSuratData : [];
       <?php endif; ?>
       <?php if (! empty($lookupError)): ?>
         <div class="alert error"><?= rw_esc($lookupError) ?></div>
-      <?php endif; ?>
-      <?php if (! empty($lookupCode) && empty($lookupRow)): ?>
-        <div class="alert error">Kode pengajuan <strong><?= rw_esc($lookupCode) ?></strong> tidak ditemukan.</div>
       <?php endif; ?>
       <?php if (! empty($lookupRow)): ?>
         <?php $canPrint = in_array($lookupRow['status'], ['disetujui', 'selesai'], true); ?>
@@ -92,29 +87,6 @@ $oldSuratData = is_array($oldSuratData) ? $oldSuratData : [];
             <p class="form-note">Tombol download akan muncul setelah admin menyetujui atau menyelesaikan pengajuan.</p>
           <?php endif; ?>
         </div>
-      <?php endif; ?>
-      <?php if (empty($lookupCode) && ! empty($lookupRows)): ?>
-        <div class="letter-check-result">
-          <span class="letter-status-pill status-diproses">Hasil pencarian</span>
-          <h2><?= rw_esc(count($lookupRows)) ?> pengajuan ditemukan</h2>
-          <div class="letter-result-list">
-            <?php foreach ($lookupRows as $row): ?>
-              <?php $canPrintRow = in_array($row['status'], ['disetujui', 'selesai'], true); ?>
-              <article>
-                <strong><?= rw_esc($row['jenis_surat']) ?></strong>
-                <span><?= rw_esc($row['nama']) ?>, RT <?= rw_esc($row['rt']) ?> | <?= rw_esc($row['kode_pengajuan']) ?></span>
-                <small>Status: <?= rw_esc(surat_status_label($row['status'])) ?> | <?= rw_esc(date('d/m/Y H:i', strtotime($row['created_at']))) ?></small>
-                <a href="<?= site_url('layanan-online?kode=' . rawurlencode($row['kode_pengajuan'])) ?>">Lihat detail</a>
-                <?php if ($canPrintRow): ?>
-                  <a href="<?= site_url('layanan-online/surat/' . rawurlencode($row['kode_pengajuan'])) ?>" target="_blank" rel="noopener noreferrer">Download PDF</a>
-                <?php endif; ?>
-              </article>
-            <?php endforeach; ?>
-          </div>
-        </div>
-      <?php endif; ?>
-      <?php if (empty($lookupCode) && ($lookupName ?? '') !== '' && empty($lookupRows) && empty($lookupError)): ?>
-        <div class="alert error">Pengajuan atas nama <strong><?= rw_esc($lookupName) ?></strong><?= ! empty($lookupRt) ? rw_esc(' RT ' . $lookupRt) : '' ?> belum ditemukan.</div>
       <?php endif; ?>
       <?php if (empty($tableReady)): ?>
         <div class="alert error">Tabel pengajuan surat belum siap. Hubungi admin RW untuk menyiapkan database.</div>

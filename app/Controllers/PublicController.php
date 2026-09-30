@@ -261,38 +261,22 @@ class PublicController extends BaseController
 
     public function layananOnline(): string
     {
+        response()->setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        response()->setHeader('X-Robots-Tag', 'noindex, noarchive');
+
         $db = $this->publicDatabase();
         $tableReady = $db !== null && ensure_pengajuan_surat_table($db);
         $lookupCode = strtoupper(trim((string) $this->request->getGet('kode')));
-        $lookupName = trim((string) $this->request->getGet('nama'));
-        $lookupRt = normalize_rt_code($this->request->getGet('rt'));
         $lookupRow = null;
-        $lookupRows = [];
-        $lookupError = '';
+        $lookupError = session()->getFlashdata('surat_lookup_error') ?: '';
 
-        if ($tableReady && $lookupCode !== '') {
+        if ($tableReady && $lookupCode !== '' && $this->hasSuratAccess($lookupCode)) {
             $lookupRow = $db->table('pengajuan_surat')
-                ->where('kode_pengajuan', $lookupCode)
-                ->get()
-                ->getRowArray();
-        } elseif ($tableReady && ($lookupName !== '' || $lookupRt !== '')) {
-            if ($lookupName !== '' && strlen($lookupName) < 3) {
-                $lookupError = 'Nama pemohon minimal 3 huruf agar pencarian lebih tepat.';
-            } else {
-                $builder = $db->table('pengajuan_surat')
-                    ->orderBy('created_at', 'DESC')
-                    ->limit(10);
-
-                if ($lookupName !== '') {
-                    $builder->like('nama', $lookupName);
-                }
-
-                if ($lookupRt !== '') {
-                    $builder->where('rt', $lookupRt);
-                }
-
-                $lookupRows = $builder->get()->getResultArray();
-            }
+                    ->where('kode_pengajuan', $lookupCode)
+                    ->get()
+                    ->getRowArray();
+        } elseif ($lookupCode !== '' && $lookupError === '') {
+            $lookupError = 'Verifikasi diperlukan untuk membuka status pengajuan.';
         }
 
         return $this->renderPublic('public/layanan_online', [
@@ -300,14 +284,41 @@ class PublicController extends BaseController
             'suratTypes' => surat_type_options(),
             'tableReady' => $tableReady,
             'lookupCode' => $lookupCode,
-            'lookupName' => $lookupName,
-            'lookupRt' => $lookupRt,
             'lookupRow' => $lookupRow,
-            'lookupRows' => $lookupRows,
             'lookupError' => $lookupError,
             'successCode' => session()->getFlashdata('surat_success_code') ?: '',
             'error' => session()->getFlashdata('surat_error') ?: '',
         ]);
+    }
+
+    public function cekStatusLayananOnline()
+    {
+        $lookupCode = strtoupper(trim((string) $this->request->getPost('kode')));
+        $lookupVerifier = preg_replace('/\D+/', '', (string) $this->request->getPost('verifikasi'));
+        $clientIp = (string) $this->request->getIPAddress();
+        $throttleKey = 'surat-status-' . hash('sha256', $clientIp);
+
+        if (! service('throttler')->check($throttleKey, 20, 300)) {
+            return redirect()->to(site_url('layanan-online#cek-status'))
+                ->with('surat_lookup_error', 'Terlalu banyak percobaan. Tunggu 5 menit lalu coba kembali.');
+        }
+        if ($lookupCode === '' || strlen($lookupVerifier) !== 4) {
+            return redirect()->to(site_url('layanan-online#cek-status'))
+                ->with('surat_lookup_error', 'Masukkan kode pengajuan dan 4 angka terakhir nomor WhatsApp.');
+        }
+
+        $db = $this->publicDatabase();
+        $candidate = $db !== null && ensure_pengajuan_surat_table($db)
+            ? $db->table('pengajuan_surat')->where('kode_pengajuan', $lookupCode)->get()->getRowArray()
+            : null;
+        if (! $candidate || ! $this->phoneVerificationMatches((string) ($candidate['no_hp'] ?? ''), $lookupVerifier)) {
+            return redirect()->to(site_url('layanan-online#cek-status'))
+                ->with('surat_lookup_error', 'Data verifikasi tidak cocok. Periksa kembali kode dan 4 angka terakhir nomor WhatsApp.');
+        }
+
+        $this->authorizeSuratAccess($lookupCode);
+
+        return redirect()->to(site_url('layanan-online?kode=' . rawurlencode($lookupCode) . '#cek-status'));
     }
 
     public function submitLayananOnline()
@@ -381,6 +392,9 @@ class PublicController extends BaseController
 
     public function cetakSurat(string $kodePengajuan)
     {
+        response()->setHeader('Cache-Control', 'private, no-store, no-cache, must-revalidate, max-age=0');
+        response()->setHeader('X-Robots-Tag', 'noindex, noarchive');
+
         $db = $this->publicDatabase();
         if ($db === null || ! ensure_pengajuan_surat_table($db)) {
             return redirect()->to(site_url('layanan-online'))
@@ -393,13 +407,13 @@ class PublicController extends BaseController
             ->get()
             ->getRowArray();
 
-        if (! $pengajuan) {
-            return redirect()->to(site_url('layanan-online?kode=' . rawurlencode($kodePengajuan)))
-                ->with('surat_error', 'Kode pengajuan tidak ditemukan.');
+        if (! $pengajuan || ! $this->hasSuratAccess($kodePengajuan)) {
+            return redirect()->to(site_url('layanan-online'))
+                ->with('surat_error', 'Download ditolak. Verifikasi kembali kode pengajuan dan nomor WhatsApp.');
         }
 
         if (! in_array($pengajuan['status'], ['disetujui', 'selesai'], true)) {
-            return redirect()->to(site_url('layanan-online?kode=' . rawurlencode($kodePengajuan)))
+            return redirect()->to(site_url('layanan-online'))
                 ->with('surat_error', 'Surat belum bisa dicetak karena belum disetujui admin RW.');
         }
 
@@ -728,6 +742,33 @@ class PublicController extends BaseController
         }
 
         return 'RW05-' . date('YmdHis');
+    }
+
+    private function phoneVerificationMatches(string $phoneNumber, string $verifier): bool
+    {
+        $digits = preg_replace('/\D+/', '', $phoneNumber);
+
+        return strlen($digits) >= 4 && hash_equals(substr($digits, -4), $verifier);
+    }
+
+    private function authorizeSuratAccess(string $code): void
+    {
+        $access = session()->get('surat_download_access');
+        $access = is_array($access) ? $access : [];
+        $now = time();
+        $access = array_filter($access, static fn ($expiresAt): bool => (int) $expiresAt > $now);
+        $access[hash('sha256', $code)] = $now + 600;
+        session()->set('surat_download_access', $access);
+    }
+
+    private function hasSuratAccess(string $code): bool
+    {
+        $access = session()->get('surat_download_access');
+        if (! is_array($access)) {
+            return false;
+        }
+
+        return (int) ($access[hash('sha256', $code)] ?? 0) > time();
     }
 
     private function publicFinanceViewData($db, string $selectedStart, string $selectedEnd, string $selectedUnit = ''): array

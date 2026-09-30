@@ -14,6 +14,7 @@ $routes->get('edukasi-kesehatan/(:segment)', 'PublicController::edukasiKesehatan
 $routes->get('keuangan', 'PublicController::keuangan');
 $routes->get('layanan-online', 'PublicController::layananOnline');
 $routes->post('layanan-online', 'PublicController::submitLayananOnline');
+$routes->post('layanan-online/status', 'PublicController::cekStatusLayananOnline');
 $routes->get('layanan-online/surat/(:segment)', 'PublicController::cetakSurat/$1');
 $routes->get('kegiatan', 'PublicController::kegiatan');
 $routes->get('pengurus', 'PublicController::pengurus');
