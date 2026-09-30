@@ -74,13 +74,38 @@ $kebutuhanRw = [
     <div data-reveal>
       <p class="eyebrow">Layanan warga</p>
       <h1>Layanan RW yang mudah dipilih.</h1>
-      <p class="hero-text">Daftar layanan dibuat jelas, ringkas, dan informatif supaya warga tahu syarat, alur, dan kontak yang harus dihubungi.</p>
+      <p class="hero-text">Pilih bidang pelayanan untuk kebutuhan umum, atau gunakan jenis surat administrasi ketika membutuhkan dokumen resmi.</p>
     </div>
     <div class="page-callout" data-reveal>
-      <span>Layanan utama</span>
-      <strong><?= rw_esc(count($kebutuhanRw)) ?> kebutuhan warga</strong>
-        <p>Pengantar, keterangan, undangan, edaran, permohonan, tugas, berita acara, dan keputusan tersedia dalam satu halaman.</p>
+      <span>Dokumen administrasi</span>
+      <strong><?= rw_esc(count($kebutuhanRw)) ?> jenis surat administrasi</strong>
+      <p>Jumlah ini berbeda dari bidang layanan warga karena satu bidang dapat memiliki beberapa jenis dokumen.</p>
     </div>
+  </div>
+</section>
+
+<section class="section public-service-overview-section" aria-labelledby="public-service-title">
+  <div class="container">
+    <div class="section-title left" data-reveal>
+      <p class="eyebrow">Pelayanan warga</p>
+      <h2 id="public-service-title"><?= rw_esc((string) count($layanan)) ?> bidang layanan warga.</h2>
+      <p>Bidang layanan adalah kelompok kebutuhan warga. Dokumen surat yang tersedia dijelaskan terpisah di bagian berikutnya.</p>
+    </div>
+    <?php if ($layanan): ?>
+      <div class="public-service-overview-grid">
+        <?php foreach ($layanan as $service): ?>
+          <a href="<?= site_url('layanan-online') ?>" class="public-service-overview-card" data-reveal>
+            <span aria-hidden="true"><?= rw_esc($service['icon'] ?? 'RW') ?></span>
+            <div>
+              <strong><?= rw_esc($service['nama'] ?? '') ?></strong>
+              <small><?= rw_esc($service['deskripsi'] ?? '') ?></small>
+            </div>
+          </a>
+        <?php endforeach; ?>
+      </div>
+    <?php else: ?>
+      <p class="empty-state">Bidang layanan warga belum diterbitkan.</p>
+    <?php endif; ?>
   </div>
 </section>
 
@@ -88,8 +113,8 @@ $kebutuhanRw = [
   <div class="container">
     <div class="service-intro-panel" data-reveal>
       <div>
-        <p class="eyebrow">Kebutuhan RW</p>
-        <h2>Urus kebutuhan warga tanpa harus menebak alurnya.</h2>
+        <p class="eyebrow">Dokumen administrasi</p>
+        <h2><?= rw_esc((string) count($kebutuhanRw)) ?> jenis surat dengan alur yang jelas.</h2>
         <p>Mulai dari surat pengantar sampai keputusan RW, warga bisa melihat syarat dasar sebelum mengisi form online atau menghubungi pengurus.</p>
       </div>
       <a href="<?= site_url('layanan-online') ?>" class="btn primary">Ajukan Surat Online</a>
@@ -101,7 +126,7 @@ $kebutuhanRw = [
         <input type="search" id="serviceSearch" placeholder="Contoh: domisili, undangan, atau permohonan" autocomplete="off">
         <button type="button" id="serviceSearchClear" class="btn tertiary">Hapus</button>
       </div>
-      <p id="serviceSearchResult" aria-live="polite"><?= rw_esc((string) count($kebutuhanRw)) ?> jenis layanan tersedia. Ketuk salah satu untuk melihat syarat dan alurnya.</p>
+      <p id="serviceSearchResult" aria-live="polite"><?= rw_esc((string) count($kebutuhanRw)) ?> jenis surat tersedia. Ketuk salah satu untuk melihat syarat dan alurnya.</p>
     </div>
 
     <div class="rw-service-grid rw-service-accordion-list" id="serviceList">

@@ -2,14 +2,14 @@
 
 <?= $this->section('content') ?>
 <?php
-$tentangRw = trim((string) ($profil['tentang_rw'] ?? '')) ?: 'RW 05 Desa Citeureup hadir sebagai wadah pelayanan, komunikasi, koordinasi, dan kebersamaan warga.';
-$tagline = trim((string) ($profil['tagline'] ?? '')) ?: 'Transparan | Tertib | Melayani';
-$alamatRw = trim((string) ($profil['alamat'] ?? '')) ?: 'Sekretariat RW 05 Desa Citeureup';
+$tentangRw = trim((string) ($profil['tentang_rw'] ?? '')) ?: ($siteDisplayName . ' hadir sebagai wadah pelayanan, komunikasi, koordinasi, dan kebersamaan warga.');
+$tagline = $identity['tagline'] ?? 'Transparan · Tertib · Melayani';
+$alamatRw = trim((string) ($profil['alamat'] ?? '')) ?: ('Lamajang Peuntas, ' . $siteSubtitle);
 $emailRw = rw_official_email($profil['email'] ?? '');
 $profileStats = [
     ['value' => (string) $totalKK, 'label' => 'KK tercatat'],
     ['value' => (string) $totalWarga, 'label' => 'Warga'],
-    ['value' => (string) count($layanan), 'label' => 'Layanan'],
+    ['value' => (string) count($layanan), 'label' => 'Bidang layanan'],
 ];
 $valueItems = array_filter(array_map('trim', preg_split('/\s*\|\s*/', $tagline)));
 if (empty($valueItems)) {
@@ -34,8 +34,9 @@ if (empty($valueItems)) {
 <section class="section profile-overview-section">
   <div class="container profile-overview-card" data-reveal>
     <div class="profile-overview-copy">
-      <p class="eyebrow">RW 05 Desa <?= rw_esc($desa ?? 'Citeureup') ?></p>
+      <p class="eyebrow"><?= rw_esc($siteDisplayName) ?></p>
       <h2>Lingkungan yang tertib, rukun, dan mudah terhubung.</h2>
+      <p><strong><?= rw_esc($siteSubtitle) ?></strong></p>
       <p><?= nl2br(rw_esc($tentangRw)) ?></p>
       <div class="profile-value-pills" aria-label="Nilai pelayanan RW">
         <?php foreach ($valueItems as $value): ?>

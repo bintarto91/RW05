@@ -16,7 +16,68 @@ class PublicController extends BaseController
 
     public function index(): string
     {
-        return $this->renderPublic('public/home', ['currentPage' => 'home']);
+        $healthSchedules = ['posyandu' => null, 'posbindu' => null];
+        $financeOverview = [
+            'available' => false,
+            'periodLabel' => '',
+            'income' => 0,
+            'expense' => 0,
+            'balance' => 0,
+        ];
+        $db = $this->publicDatabase();
+
+        if ($db !== null) {
+            try {
+                if ($db->tableExists('kesehatan_jadwal')) {
+                    foreach (array_keys($healthSchedules) as $serviceType) {
+                        $healthSchedules[$serviceType] = $db->table('kesehatan_jadwal')
+                            ->where('jenis', $serviceType)
+                            ->where('status', 'aktif')
+                            ->where('tanggal >=', date('Y-m-d'))
+                            ->orderBy('tanggal', 'ASC')
+                            ->orderBy('id', 'ASC')
+                            ->limit(1)
+                            ->get()
+                            ->getRowArray();
+                    }
+                }
+
+                if ($db->tableExists('keuangan_transaksi')) {
+                    $latestDate = (string) ($db->table('keuangan_transaksi')
+                        ->selectMax('tanggal', 'latest_date')
+                        ->get()
+                        ->getRowArray()['latest_date'] ?? '');
+                    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $latestDate)) {
+                        $month = substr($latestDate, 0, 7);
+                        [$periodStart, $periodEnd] = keuangan_normalize_date_range(null, null, $month);
+                        $summaryRow = $db->table('keuangan_transaksi')
+                            ->select("COALESCE(SUM(CASE WHEN jenis = 'pemasukan' THEN nominal ELSE 0 END), 0) AS income, COALESCE(SUM(CASE WHEN jenis = 'pengeluaran' THEN nominal ELSE 0 END), 0) AS expense", false)
+                            ->where('tanggal >=', $periodStart)
+                            ->where('tanggal <=', $periodEnd)
+                            ->get()
+                            ->getRowArray();
+                        $income = (int) ($summaryRow['income'] ?? 0);
+                        $expense = (int) ($summaryRow['expense'] ?? 0);
+                        $financeOverview = [
+                            'available' => true,
+                            'periodLabel' => keuangan_period_label($periodStart, $periodEnd),
+                            'income' => $income,
+                            'expense' => $expense,
+                            'balance' => $income - $expense,
+                        ];
+                    }
+                }
+            } catch (\Throwable $exception) {
+                log_message('error', 'Ringkasan beranda gagal dibaca: ' . $exception->getMessage());
+            }
+        }
+
+        return $this->renderPublic('public/home', [
+            'currentPage' => 'home',
+            'pageTitle' => 'RW 05 Lamajang Peuntas, Citeureup Dayeuhkolot',
+            'healthSchedules' => $healthSchedules,
+            'financeOverview' => $financeOverview,
+        ]);
     }
 
     public function profil(): string
@@ -563,6 +624,12 @@ class PublicController extends BaseController
                 ->limit(8)
                 ->get()
                 ->getResultArray();
+            $kegiatan = array_map(static function (array $item): array {
+                $item['judul'] = rw_public_content_cleanup($item['judul'] ?? '');
+                $item['isi'] = rw_public_content_cleanup($item['isi'] ?? '');
+
+                return $item;
+            }, $kegiatan);
             $pengurus = $db->table('pengurus')
                 ->where('status', 'aktif')
                 ->orderBy('urutan', 'ASC')
@@ -570,8 +637,11 @@ class PublicController extends BaseController
                 ->get()
                 ->getResultArray();
 
+            $identity = rw_site_identity($profil);
+
             return [
                 'profil' => $profil,
+                'identity' => $identity,
                 'programs' => $programs,
                 'layanan' => $layanan,
                 'kegiatan' => $kegiatan,
@@ -583,8 +653,13 @@ class PublicController extends BaseController
                 'totalAspirasi' => (int) ($db->query('SELECT COUNT(*) AS total FROM aspirasi')->getRowArray()['total'] ?? 0),
                 'waLink' => wa_link($profil['whatsapp'] ?? ''),
                 'instagramLink' => instagram_link($profil['instagram'] ?? ''),
-                'siteName' => $profil['nama_rw'] ?? 'RW 05 Desa Citeureup',
-                'desa' => $profil['desa'] ?? 'Citeureup',
+                'siteName' => $identity['name'],
+                'siteDisplayName' => $identity['displayName'],
+                'siteSubtitle' => $identity['subtitle'],
+                'metaDescription' => $identity['metaDescription'],
+                'desa' => $identity['desa'],
+                'kecamatan' => $identity['kecamatan'],
+                'kabupaten' => $identity['kabupaten'],
                 'adminEntryUrl' => session('admin_id') ? site_url('admin') : site_url('admin/login'),
                 'adminEntryLabel' => session('admin_id') ? 'Dashboard Admin' : 'Login Admin',
             ];
@@ -622,9 +697,11 @@ class PublicController extends BaseController
     private function fallbackSharedData(): array
     {
         $profil = [];
+        $identity = rw_site_identity($profil);
 
         return [
             'profil' => $profil,
+            'identity' => $identity,
             'programs' => [],
             'layanan' => [],
             'kegiatan' => [],
@@ -636,8 +713,13 @@ class PublicController extends BaseController
             'totalAspirasi' => 0,
             'waLink' => '',
             'instagramLink' => '',
-            'siteName' => 'RW 05 Desa Citeureup',
-            'desa' => 'Citeureup',
+            'siteName' => $identity['name'],
+            'siteDisplayName' => $identity['displayName'],
+            'siteSubtitle' => $identity['subtitle'],
+            'metaDescription' => $identity['metaDescription'],
+            'desa' => $identity['desa'],
+            'kecamatan' => $identity['kecamatan'],
+            'kabupaten' => $identity['kabupaten'],
             'adminEntryUrl' => session('admin_id') ? site_url('admin') : site_url('admin/login'),
             'adminEntryLabel' => session('admin_id') ? 'Dashboard Admin' : 'Login Admin',
         ];

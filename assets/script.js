@@ -13,6 +13,8 @@ const setMenuState = (isOpen) => {
 
 	menu.classList.toggle('show', isOpen);
 	menuBtn.setAttribute('aria-expanded', String(isOpen));
+	mobileMenuTrigger?.setAttribute('aria-expanded', String(isOpen));
+	mobileMenuTrigger?.setAttribute('aria-label', isOpen ? 'Tutup menu utama' : 'Buka menu utama');
 	document.body.classList.toggle('menu-open', isOpen);
 };
 
@@ -101,8 +103,7 @@ if ('IntersectionObserver' in window) {
 
 if (mobileMenuTrigger && menu) {
 	mobileMenuTrigger.addEventListener('click', () => {
-		setMenuState(true);
-		menuBtn?.focus();
+		setMenuState(!menu.classList.contains('show'));
 	});
 }
 
@@ -144,8 +145,8 @@ const filterServices = () => {
 
 	if (serviceSearchResult) {
 		serviceSearchResult.textContent = visibleCount > 0
-			? `${visibleCount} jenis layanan ditemukan. Ketuk layanan untuk melihat detail.`
-			: 'Layanan belum ditemukan. Coba kata yang lebih umum atau tanyakan kepada pengurus.';
+			? `${visibleCount} jenis surat ditemukan. Ketuk surat untuk melihat detail.`
+			: 'Jenis surat belum ditemukan. Coba kata yang lebih umum atau tanyakan kepada pengurus.';
 	}
 };
 

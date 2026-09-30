@@ -3,6 +3,7 @@ $desa = trim((string) ($profil['desa'] ?? 'Citeureup')) ?: 'Citeureup';
 $kecamatan = trim((string) ($profil['kecamatan'] ?? '')) ?: '-';
 $kabupaten = trim((string) ($profil['kabupaten'] ?? '')) ?: '-';
 $profilAlamat = trim((string) ($profil['alamat'] ?? ''));
+$identity = rw_site_identity($profil);
 $alamat = ($profilAlamat !== '' && $profilAlamat !== 'Sekretariat RW 05 Desa Citeureup')
   ? $profilAlamat
   : 'Lamajang Peuntas, Desa Citeureup, Kec. Dayeuhkolot, Kab. Bandung';
@@ -58,7 +59,7 @@ $rtCode = normalize_rt_code($pengajuan['rt'] ?? '');
 $rtKetuaDisplayName = $cleanPersonName($rtKetuaNama ?? '');
 $ketuaDisplayName = $cleanPersonName($ketuaNama ?? 'Ketua RW 05');
 $templateTokens = [
-  '{{site_name}}' => 'RW 05 Desa Citeureup',
+  '{{site_name}}' => $identity['displayName'],
   '{{desa}}' => $desa,
   '{{kecamatan}}' => $kecamatan,
   '{{kabupaten}}' => $kabupaten,
@@ -78,7 +79,7 @@ foreach ($structuredData as $key => $value) {
   }
 }
 $renderTemplateText = static function (string $text) use ($templateTokens): string {
-  return trim(strtr($text, $templateTokens));
+  return trim(rw_identity_text(strtr($text, $templateTokens)));
 };
 $purposeLabel = (string) ($template['purpose_label'] ?? 'Keperluan Surat');
 $detailLabel = (string) ($template['detail_label'] ?? 'Keterangan Tambahan');

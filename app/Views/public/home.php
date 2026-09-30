@@ -2,8 +2,10 @@
 
 <?= $this->section('content') ?>
 <?php
-$heroSummary = trim((string) ($profil['visi'] ?? '')) ?: 'Pusat layanan warga RW 05 untuk pengajuan surat, cek status, informasi kas, kegiatan, kesehatan, pengurus, dan aspirasi lingkungan.';
+$heroSummary = 'Pusat informasi, pelayanan administrasi, transparansi, kegiatan, kesehatan, dan aspirasi warga RW 05.';
 $latestAgenda = $kegiatan[0] ?? null;
+$healthSchedules = is_array($healthSchedules ?? null) ? $healthSchedules : ['posyandu' => null, 'posbindu' => null];
+$financeOverview = is_array($financeOverview ?? null) ? $financeOverview : ['available' => false];
 $quickItems = [
     [
         'code' => '01',
@@ -15,7 +17,7 @@ $quickItems = [
     [
         'code' => '02',
         'title' => 'Cek Status',
-        'text' => 'Cari pengajuan memakai kode, nama pemohon, atau RT.',
+        'text' => 'Gunakan kode pengajuan dan 4 angka terakhir WhatsApp.',
         'href' => site_url('layanan-online') . '#cek-status',
         'class' => '',
     ],
@@ -53,8 +55,9 @@ $quickItems = [
 <section class="hero home-hero smart-home-hero compact-home-hero">
   <div class="container hero-layout">
     <div class="hero-copy smart-hero-copy" data-reveal>
-      <p class="eyebrow">Portal layanan warga RW 05</p>
+      <p class="eyebrow">Portal Warga RW 05</p>
       <h1><?= rw_esc($siteName) ?></h1>
+      <p class="hero-region"><?= rw_esc($siteSubtitle) ?></p>
       <p class="hero-text"><?= rw_esc($heroSummary) ?></p>
       <div class="hero-actions" aria-label="Aksi cepat">
         <a href="<?= site_url('layanan-online') ?>#ajukan-surat" class="btn primary">Ajukan Surat</a>
@@ -64,9 +67,7 @@ $quickItems = [
         <?php endif; ?>
       </div>
       <div class="hero-trust-list" aria-label="Nilai layanan RW">
-        <span>Mudah dari HP</span>
-        <span>Keuangan terbuka</span>
-        <span>Info resmi warga</span>
+        <span><?= rw_esc($identity['tagline'] ?? 'Transparan · Tertib · Melayani') ?></span>
       </div>
     </div>
 
@@ -89,7 +90,7 @@ $quickItems = [
       <div class="citizen-metric-row" aria-label="Ringkasan portal RW">
         <a href="<?= site_url('layanan') ?>">
           <strong><?= rw_esc((string) count($layanan)) ?></strong>
-          <span>Layanan</span>
+          <span>Bidang layanan</span>
         </a>
         <a href="<?= site_url('profil') ?>">
           <strong><?= rw_esc((string) $totalKK) ?></strong>
@@ -122,6 +123,49 @@ $quickItems = [
         </a>
       <?php endforeach; ?>
     </div>
+  </div>
+</section>
+
+<section class="section home-overview-section" aria-label="Jadwal kesehatan dan transparansi keuangan">
+  <div class="container home-overview-grid">
+    <article class="home-overview-card" data-reveal>
+      <div class="home-overview-head">
+        <div><p class="eyebrow">Jadwal kesehatan</p><h2>Posyandu dan Posbindu terdekat.</h2></div>
+        <a href="<?= site_url('kesehatan') ?>" class="text-link">Lihat semua jadwal</a>
+      </div>
+      <div class="home-schedule-list">
+        <?php foreach (['posyandu' => 'Posyandu', 'posbindu' => 'Posbindu'] as $type => $label): ?>
+          <?php $schedule = $healthSchedules[$type] ?? null; ?>
+          <article>
+            <span><?= rw_esc($label) ?></span>
+            <?php if ($schedule): ?>
+              <strong><?= rw_esc(format_date_id($schedule['tanggal'] ?? '')) ?></strong>
+              <small><?= rw_esc(trim((string) ($schedule['waktu'] ?? '')) ?: 'Waktu mengikuti informasi kader') ?> · <?= rw_esc(trim((string) ($schedule['lokasi'] ?? '')) ?: 'Lokasi akan diumumkan') ?></small>
+            <?php else: ?>
+              <strong>Belum ada jadwal aktif</strong>
+              <small>Jadwal akan tampil setelah diterbitkan oleh pengurus.</small>
+            <?php endif; ?>
+          </article>
+        <?php endforeach; ?>
+      </div>
+    </article>
+
+    <article class="home-overview-card finance-home-card" data-reveal>
+      <div class="home-overview-head">
+        <div><p class="eyebrow">Transparansi</p><h2>Ringkasan keuangan terbaru.</h2></div>
+        <a href="<?= site_url('keuangan') ?>" class="text-link">Buka laporan</a>
+      </div>
+      <?php if (! empty($financeOverview['available'])): ?>
+        <p class="home-overview-period"><?= rw_esc($financeOverview['periodLabel'] ?? '') ?></p>
+        <div class="home-finance-summary">
+          <div><span>Pemasukan</span><strong><?= rw_esc(fmt_currency($financeOverview['income'] ?? 0)) ?></strong></div>
+          <div><span>Pengeluaran</span><strong><?= rw_esc(fmt_currency($financeOverview['expense'] ?? 0)) ?></strong></div>
+          <div class="is-balance"><span>Saldo periode</span><strong><?= rw_esc(fmt_currency($financeOverview['balance'] ?? 0)) ?></strong></div>
+        </div>
+      <?php else: ?>
+        <p class="empty-state">Ringkasan keuangan belum tersedia. Data akan tampil setelah transaksi diterbitkan pengurus.</p>
+      <?php endif; ?>
+    </article>
   </div>
 </section>
 

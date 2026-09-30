@@ -5242,9 +5242,7 @@ textarea:focus {
 
 @media (max-width: 900px) {
   .menu-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: none;
   }
 
   .menu {
@@ -5723,6 +5721,169 @@ textarea:focus {
   display: grid;
 }
 
+.hero-region {
+  max-width: 760px;
+  margin: 8px 0 0;
+  color: #ffe2a8;
+  font-size: clamp(1rem, 1.5vw, 1.18rem);
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.home-overview-section {
+  padding: 48px 0;
+  background: #f6faf8;
+}
+
+.home-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.home-overview-card {
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: 0 12px 28px rgba(18, 56, 42, 0.07);
+}
+
+.home-overview-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.home-overview-head h2 {
+  margin: 8px 0 0;
+  font-size: 1.6rem;
+}
+
+.home-overview-head .text-link {
+  flex: 0 0 auto;
+}
+
+.home-schedule-list,
+.home-finance-summary {
+  display: grid;
+  gap: 10px;
+}
+
+.home-schedule-list article,
+.home-finance-summary > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid rgba(17, 100, 83, 0.13);
+  border-radius: var(--radius);
+  background: #f8fbf9;
+}
+
+.home-schedule-list span,
+.home-finance-summary span,
+.home-overview-period {
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.home-schedule-list strong,
+.home-finance-summary strong {
+  color: var(--green-900);
+  overflow-wrap: anywhere;
+}
+
+.home-schedule-list small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.home-finance-summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.home-finance-summary .is-balance {
+  border-color: #e5c274;
+  background: var(--soft-gold);
+}
+
+.home-overview-period {
+  margin: -6px 0 12px;
+}
+
+.public-service-overview-section {
+  background: #f6faf8;
+}
+
+.public-service-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.public-service-overview-card {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 14px;
+  min-height: 112px;
+  padding: 17px;
+  border: 1px solid rgba(17, 100, 83, 0.14);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: 0 10px 24px rgba(8, 47, 42, 0.06);
+}
+
+.public-service-overview-card > span {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius);
+  color: var(--white);
+  background: var(--green-800);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.public-service-overview-card div {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  min-width: 0;
+}
+
+.public-service-overview-card strong {
+  color: var(--green-900);
+  font-size: 1.05rem;
+}
+
+.public-service-overview-card small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.public-service-overview-card:hover {
+  border-color: rgba(17, 100, 83, 0.35);
+  box-shadow: 0 14px 30px rgba(8, 47, 42, 0.1);
+  transform: translateY(-2px);
+}
+
+.menu-more > summary:focus-visible,
+.menu-btn:focus-visible,
+.mobile-quick-nav a:focus-visible,
+.mobile-quick-nav button:focus-visible,
+.public-service-overview-card:focus-visible,
+.citizen-metric-row a:focus-visible,
+.text-link:focus-visible {
+  outline: 3px solid #f0c36a;
+  outline-offset: 3px;
+}
+
 .rw-service-card.rw-service-accordion {
   display: block;
   padding: 0;
@@ -5747,12 +5908,48 @@ textarea:focus {
 }
 
 @media (max-width: 1080px) {
+  .home-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
   .finance-summary-grid.finance-overview-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 680px) {
+  .smart-home-hero.compact-home-hero .home-highlight-card {
+    display: none;
+  }
+
+  .hero-region {
+    font-size: 0.98rem;
+  }
+
+  .home-overview-section {
+    padding: 34px 0;
+  }
+
+  .home-overview-card {
+    padding: 18px;
+  }
+
+  .home-overview-head {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .home-finance-summary,
+  .public-service-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .public-service-overview-card {
+    min-height: 96px;
+    padding: 15px;
+  }
+
   .finance-summary-grid.finance-overview-grid {
     grid-template-columns: 1fr;
   }

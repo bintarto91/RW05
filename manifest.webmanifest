@@ -1,9 +1,9 @@
 {
-  "name": "RW 05 Desa Citeureup",
-  "short_name": "RW 05",
+  "name": "RW 05 Lamajang Peuntas",
+  "short_name": "RW05 Peuntas",
   "id": "/",
   "lang": "id-ID",
-  "description": "Portal informasi, layanan, dan aspirasi warga RW 05 Desa Citeureup.",
+  "description": "Portal warga RW 05 Lamajang Peuntas, Desa Citeureup, Kecamatan Dayeuhkolot.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

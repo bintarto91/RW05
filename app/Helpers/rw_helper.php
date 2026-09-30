@@ -1,5 +1,47 @@
 <?php
 
+if (! function_exists('rw_site_identity')) {
+    function rw_site_identity(array $profile = []): array
+    {
+        $desa = trim((string) ($profile['desa'] ?? '')) ?: 'Citeureup';
+        $kecamatan = trim((string) ($profile['kecamatan'] ?? '')) ?: 'Dayeuhkolot';
+        $kabupaten = trim((string) ($profile['kabupaten'] ?? '')) ?: 'Bandung';
+        $tagline = trim((string) ($profile['tagline'] ?? '')) ?: 'Transparan · Tertib · Melayani';
+
+        return [
+            'name' => 'RW 05 LAMAJANG PEUNTAS',
+            'displayName' => 'RW 05 Lamajang Peuntas',
+            'areaName' => 'Lamajang Peuntas',
+            'rw' => '05',
+            'desa' => $desa,
+            'kecamatan' => $kecamatan,
+            'kabupaten' => $kabupaten,
+            'subtitle' => 'Desa ' . $desa . ', Kecamatan ' . $kecamatan . ', Kabupaten ' . $kabupaten,
+            'tagline' => $tagline,
+            'metaDescription' => 'Portal resmi RW 05 Lamajang Peuntas, Desa ' . $desa . ', Kecamatan ' . $kecamatan . ' untuk layanan warga, informasi, kegiatan, kesehatan, transparansi, dan aspirasi.',
+        ];
+    }
+}
+
+if (! function_exists('rw_public_content_cleanup')) {
+    function rw_public_content_cleanup($value): string
+    {
+        $value = (string) $value;
+        $value = str_replace('Agusuts', 'Agustus', $value);
+        $value = str_replace('Malam puncak', 'Malam Puncak', $value);
+        $value = preg_replace('/\bpengumpulan dana serat pembagian\b/iu', 'pengumpulan dana serta pembagian', $value);
+
+        return (string) $value;
+    }
+}
+
+if (! function_exists('rw_identity_text')) {
+    function rw_identity_text($value): string
+    {
+        return str_replace('RW 05 Desa Citeureup', 'RW 05 Lamajang Peuntas, Desa Citeureup', (string) $value);
+    }
+}
+
 if (! function_exists('rw_normalize_text')) {
     function rw_normalize_text($value): string
     {

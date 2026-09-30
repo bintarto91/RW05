@@ -37,7 +37,7 @@
         </div>
         <div>
           <span>Alamat</span>
-          <strong><?= rw_esc($profil['alamat'] ?? 'Sekretariat RW 05 Desa Citeureup') ?></strong>
+          <strong><?= rw_esc(trim((string) ($profil['alamat'] ?? '')) ?: ('Lamajang Peuntas, ' . $siteSubtitle)) ?></strong>
         </div>
       </div>
       <div class="contact-actions">
