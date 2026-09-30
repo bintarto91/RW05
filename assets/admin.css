@@ -1576,6 +1576,19 @@ h2 {
 	white-space: nowrap;
 }
 
+.warga-pagination {
+	justify-content: center;
+	align-items: center;
+	gap: 12px;
+	margin-top: 18px;
+}
+
+.warga-pagination span {
+	color: var(--muted);
+	font-weight: 700;
+	white-space: nowrap;
+}
+
 .section-heading a {
 	display: inline-flex;
 	align-items: center;
@@ -2702,6 +2715,16 @@ code {
 	.login-brand-card,
 	.login-box {
 		padding: 18px;
+	}
+
+	.warga-pagination {
+		justify-content: space-between;
+		gap: 8px;
+	}
+
+	.warga-pagination a {
+		padding: 9px 12px;
+		font-size: 0.85rem;
 	}
 
 	.workflow-grid,
