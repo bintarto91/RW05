@@ -48,7 +48,7 @@ $notificationTotal = array_sum($notificationCounts);
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=admin-refresh-20260930">
+  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=org-chart-20260930-1">
 </head>
 <body class="admin-body">
   <div class="admin-shell">
