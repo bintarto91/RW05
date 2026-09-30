@@ -149,7 +149,21 @@
 </section>
 
 <section class="panel">
-  <h2>Daftar Data</h2>
+  <div class="section-heading compact-heading">
+    <div>
+      <h2>Daftar Data</h2>
+      <p class="muted">Cari berdasarkan informasi teks pada daftar ini.</p>
+    </div>
+  </div>
+  <form method="get" action="<?= site_url('admin/' . $page) ?>" class="list-search-form">
+    <label>Cari data
+      <input type="search" name="q" maxlength="80" value="<?= rw_esc($filterSearch ?? '') ?>" placeholder="Ketik nama, judul, jabatan, atau keterangan">
+    </label>
+    <div class="form-actions">
+      <button type="submit">Cari</button>
+      <a class="btn-light" href="<?= site_url('admin/' . $page) ?>">Reset</a>
+    </div>
+  </form>
   <table>
     <thead>
       <tr>
@@ -172,7 +186,7 @@
             </td>
           <?php endforeach; ?>
           <td><div class="table-actions">
-            <a class="btn-table-edit" href="<?= site_url('admin/' . $page . '?action=edit&id=' . ($row['id'] ?? 0)) ?>">Edit</a>
+            <a class="btn-table-edit" href="<?= site_url('admin/' . $page . '?action=edit&id=' . ($row['id'] ?? 0) . ($filterSearch !== '' ? '&q=' . rawurlencode($filterSearch) : '')) ?>">Edit</a>
             <?php $archiveLabel = empty($config['archiveStatus']) ? 'Hapus' : 'Arsipkan'; ?>
             <form method="post" action="<?= site_url('admin/' . $page) ?>" class="inline-form" onsubmit="return confirm('<?= rw_esc($archiveLabel) ?> data ini?')">
               <?= csrf_field() ?>

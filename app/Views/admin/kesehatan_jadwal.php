@@ -90,6 +90,12 @@ $selectedStatus = old('status', $edit['status'] ?? 'aktif');
       <p class="muted">Jadwal terbaru berada di bagian atas. Jadwal lampau tetap tersimpan untuk riwayat admin.</p>
     </div>
   </div>
+  <form method="get" action="<?= site_url('admin/kesehatan-jadwal') ?>" class="list-search-form">
+    <label>Cari jadwal
+      <input type="search" name="q" maxlength="80" value="<?= rw_esc($filterSearch ?? '') ?>" placeholder="Judul, lokasi, jenis, atau penanggung jawab">
+    </label>
+    <div class="form-actions"><button type="submit">Cari</button><a class="btn-light" href="<?= site_url('admin/kesehatan-jadwal') ?>">Reset</a></div>
+  </form>
   <div class="table-scroll">
     <table>
       <thead>

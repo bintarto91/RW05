@@ -33,6 +33,9 @@
         <?php endforeach; ?>
       </select>
     </label>
+    <label class="full">Cari transaksi
+      <input type="search" name="q" maxlength="80" value="<?= rw_esc($filterSearch ?? '') ?>" placeholder="Kategori, keterangan, RT, atau jenis transaksi">
+    </label>
     <div class="full finance-filter-toolbar">
       <div class="finance-filter-actions">
         <button type="submit">Tampilkan</button>

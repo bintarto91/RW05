@@ -170,6 +170,9 @@ $selectedType = (string) old('jenis', $edit['jenis'] ?? 'poster');
         <?php endforeach; ?>
       </select>
     </label>
+    <label>Cari materi
+      <input type="search" name="q" maxlength="80" value="<?= rw_esc($filters['q'] ?? '') ?>" placeholder="Judul, penulis, institusi, atau ringkasan">
+    </label>
     <div class="education-filter-actions">
       <button type="submit">Terapkan</button>
       <a class="btn-light" href="<?= site_url('admin/edukasi') ?>">Reset</a>

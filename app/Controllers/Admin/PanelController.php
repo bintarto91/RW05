@@ -422,6 +422,7 @@ class PanelController extends BaseController
             'kategori' => trim((string) $this->request->getGet('kategori')),
             'jenis' => trim((string) $this->request->getGet('jenis')),
             'status' => trim((string) $this->request->getGet('status')),
+            'q' => substr(trim((string) $this->request->getGet('q')), 0, 80),
         ];
         if (! array_key_exists($filters['kategori'], edukasi_category_options())) {
             $filters['kategori'] = '';
@@ -435,9 +436,17 @@ class PanelController extends BaseController
 
         $rowsBuilder = $db->table('edukasi_materi');
         foreach ($filters as $field => $value) {
-            if ($value !== '') {
+            if ($field !== 'q' && $value !== '') {
                 $rowsBuilder->where($field, $value);
             }
+        }
+        if ($filters['q'] !== '') {
+            $rowsBuilder->groupStart()
+                ->like('judul', $filters['q'])
+                ->orLike('penulis', $filters['q'])
+                ->orLike('institusi', $filters['q'])
+                ->orLike('ringkasan', $filters['q'])
+                ->groupEnd();
         }
         $rows = $rowsBuilder
             ->orderBy('kategori', 'ASC')
@@ -477,6 +486,7 @@ class PanelController extends BaseController
         $db = $this->db();
         $tableReady = ensure_kesehatan_jadwal_table($db);
         $id = (int) $this->request->getGet('id');
+        $filterSearch = substr(trim((string) $this->request->getGet('q')), 0, 80);
         $typeOptions = kesehatan_jadwal_type_options();
         $statusOptions = kesehatan_jadwal_status_options();
 
@@ -563,13 +573,24 @@ class PanelController extends BaseController
             $edit = $db->table('kesehatan_jadwal')->where('id', $id)->get()->getRowArray();
         }
 
+        $rowsBuilder = $db->table('kesehatan_jadwal');
+        if ($filterSearch !== '') {
+            $rowsBuilder->groupStart()
+                ->like('judul', $filterSearch)
+                ->orLike('lokasi', $filterSearch)
+                ->orLike('penanggung_jawab', $filterSearch)
+                ->orLike('jenis', $filterSearch)
+                ->groupEnd();
+        }
+
         return view('admin/kesehatan_jadwal', [
             'currentPage' => 'kesehatan-jadwal',
             'tableReady' => true,
-            'rows' => $db->table('kesehatan_jadwal')->orderBy('tanggal', 'DESC')->orderBy('id', 'DESC')->get()->getResultArray(),
+            'rows' => $rowsBuilder->orderBy('tanggal', 'DESC')->orderBy('id', 'DESC')->get()->getResultArray(),
             'edit' => $edit,
             'typeOptions' => $typeOptions,
             'statusOptions' => $statusOptions,
+            'filterSearch' => $filterSearch,
             'error' => session()->getFlashdata('error') ?: '',
             'success' => session()->getFlashdata('success') ?: '',
         ]);
@@ -1326,6 +1347,7 @@ class PanelController extends BaseController
         $canValidate = admin_role_can_validate_kesehatan();
         $filterJenis = trim((string) $this->request->getGet('jenis'));
         $filterFollowup = trim((string) $this->request->getGet('tindak_lanjut'));
+        $filterSearch = substr(trim((string) $this->request->getGet('q')), 0, 80);
 
         if (! $tableReady) {
             return view('admin/kesehatan_tindak_lanjut', [
@@ -1374,6 +1396,14 @@ class PanelController extends BaseController
         if (isset($followupOptions[$filterFollowup])) {
             $rowsBuilder->where('kunjungan.tindak_lanjut', $filterFollowup);
         }
+        if ($filterSearch !== '') {
+            $rowsBuilder->groupStart()
+                ->like('peserta.nama', $filterSearch)
+                ->orLike('peserta.no_hp', $filterSearch)
+                ->orLike('peserta.rt', $filterSearch)
+                ->orLike('kunjungan.tujuan_rujukan', $filterSearch)
+                ->groupEnd();
+        }
         $rows = $rowsBuilder
             ->orderBy('kunjungan.tanggal_tindak_lanjut', 'ASC')
             ->orderBy('kunjungan.tanggal', 'DESC')
@@ -1389,6 +1419,7 @@ class PanelController extends BaseController
             'followupOptions' => $followupOptions,
             'filterJenis' => $filterJenis,
             'filterFollowup' => $filterFollowup,
+            'filterSearch' => $filterSearch,
             'canValidate' => $canValidate,
             'error' => session()->getFlashdata('error') ?: '',
             'success' => session()->getFlashdata('success') ?: '',
@@ -1418,6 +1449,7 @@ class PanelController extends BaseController
         $db = $this->db();
         $tableReady = ensure_pengajuan_surat_table($db);
         $id = (int) $this->request->getGet('id');
+        $filterSearch = substr(trim((string) $this->request->getGet('q')), 0, 80);
 
         if (! $tableReady) {
             return view('admin/pengajuan_surat', [
@@ -1462,11 +1494,23 @@ class PanelController extends BaseController
             $statusCounts[$row['status']] = (int) $row['total'];
         }
 
+        $rowsBuilder = $db->table('pengajuan_surat');
+        if ($filterSearch !== '') {
+            $rowsBuilder->groupStart()
+                ->like('kode_pengajuan', $filterSearch)
+                ->orLike('nama', $filterSearch)
+                ->orLike('no_hp', $filterSearch)
+                ->orLike('jenis_surat', $filterSearch)
+                ->orLike('keperluan', $filterSearch)
+                ->groupEnd();
+        }
+
         return view('admin/pengajuan_surat', [
             'currentPage' => 'pengajuan-surat',
-            'rows' => $db->table('pengajuan_surat')->orderBy('created_at', 'DESC')->get()->getResultArray(),
+            'rows' => $rowsBuilder->orderBy('created_at', 'DESC')->get()->getResultArray(),
             'statusCounts' => $statusCounts,
             'statusOptions' => surat_status_options(),
+            'filterSearch' => $filterSearch,
             'error' => session()->getFlashdata('error') ?: '',
             'success' => session()->getFlashdata('success') ?: '',
         ]);
@@ -2119,6 +2163,7 @@ class PanelController extends BaseController
     {
         $db = $this->db();
         $id = (int) $this->request->getGet('id');
+        $filterSearch = substr(trim((string) $this->request->getGet('q')), 0, 80);
 
         if ($this->request->getMethod() === 'POST') {
             $postedId = (int) $this->request->getPost('id');
@@ -2147,9 +2192,21 @@ class PanelController extends BaseController
             return redirect()->to(site_url('admin/aspirasi'));
         }
 
+        $rowsBuilder = $db->table('aspirasi');
+        if ($filterSearch !== '') {
+            $rowsBuilder->groupStart()
+                ->like('nama', $filterSearch)
+                ->orLike('no_hp', $filterSearch)
+                ->orLike('kategori', $filterSearch)
+                ->orLike('pesan', $filterSearch)
+                ->orLike('status', $filterSearch)
+                ->groupEnd();
+        }
+
         return view('admin/aspirasi', [
             'currentPage' => 'aspirasi',
-            'rows' => $db->table('aspirasi')->orderBy('created_at', 'DESC')->get()->getResultArray(),
+            'rows' => $rowsBuilder->orderBy('created_at', 'DESC')->get()->getResultArray(),
+            'filterSearch' => $filterSearch,
         ]);
     }
 
@@ -2168,6 +2225,7 @@ class PanelController extends BaseController
             $selectedMonth
         );
         $selectedUnit = keuangan_normalize_unit_filter($this->request->getGet('unit'));
+        $filterSearch = substr(trim((string) $this->request->getGet('q')), 0, 80);
         $legacySelectedRt = normalize_rt_code($this->request->getGet('rt'));
         if ($selectedUnit === '' && $legacySelectedRt !== '') {
             $selectedUnit = 'rt:' . $legacySelectedRt;
@@ -2268,7 +2326,7 @@ class PanelController extends BaseController
             $edit = $db->table('keuangan_transaksi')->where('id', $id)->get()->getRowArray();
         }
 
-        $viewData = $this->financeViewData($db, $selectedStart, $selectedEnd, $selectedUnit);
+        $viewData = $this->financeViewData($db, $selectedStart, $selectedEnd, $selectedUnit, $filterSearch);
 
         if ($this->request->getGet('export') === 'csv') {
             return $this->downloadFinanceReportCsv($viewData);
@@ -2490,6 +2548,7 @@ class PanelController extends BaseController
         $db = $this->db();
         $table = $db->table($config['table']);
         $id = (int) $this->request->getGet('id');
+        $filterSearch = substr(trim((string) $this->request->getGet('q')), 0, 80);
 
         if ($this->request->getMethod() === 'POST') {
             if ((string) $this->request->getPost('action') === 'delete') {
@@ -2544,6 +2603,21 @@ class PanelController extends BaseController
         }
 
         $rowsBuilder = $db->table($config['table']);
+        if ($filterSearch !== '') {
+            $searchColumns = $config['searchColumns'] ?? array_keys(array_filter(
+                $config['fields'],
+                static fn (array $field): bool => in_array($field['type'] ?? 'text', ['text', 'textarea'], true)
+            ));
+            $rowsBuilder->groupStart();
+            foreach ($searchColumns as $index => $column) {
+                if ($index === 0) {
+                    $rowsBuilder->like($column, $filterSearch);
+                } else {
+                    $rowsBuilder->orLike($column, $filterSearch);
+                }
+            }
+            $rowsBuilder->groupEnd();
+        }
         foreach ($config['order'] as $column => $direction) {
             $rowsBuilder->orderBy($column, $direction);
         }
@@ -2554,6 +2628,7 @@ class PanelController extends BaseController
             'config' => $config,
             'edit' => $edit,
             'rows' => $rowsBuilder->get()->getResultArray(),
+            'filterSearch' => $filterSearch,
         ]);
     }
 
@@ -2689,7 +2764,7 @@ class PanelController extends BaseController
         }
     }
 
-    private function financeViewData($db, string $selectedStart, string $selectedEnd, string $selectedUnit = ''): array
+    private function financeViewData($db, string $selectedStart, string $selectedEnd, string $selectedUnit = '', string $filterSearch = ''): array
     {
         $selectedUnit = keuangan_normalize_unit_filter($selectedUnit);
         $selectedRt = keuangan_unit_filter_rt($selectedUnit);
@@ -2705,6 +2780,14 @@ class PanelController extends BaseController
             $rowsBuilder->where('lingkup', $selectedScope);
         } elseif ($selectedRt !== '') {
             $rowsBuilder->where('lingkup', 'rt')->where('rt', $selectedRt);
+        }
+        if ($filterSearch !== '') {
+            $rowsBuilder->groupStart()
+                ->like('kategori', $filterSearch)
+                ->orLike('keterangan', $filterSearch)
+                ->orLike('rt', $filterSearch)
+                ->orLike('jenis', $filterSearch)
+                ->groupEnd();
         }
 
         $rows = $rowsBuilder
@@ -2767,6 +2850,7 @@ class PanelController extends BaseController
             'selectedRt' => $selectedRt,
             'selectedUnit' => $selectedUnit,
             'selectedUnitLabel' => keuangan_unit_filter_label($selectedUnit),
+            'filterSearch' => $filterSearch,
             'monthLabel' => $periodLabel,
             'periodLabel' => $periodLabel,
             'summary' => $summary,

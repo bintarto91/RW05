@@ -4,7 +4,15 @@
 <h1>Aspirasi Warga</h1>
 
 <section class="panel">
-  <h2>Daftar Aspirasi</h2>
+  <div class="section-heading compact-heading">
+    <h2>Daftar Aspirasi</h2>
+  </div>
+  <form method="get" action="<?= site_url('admin/aspirasi') ?>" class="list-search-form">
+    <label>Cari aspirasi
+      <input type="search" name="q" maxlength="80" value="<?= rw_esc($filterSearch ?? '') ?>" placeholder="Nama, nomor HP, kategori, pesan, atau status">
+    </label>
+    <div class="form-actions"><button type="submit">Cari</button><a class="btn-light" href="<?= site_url('admin/aspirasi') ?>">Reset</a></div>
+  </form>
   <table>
     <thead>
       <tr><th>Tanggal</th><th>Nama</th><th>Kontak</th><th>Kategori</th><th>Pesan</th><th>Status</th><th>Aksi</th></tr>

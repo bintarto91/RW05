@@ -30,7 +30,15 @@
 </section>
 
 <section class="panel">
-  <h2>Daftar Pengajuan</h2>
+  <div class="section-heading compact-heading">
+    <h2>Daftar Pengajuan</h2>
+  </div>
+  <form method="get" action="<?= site_url('admin/pengajuan-surat') ?>" class="list-search-form">
+    <label>Cari pengajuan
+      <input type="search" name="q" maxlength="80" value="<?= rw_esc($filterSearch ?? '') ?>" placeholder="Kode, nama, nomor HP, jenis surat, atau keperluan">
+    </label>
+    <div class="form-actions"><button type="submit">Cari</button><a class="btn-light" href="<?= site_url('admin/pengajuan-surat') ?>">Reset</a></div>
+  </form>
   <table>
     <thead>
       <tr>

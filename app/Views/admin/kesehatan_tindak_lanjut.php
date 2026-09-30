@@ -40,6 +40,9 @@
           <?php endforeach; ?>
         </select>
       </label>
+      <label>Cari warga
+        <input type="search" name="q" maxlength="80" value="<?= rw_esc($filterSearch ?? '') ?>" placeholder="Nama, RT, nomor HP, atau tujuan rujukan">
+      </label>
       <div class="form-actions"><button type="submit">Filter</button><a class="btn-light" href="<?= site_url('admin/kesehatan-tindak-lanjut') ?>">Reset</a></div>
     </form>
   </section>
