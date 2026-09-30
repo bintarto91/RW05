@@ -38,7 +38,18 @@ $summaryStats = [
 
 <section class="section white-section pengurus-section">
   <div class="container">
-    <div class="structure-showcase structure-showcase-auto">
+    <div class="structure-showcase <?= ! empty($strukturPengurusImage) ? 'structure-showcase-official' : 'structure-showcase-auto' ?>">
+      <?php if (! empty($strukturPengurusImage)): ?>
+        <figure class="structure-frame" data-reveal>
+          <div class="structure-image-shell">
+            <img src="<?= rw_esc($strukturPengurusImage) ?>" alt="Struktur organisasi kepengurusan RW 05">
+          </div>
+          <figcaption>
+            <strong>Struktur organisasi kepengurusan RW 05</strong>
+            <span>Acuan susunan resmi pengurus</span>
+          </figcaption>
+        </figure>
+      <?php else: ?>
       <section class="public-org-chart" data-reveal aria-label="Diagram struktur pengurus RW 05">
         <div class="public-org-chart-head">
           <div><p class="eyebrow">Diagram otomatis</p><h2>Struktur Pengurus RW 05</h2></div>
@@ -67,6 +78,7 @@ $summaryStats = [
           <p class="empty-state">Data pengurus aktif belum tersedia.</p>
         <?php endif; ?>
       </section>
+      <?php endif; ?>
 
       <aside class="structure-summary-panel" data-reveal>
         <p class="eyebrow">Sumber data pengurus</p>
