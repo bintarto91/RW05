@@ -3210,12 +3210,12 @@ section[id],
 }
 
 .structure-showcase-auto {
-  grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.55fr);
+  grid-template-columns: 1fr;
 }
 
 .public-org-chart {
   min-width: 0;
-  padding: 24px;
+  padding: 30px;
   border: 1px solid rgba(17, 100, 83, 0.14);
   border-radius: var(--radius);
   background: linear-gradient(160deg, #f8fcfa 0%, #eef7f3 100%);
@@ -3285,13 +3285,17 @@ section[id],
 }
 
 .org-diagram-row-service {
-  grid-template-columns: minmax(0, 0.38fr) minmax(0, 0.62fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .org-diagram-row-bidang,
 .org-diagram-row-unit,
 .org-diagram-row-support {
   grid-template-columns: 1fr;
+}
+
+.org-diagram-group-pelayanan {
+  grid-column: 1;
 }
 
 .org-diagram-group {
@@ -3322,13 +3326,20 @@ section[id],
 .org-diagram-group-unit .org-chart-nodes,
 .org-diagram-group-mitra .org-chart-nodes {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .org-diagram-group-bidang .org-chart-node,
 .org-diagram-group-unit .org-chart-node,
 .org-diagram-group-mitra .org-chart-node {
   width: 100%;
+}
+
+.org-diagram-group-unit .org-chart-nodes,
+.org-diagram-group-mitra .org-chart-nodes {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: min(760px, 100%);
+  margin: 0 auto;
 }
 
 .org-chart-task {
@@ -5515,6 +5526,10 @@ textarea:focus {
   .org-diagram-row-main,
   .org-diagram-row-service {
     grid-template-columns: 1fr;
+  }
+
+  .org-diagram-group-bidang .org-chart-nodes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .topline-inner {
