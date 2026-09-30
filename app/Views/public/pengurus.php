@@ -45,43 +45,7 @@ $summaryStats = [
           <span>Terhubung dengan data admin</span>
         </div>
         <?php if ($chartGroups): ?>
-          <?php $diagramRows = [['command', ['pembina', 'ketua', 'penasihat']], ['core', ['sekretaris', 'bendahara', 'wilayah']], ['service', ['pelayanan']], ['bidang', ['bidang']], ['unit', ['unit']], ['support', ['mitra']]]; ?>
-          <div class="org-diagram">
-            <?php foreach ($diagramRows as [$rowClass, $groupKeys]): ?>
-              <div class="org-diagram-row org-diagram-row-<?= rw_esc($rowClass) ?>">
-                <?php foreach ($groupKeys as $groupKey): ?>
-                  <?php $group = $chartGroups[$groupKey] ?? ['label' => ucfirst($groupKey), 'items' => []]; ?>
-                  <section class="org-diagram-group org-diagram-group-<?= rw_esc($groupKey) ?><?= empty($group['items']) ? ' is-empty' : '' ?>">
-                    <h3><?= rw_esc($group['label']) ?></h3>
-                    <div class="org-chart-nodes">
-                      <?php if (in_array($groupKey, ['penasihat', 'wilayah'], true) && $group['items']): ?>
-                        <article class="org-chart-node org-chart-node-stack">
-                          <span><?= rw_esc(strtoupper(substr((string) ($group['items'][0]['nama'] ?? 'P'), 0, 1))) ?></span>
-                          <div>
-                            <?php foreach ($group['items'] as $person): ?>
-                              <strong><?= rw_esc($person['nama'] ?? '') ?></strong>
-                              <small><?= rw_esc($person['jabatan'] ?? '') ?><?= ! empty($person['rt']) ? ' · RT ' . rw_esc($person['rt']) : '' ?></small>
-                            <?php endforeach; ?>
-                          </div>
-                        </article>
-                      <?php else: ?>
-                      <?php foreach ($group['items'] as $person): ?>
-                        <article class="org-chart-node">
-                          <span><?= rw_esc(strtoupper(substr((string) ($person['nama'] ?? 'P'), 0, 1))) ?></span>
-                          <div>
-                            <strong><?= rw_esc($person['nama'] ?? '') ?></strong>
-                            <small><?= rw_esc($person['jabatan'] ?? '') ?><?= ! empty($person['rt']) ? ' · RT ' . rw_esc($person['rt']) : '' ?></small>
-                          </div>
-                        </article>
-                      <?php endforeach; ?>
-                      <?php endif; ?>
-                      <?php if (empty($group['items'])): ?><span class="org-diagram-empty">Belum diisi</span><?php endif; ?>
-                    </div>
-                  </section>
-                <?php endforeach; ?>
-              </div>
-            <?php endforeach; ?>
-          </div>
+          <?= view('components/pengurus_chart', ['chartGroups' => $chartGroups, 'chartVariant' => 'public']) ?>
         <?php else: ?>
           <p class="empty-state">Data pengurus aktif belum tersedia.</p>
         <?php endif; ?>

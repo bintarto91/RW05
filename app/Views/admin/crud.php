@@ -88,40 +88,7 @@
       <a class="btn-light" href="<?= site_url('pengurus') ?>" target="_blank" rel="noopener noreferrer">Lihat Halaman Warga</a>
     </div>
     <?php if ($chartGroups): ?>
-      <?php $diagramRows = [['command', ['pembina', 'ketua', 'penasihat']], ['core', ['sekretaris', 'bendahara', 'wilayah']], ['service', ['pelayanan']], ['bidang', ['bidang']], ['unit', ['unit']], ['support', ['mitra']]]; ?>
-      <div class="org-chart admin-org-diagram" aria-label="Diagram kepengurusan RW 05">
-        <?php foreach ($diagramRows as [$rowClass, $groupKeys]): ?>
-          <div class="admin-org-diagram-row admin-org-diagram-row-<?= rw_esc($rowClass) ?>">
-            <?php foreach ($groupKeys as $groupKey): ?>
-              <?php $group = $chartGroups[$groupKey] ?? ['label' => ucfirst($groupKey), 'items' => []]; ?>
-              <section class="admin-org-diagram-group admin-org-diagram-group-<?= rw_esc($groupKey) ?><?= empty($group['items']) ? ' is-empty' : '' ?>">
-                <h3><?= rw_esc($group['label']) ?></h3>
-                <div class="org-chart-nodes">
-                  <?php if (in_array($groupKey, ['penasihat', 'wilayah'], true) && $group['items']): ?>
-                    <article class="org-chart-node org-chart-node-stack">
-                      <span><?= rw_esc(strtoupper(substr((string) ($group['items'][0]['nama'] ?? 'P'), 0, 1))) ?></span>
-                      <div>
-                        <?php foreach ($group['items'] as $person): ?>
-                          <strong><?= rw_esc($person['nama'] ?? '') ?></strong>
-                          <small><?= rw_esc($person['jabatan'] ?? '') ?><?= ! empty($person['rt']) ? ' · RT ' . rw_esc($person['rt']) : '' ?></small>
-                        <?php endforeach; ?>
-                      </div>
-                    </article>
-                  <?php else: ?>
-                  <?php foreach ($group['items'] as $person): ?>
-                    <article class="org-chart-node">
-                      <span><?= rw_esc(strtoupper(substr((string) ($person['nama'] ?? 'P'), 0, 1))) ?></span>
-                      <div><strong><?= rw_esc($person['nama'] ?? '') ?></strong><small><?= rw_esc($person['jabatan'] ?? '') ?><?= ! empty($person['rt']) ? ' · RT ' . rw_esc($person['rt']) : '' ?></small></div>
-                    </article>
-                  <?php endforeach; ?>
-                  <?php endif; ?>
-                  <?php if (empty($group['items'])): ?><span class="admin-org-diagram-empty">Belum diisi</span><?php endif; ?>
-                </div>
-              </section>
-            <?php endforeach; ?>
-          </div>
-        <?php endforeach; ?>
-      </div>
+      <?= view('components/pengurus_chart', ['chartGroups' => $chartGroups, 'chartVariant' => 'admin']) ?>
     <?php else: ?>
       <p class="empty-state">Belum ada pengurus aktif. Tambahkan data pertama agar diagram terbentuk otomatis.</p>
     <?php endif; ?>

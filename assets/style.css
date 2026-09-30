@@ -3428,6 +3428,263 @@ section[id],
   gap: 10px;
 }
 
+/* Automatic RW organization chart shared with the admin preview. */
+.rw-org-diagram {
+  display: grid;
+  gap: 30px;
+  padding: 10px 0 2px;
+}
+
+.rw-org-official-head {
+  padding: 20px 16px;
+  border: 2px solid #ff5a21;
+  border-radius: 18px;
+  color: #102d66;
+  background: #fff;
+  text-align: center;
+}
+
+.rw-org-official-head h2 {
+  margin: 0;
+  color: #102d66;
+  font: 800 clamp(1.25rem, 3vw, 2.2rem)/1.1 "Fraunces", serif;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+.rw-org-official-head p {
+  margin: 10px 0 5px;
+  font-size: .9rem;
+  font-weight: 800;
+}
+
+.rw-org-official-head strong {
+  color: #f05223;
+  font-size: 1rem;
+}
+
+.rw-org-row {
+  position: relative;
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+
+.rw-org-row + .rw-org-row::before {
+  content: "";
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  width: 2px;
+  height: 22px;
+  background: #13366f;
+}
+
+.rw-org-row-command,
+.rw-org-row-core {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rw-org-row-service,
+.rw-org-row-bidang,
+.rw-org-row-unit,
+.rw-org-row-support {
+  grid-template-columns: 1fr;
+}
+
+.rw-org-group {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.rw-org-group > h3 {
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 7px 14px;
+  border-radius: 8px;
+  color: #fff;
+  background: #082866;
+  box-shadow: inset 0 0 0 2px #ff5a21;
+  font: 800 0.75rem/1.25 "Plus Jakarta Sans", sans-serif;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.rw-org-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.rw-org-group-pembina .rw-org-cards,
+.rw-org-group-ketua .rw-org-cards,
+.rw-org-group-penasihat .rw-org-cards,
+.rw-org-group-sekretaris .rw-org-cards,
+.rw-org-group-bendahara .rw-org-cards,
+.rw-org-group-wilayah .rw-org-cards,
+.rw-org-group-pelayanan .rw-org-cards {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.rw-org-group-pelayanan {
+  width: min(360px, 100%);
+}
+
+.rw-org-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1.5px solid #163774;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 24px rgba(8, 40, 102, 0.08);
+}
+
+.rw-org-group-ketua .rw-org-card {
+  border: 2px solid #ff5a21;
+  background: #fffaf5;
+}
+
+.rw-org-card-title {
+  padding: 9px 12px;
+  color: #102d66;
+  background: #f7f9ff;
+  border-bottom: 1px solid #d7dfef;
+  font-size: 0.75rem;
+  font-weight: 900;
+  line-height: 1.25;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.rw-org-people {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.rw-org-person {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+}
+
+.rw-org-person > span {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: #fff;
+  background: #102d66;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.rw-org-person strong,
+.rw-org-person small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.rw-org-person strong {
+  color: #102d66;
+  font-size: 0.79rem;
+  line-height: 1.3;
+}
+
+.rw-org-person small {
+  margin-top: 2px;
+  color: #ef5a24;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.rw-org-task {
+  margin: 0;
+  padding: 10px 12px 12px;
+  border-top: 1px solid #e4e9f3;
+  color: #4f617a;
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+.rw-org-task b {
+  color: #102d66;
+}
+
+.rw-org-group-mitra .rw-org-card {
+  border-style: dashed;
+}
+
+.rw-org-empty {
+  padding: 16px;
+  border: 1px dashed #b8c5da;
+  border-radius: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.rw-org-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 24px;
+  padding: 12px;
+  border: 1px solid #cbd7e8;
+  border-radius: 12px;
+  color: #102d66;
+  background: rgba(255, 255, 255, 0.78);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.rw-org-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rw-org-legend i {
+  width: 38px;
+  border-top: 2px solid #102d66;
+}
+
+.rw-org-legend i.dashed {
+  border-top-style: dashed;
+}
+
+@media (max-width: 800px) {
+  .rw-org-row-command,
+  .rw-org-row-core {
+    grid-template-columns: 1fr;
+  }
+
+  .rw-org-group-pelayanan {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .public-org-chart {
+    padding: 18px 14px;
+  }
+
+  .rw-org-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .rw-org-legend {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 .org-chart-level + .org-chart-level::before {
   content: "";
   position: absolute;

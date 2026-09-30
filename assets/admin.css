@@ -1263,6 +1263,252 @@ h2 {
 	}
 }
 
+/* The admin preview uses the same semantic diagram as the public page. */
+.admin-org-chart-panel .rw-org-diagram {
+	display: grid;
+	gap: 28px;
+	padding: 22px;
+	border: 1px solid rgba(20, 89, 66, 0.12);
+	border-radius: 22px;
+	background: linear-gradient(160deg, #f7fafc, #eef4f9);
+}
+
+.admin-org-chart-panel .rw-org-official-head {
+	padding: 18px 14px;
+	border: 2px solid #ef5a24;
+	border-radius: 16px;
+	color: #102d66;
+	background: #fff;
+	text-align: center;
+}
+
+.admin-org-chart-panel .rw-org-official-head h2 {
+	margin: 0;
+	color: #102d66;
+	font: 800 clamp(1.15rem, 2.6vw, 1.9rem)/1.15 'Fraunces', serif;
+	letter-spacing: .02em;
+	text-transform: uppercase;
+}
+
+.admin-org-chart-panel .rw-org-official-head p {
+	margin: 8px 0 4px;
+	font-size: .82rem;
+	font-weight: 800;
+}
+
+.admin-org-chart-panel .rw-org-official-head strong {
+	color: #ef5a24;
+	font-size: .9rem;
+}
+
+.admin-org-chart-panel .rw-org-row {
+	position: relative;
+	display: grid;
+	gap: 14px;
+	align-items: start;
+}
+
+.admin-org-chart-panel .rw-org-row + .rw-org-row::before {
+	content: "";
+	position: absolute;
+	top: -28px;
+	left: 50%;
+	width: 2px;
+	height: 20px;
+	background: #15356e;
+}
+
+.admin-org-chart-panel .rw-org-row-command,
+.admin-org-chart-panel .rw-org-row-core {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.admin-org-chart-panel .rw-org-group {
+	display: grid;
+	gap: 10px;
+	min-width: 0;
+}
+
+.admin-org-chart-panel .rw-org-group > h3 {
+	width: max-content;
+	max-width: 100%;
+	margin: 0 auto;
+	padding: 7px 13px;
+	border-radius: 8px;
+	color: #fff;
+	background: #102d66;
+	box-shadow: inset 0 0 0 2px #ef5a24;
+	font: 800 0.72rem/1.25 'Plus Jakarta Sans', sans-serif;
+	letter-spacing: .04em;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+.admin-org-chart-panel .rw-org-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	gap: 11px;
+}
+
+.admin-org-chart-panel .rw-org-group-pembina .rw-org-cards,
+.admin-org-chart-panel .rw-org-group-ketua .rw-org-cards,
+.admin-org-chart-panel .rw-org-group-penasihat .rw-org-cards,
+.admin-org-chart-panel .rw-org-group-sekretaris .rw-org-cards,
+.admin-org-chart-panel .rw-org-group-bendahara .rw-org-cards,
+.admin-org-chart-panel .rw-org-group-wilayah .rw-org-cards,
+.admin-org-chart-panel .rw-org-group-pelayanan .rw-org-cards {
+	grid-template-columns: 1fr;
+}
+
+.admin-org-chart-panel .rw-org-group-pelayanan {
+	width: min(360px, 100%);
+}
+
+.admin-org-chart-panel .rw-org-card {
+	min-width: 0;
+	overflow: hidden;
+	border: 1.5px solid #193c78;
+	border-radius: 14px;
+	background: #fff;
+	box-shadow: 0 8px 18px rgba(8, 40, 102, .07);
+}
+
+.admin-org-chart-panel .rw-org-group-ketua .rw-org-card {
+	border: 2px solid #ef5a24;
+	background: #fffaf5;
+}
+
+.admin-org-chart-panel .rw-org-card-title {
+	padding: 8px 10px;
+	border-bottom: 1px solid #d8e0ee;
+	color: #102d66;
+	background: #f7f9ff;
+	font-size: .7rem;
+	font-weight: 900;
+	line-height: 1.3;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+.admin-org-chart-panel .rw-org-people {
+	display: grid;
+	gap: 7px;
+	padding: 10px;
+}
+
+.admin-org-chart-panel .rw-org-person {
+	display: grid;
+	grid-template-columns: 34px minmax(0, 1fr);
+	gap: 8px;
+	align-items: center;
+}
+
+.admin-org-chart-panel .rw-org-person > span {
+	display: grid;
+	place-items: center;
+	width: 34px;
+	height: 34px;
+	border-radius: 50%;
+	color: #fff;
+	background: #102d66;
+	font-size: .75rem;
+	font-weight: 900;
+}
+
+.admin-org-chart-panel .rw-org-person strong,
+.admin-org-chart-panel .rw-org-person small {
+	display: block;
+	overflow-wrap: anywhere;
+}
+
+.admin-org-chart-panel .rw-org-person strong {
+	color: #102d66;
+	font-size: .76rem;
+}
+
+.admin-org-chart-panel .rw-org-person small {
+	margin-top: 2px;
+	color: #ef5a24;
+	font-size: .65rem;
+	font-weight: 800;
+}
+
+.admin-org-chart-panel .rw-org-task {
+	margin: 0;
+	padding: 9px 10px 11px;
+	border-top: 1px solid #e5eaf2;
+	color: #5c6877;
+	font-size: .65rem;
+	line-height: 1.4;
+}
+
+.admin-org-chart-panel .rw-org-task b {
+	color: #102d66;
+}
+
+.admin-org-chart-panel .rw-org-group-mitra .rw-org-card {
+	border-style: dashed;
+}
+
+.admin-org-chart-panel .rw-org-empty {
+	display: block;
+	padding: 14px;
+	border: 1px dashed #bdc9da;
+	border-radius: 12px;
+	color: var(--muted);
+	text-align: center;
+}
+
+.admin-org-chart-panel .rw-org-legend {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 10px 22px;
+	padding: 11px;
+	border: 1px solid #cbd6e5;
+	border-radius: 12px;
+	color: #102d66;
+	background: #fff;
+	font-size: .68rem;
+	font-weight: 800;
+}
+
+.admin-org-chart-panel .rw-org-legend span {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+}
+
+.admin-org-chart-panel .rw-org-legend i {
+	width: 36px;
+	border-top: 2px solid #102d66;
+}
+
+.admin-org-chart-panel .rw-org-legend i.dashed {
+	border-top-style: dashed;
+}
+
+@media (max-width: 800px) {
+	.admin-org-chart-panel .rw-org-row-command,
+	.admin-org-chart-panel .rw-org-row-core {
+		grid-template-columns: 1fr;
+	}
+
+	.admin-org-chart-panel .rw-org-group-pelayanan {
+		width: 100%;
+	}
+}
+
+@media (max-width: 520px) {
+	.admin-org-chart-panel .rw-org-diagram {
+		padding: 14px 10px;
+	}
+
+	.admin-org-chart-panel .rw-org-cards {
+		grid-template-columns: 1fr;
+	}
+}
+
 .health-participant-filter {
 	display: grid;
 	grid-template-columns: minmax(220px, 1.4fr) minmax(180px, 0.8fr) auto;

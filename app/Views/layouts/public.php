@@ -114,7 +114,7 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/style.css') ?>?v=org-chart-20260930-4">
+  <link rel="stylesheet" href="<?= base_url('assets/style.css') ?>?v=org-chart-20260930-5">
 </head>
 <body>
 <header class="topbar">
@@ -225,6 +225,6 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
   <?php endif; ?>
   <button type="button" data-mobile-menu-trigger aria-label="Buka menu utama" aria-expanded="false" aria-controls="menu"><span aria-hidden="true">☰</span>Menu</button>
 </nav>
-<script src="<?= base_url('assets/script.js') ?>?v=pwa-20260930-14"></script>
+<script src="<?= base_url('assets/script.js') ?>?v=pwa-20260930-15"></script>
 </body>
 </html>

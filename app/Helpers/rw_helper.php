@@ -2251,6 +2251,55 @@ if (! function_exists('pengurus_chart_groups')) {
     }
 }
 
+if (! function_exists('pengurus_chart_cards')) {
+    /**
+     * Combine people who share one role so the automatic diagram follows the
+     * official reference layout instead of producing one disconnected box per
+     * person. Penasihat and Ketua RT intentionally share one parent box.
+     */
+    function pengurus_chart_cards(string $groupKey, array $items): array
+    {
+        if ($items === []) {
+            return [];
+        }
+
+        if (in_array($groupKey, ['penasihat', 'wilayah'], true)) {
+            $task = '';
+            foreach ($items as $item) {
+                if (trim((string) ($item['tugas'] ?? '')) !== '') {
+                    $task = trim((string) $item['tugas']);
+                    break;
+                }
+            }
+
+            return [[
+                'title' => $groupKey === 'wilayah' ? 'Ketua RT' : 'Penasihat',
+                'people' => $items,
+                'task' => $task,
+            ]];
+        }
+
+        $cards = [];
+        foreach ($items as $item) {
+            $title = trim((string) ($item['jabatan'] ?? 'Pengurus'));
+            $key = strtolower(preg_replace('/\s+/', ' ', $title));
+            if (! isset($cards[$key])) {
+                $cards[$key] = [
+                    'title' => $title,
+                    'people' => [],
+                    'task' => trim((string) ($item['tugas'] ?? '')),
+                ];
+            }
+            $cards[$key]['people'][] = $item;
+            if ($cards[$key]['task'] === '' && trim((string) ($item['tugas'] ?? '')) !== '') {
+                $cards[$key]['task'] = trim((string) $item['tugas']);
+            }
+        }
+
+        return array_values($cards);
+    }
+}
+
 if (! function_exists('normalize_admin_username')) {
     function normalize_admin_username($username): string
     {
