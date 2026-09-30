@@ -2247,6 +2247,32 @@ if (! function_exists('pengurus_chart_groups')) {
             $groups[$key]['items'][] = $row;
         }
 
+        $referenceGroups = [
+            'pembina' => [
+                ['nama' => 'Kepala Desa', 'jabatan' => 'Pembina', 'rt' => ''],
+            ],
+            'penasihat' => [
+                ['nama' => 'Bpk. H. Sumaryono', 'jabatan' => 'Penasihat', 'rt' => ''],
+                ['nama' => 'Bpk. Erno', 'jabatan' => 'Penasihat', 'rt' => ''],
+                ['nama' => 'Bpk Irwan (Ujang Cuek)', 'jabatan' => 'Penasihat', 'rt' => ''],
+            ],
+            'unit' => [
+                ['nama' => 'Ibu Nani Maryani', 'jabatan' => 'PKK', 'rt' => ''],
+                ['nama' => 'Ibu Nia Kurniasih', 'jabatan' => 'Posyandu', 'rt' => ''],
+                ['nama' => 'Ibu Nia Kurniasih', 'jabatan' => 'Posbindu', 'rt' => ''],
+            ],
+            'mitra' => [
+                ['nama' => 'Rudi', 'jabatan' => 'Karang Taruna', 'rt' => ''],
+                ['nama' => 'Bpk Ust Usman Ansori', 'jabatan' => 'DKM / Keagamaan', 'rt' => ''],
+                ['nama' => 'Bpk Tono', 'jabatan' => 'Linmas / Siskamling', 'rt' => ''],
+            ],
+        ];
+        foreach ($referenceGroups as $groupKey => $referenceRows) {
+            if ($groups[$groupKey]['items'] === []) {
+                $groups[$groupKey]['items'] = $referenceRows;
+            }
+        }
+
         return array_filter($groups, static fn (array $group): bool => $group['items'] !== []);
     }
 }
