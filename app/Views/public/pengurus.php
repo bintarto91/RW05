@@ -45,7 +45,7 @@ $summaryStats = [
           <span>Terhubung dengan data admin</span>
         </div>
         <?php if ($chartGroups): ?>
-          <?php $diagramRows = [['command', ['pembina', 'ketua', 'penasihat']], ['core', ['sekretaris', 'bendahara', 'wilayah']], ['main', ['pelayanan', 'bidang']], ['unit', ['unit']], ['support', ['mitra']]]; ?>
+          <?php $diagramRows = [['command', ['pembina', 'ketua', 'penasihat']], ['core', ['sekretaris', 'bendahara', 'wilayah']], ['service', ['pelayanan']], ['bidang', ['bidang']], ['unit', ['unit']], ['support', ['mitra']]]; ?>
           <div class="org-diagram">
             <?php foreach ($diagramRows as [$rowClass, $groupKeys]): ?>
               <div class="org-diagram-row org-diagram-row-<?= rw_esc($rowClass) ?>">
@@ -60,6 +60,7 @@ $summaryStats = [
                           <div>
                             <strong><?= rw_esc($person['nama'] ?? '') ?></strong>
                             <small><?= rw_esc($person['jabatan'] ?? '') ?><?= ! empty($person['rt']) ? ' · RT ' . rw_esc($person['rt']) : '' ?></small>
+                            <?php if (! empty($person['tugas'])): ?><em class="org-chart-task"><?= rw_esc($person['tugas']) ?></em><?php endif; ?>
                           </div>
                         </article>
                       <?php endforeach; ?>
