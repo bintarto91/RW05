@@ -1526,7 +1526,13 @@ class PanelController extends BaseController
             'fields' => [
                 'urutan' => ['label' => 'Urutan', 'type' => 'number', 'default' => 0],
                 'nama' => ['label' => 'Nama', 'type' => 'text', 'required' => true],
-                'jabatan' => ['label' => 'Jabatan', 'type' => 'text', 'required' => true],
+                'jabatan' => [
+                    'label' => 'Kelompok / Jabatan Struktur',
+                    'type' => 'select',
+                    'options' => pengurus_structure_role_options(),
+                    'required' => true,
+                    'note' => 'Pilihan ini menentukan kelompok dan posisi pada diagram admin serta halaman warga.',
+                ],
                 'rt' => ['label' => 'RT', 'type' => 'text'],
                 'no_hp' => ['label' => 'No HP', 'type' => 'text'],
                 'tugas' => ['label' => 'Tugas Utama', 'type' => 'textarea', 'full' => true],

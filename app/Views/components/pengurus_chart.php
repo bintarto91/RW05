@@ -12,8 +12,9 @@ $diagramRows = [
 ?>
 <div class="rw-org-diagram rw-org-diagram-<?= rw_esc($chartVariant) ?>" aria-label="Diagram kepengurusan RW 05">
   <header class="rw-org-official-head">
-    <h2>Struktur Organisasi Kepengurusan RW 05</h2>
+    <h2>Struktur Organisasi Kepengurusan RW 05 LAMAJANG PEUNTAS</h2>
     <p>Desa Citeureup <b>•</b> Kecamatan Dayeuhkolot <b>•</b> Kabupaten Bandung</p>
+    <span>Periode 2026–2028</span>
     <strong>Transparan <b>•</b> Tertib <b>•</b> Melayani</strong>
   </header>
   <?php foreach ($diagramRows as [$rowClass, $groupKeys]): ?>
@@ -41,7 +42,14 @@ $diagramRows = [
                   <?php endforeach; ?>
                 </div>
                 <?php if ($card['task'] !== ''): ?>
-                  <p class="rw-org-task"><b>Tugas:</b> <?= rw_esc($card['task']) ?></p>
+                  <?php $taskLines = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) $card['task']) ?: []))); ?>
+                  <div class="rw-org-task"><b>Tugas:</b>
+                    <?php if (count($taskLines) > 1): ?>
+                      <ul><?php foreach ($taskLines as $taskLine): ?><li><?= rw_esc($taskLine) ?></li><?php endforeach; ?></ul>
+                    <?php else: ?>
+                      <p><?= rw_esc($taskLines[0] ?? $card['task']) ?></p>
+                    <?php endif; ?>
+                  </div>
                 <?php endif; ?>
               </article>
             <?php endforeach; ?>

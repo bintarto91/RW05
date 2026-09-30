@@ -4,12 +4,13 @@
 <?php
 $pengurusAktif = is_array($pengurus ?? null) ? $pengurus : [];
 $chartGroups = pengurus_chart_groups($pengurusAktif);
+$uniquePeopleCount = pengurus_unique_people_count($pengurusAktif);
 $rtList = array_values(array_unique(array_filter(array_map(static fn (array $row): string => trim((string) ($row['rt'] ?? '')), $pengurusAktif))));
 $jabatanList = array_values(array_unique(array_filter(array_map(static fn (array $row): string => trim((string) ($row['jabatan'] ?? '')), $pengurusAktif))));
 $summaryStats = [
     [
-        'value' => (string) count($pengurusAktif),
-        'label' => 'Pengurus aktif',
+        'value' => (string) $uniquePeopleCount,
+        'label' => 'Orang aktif',
     ],
     [
         'value' => $rtList ? (string) count($rtList) : '-',
@@ -30,8 +31,8 @@ $summaryStats = [
     </div>
     <div class="page-callout" data-reveal>
       <span>Data terhubung otomatis</span>
-      <strong><?= rw_esc((string) count($pengurusAktif)) ?> orang</strong>
-      <p>Perubahan nama, jabatan, status, atau urutan langsung memperbarui diagram ini.</p>
+      <strong><?= rw_esc((string) $uniquePeopleCount) ?> orang</strong>
+      <p><?= rw_esc((string) count($pengurusAktif)) ?> posisi aktif. Satu orang dapat menjalankan lebih dari satu amanah tanpa menggandakan jumlah orang.</p>
     </div>
   </div>
 </section>
@@ -41,7 +42,7 @@ $summaryStats = [
     <div class="structure-showcase structure-showcase-auto">
       <section class="public-org-chart" data-reveal aria-label="Diagram struktur pengurus RW 05">
         <div class="public-org-chart-head">
-          <div><p class="eyebrow">Diagram otomatis</p><h2>Struktur Pengurus RW 05</h2></div>
+          <div><p class="eyebrow">Diagram otomatis</p><h2>Struktur Pengurus RW 05 LAMAJANG PEUNTAS</h2></div>
           <span>Terhubung dengan data admin</span>
         </div>
         <?php if ($chartGroups): ?>

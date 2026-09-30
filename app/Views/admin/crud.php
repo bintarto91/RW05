@@ -119,6 +119,7 @@
         <?php else: ?>
           <input type="<?= rw_esc($field['type'] ?? 'text') ?>" name="<?= rw_esc($name) ?>" value="<?= rw_esc($value) ?>"<?= $required ?>>
         <?php endif; ?>
+        <?php if (! empty($field['note'])): ?><span class="field-note"><?= rw_esc($field['note']) ?></span><?php endif; ?>
       </label>
     <?php endforeach; ?>
 

@@ -2209,7 +2209,7 @@ if (! function_exists('pengurus_chart_groups')) {
             'penasihat' => ['label' => 'Penasihat', 'items' => []],
             'sekretaris' => ['label' => 'Sekretaris', 'items' => []],
             'bendahara' => ['label' => 'Bendahara', 'items' => []],
-            'wilayah' => ['label' => 'Koordinator Wilayah', 'items' => []],
+            'wilayah' => ['label' => 'Koordinator Wilayah / Ketua RT', 'items' => []],
             'pelayanan' => ['label' => 'Unit Pelayanan Digital & Data Warga', 'items' => []],
             'bidang' => ['label' => 'Bidang Utama', 'items' => []],
             'unit' => ['label' => 'Unit Pelaksana', 'items' => []],
@@ -2252,6 +2252,58 @@ if (! function_exists('pengurus_chart_groups')) {
     }
 }
 
+if (! function_exists('pengurus_structure_role_options')) {
+    /**
+     * Jabatan menjadi penentu kelompok pada diagram bersama. Satu kosakata
+     * terstandar mencegah tampilan admin dan publik berbeda tanpa kolom baru.
+     */
+    function pengurus_structure_role_options(): array
+    {
+        return [
+            'Pembina' => 'Pembina — Pembina',
+            'Penasihat' => 'Penasihat — Penasihat',
+            'Ketua RW 05' => 'Pimpinan — Ketua RW 05',
+            'Sekretaris' => 'Pengurus inti — Sekretaris',
+            'Bendahara' => 'Pengurus inti — Bendahara',
+            'Ketua RT 01' => 'Koordinator Wilayah — Ketua RT 01',
+            'Ketua RT 02' => 'Koordinator Wilayah — Ketua RT 02',
+            'Ketua RT 03' => 'Koordinator Wilayah — Ketua RT 03',
+            'Unit Pelayanan Digital & Data Warga' => 'Unit Pelayanan — Digital & Data Warga',
+            'Bidang Pembangunan & Lingkungan' => 'Bidang Utama — Pembangunan & Lingkungan',
+            'Bidang Sosial & Kesehatan' => 'Bidang Utama — Sosial & Kesehatan',
+            'Bidang Keamanan & Ketertiban' => 'Bidang Utama — Keamanan & Ketertiban',
+            'Bidang Pendidikan, Agama & Budaya' => 'Bidang Utama — Pendidikan, Agama & Budaya',
+            'Bidang Ekonomi, Pemuda & Olahraga' => 'Bidang Utama — Ekonomi, Pemuda & Olahraga',
+            'Bidang Humas & Informasi Publik' => 'Bidang Utama — Humas & Informasi Publik',
+            'PKK' => 'Unit Pelaksana — PKK',
+            'Posyandu' => 'Unit Pelaksana — Posyandu',
+            'Posbindu' => 'Unit Pelaksana — Posbindu',
+            'Karang Taruna' => 'Mitra — Karang Taruna',
+            'DKM / Keagamaan' => 'Mitra — DKM / Keagamaan',
+            'Linmas / Siskamling' => 'Mitra — Linmas / Siskamling',
+        ];
+    }
+}
+
+if (! function_exists('pengurus_unique_people_count')) {
+    function pengurus_unique_people_count(array $rows): int
+    {
+        $people = [];
+        foreach ($rows as $row) {
+            if (($row['status'] ?? 'aktif') !== 'aktif') {
+                continue;
+            }
+            $name = strtolower(trim((string) ($row['nama'] ?? '')));
+            $name = preg_replace('/\s+/', ' ', $name);
+            if ($name !== '') {
+                $people[$name] = true;
+            }
+        }
+
+        return count($people);
+    }
+}
+
 if (! function_exists('pengurus_chart_cards')) {
     /**
      * Combine people who share one role so the automatic diagram follows the
@@ -2274,7 +2326,7 @@ if (! function_exists('pengurus_chart_cards')) {
             }
 
             return [[
-                'title' => $groupKey === 'wilayah' ? 'Ketua RT' : 'Penasihat',
+                'title' => $groupKey === 'wilayah' ? 'Koordinator Wilayah / Ketua RT' : 'Penasihat',
                 'people' => $items,
                 'task' => $task,
             ]];
