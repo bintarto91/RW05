@@ -1100,6 +1100,111 @@ h2 {
 	border-color: #b8c8d9;
 }
 
+.admin-org-diagram {
+	gap: 28px !important;
+}
+
+.admin-org-diagram-row {
+	position: relative;
+	display: grid;
+	gap: 14px;
+	align-items: start;
+}
+
+.admin-org-diagram-row + .admin-org-diagram-row::before {
+	content: "";
+	position: absolute;
+	top: -28px;
+	left: 50%;
+	width: 2px;
+	height: 20px;
+	background: #9bc5b6;
+}
+
+.admin-org-diagram-row-command {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.admin-org-diagram-row-core {
+	grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+}
+
+.admin-org-diagram-row-main {
+	grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.5fr);
+}
+
+.admin-org-diagram-row-support {
+	grid-template-columns: 1fr;
+}
+
+.admin-org-diagram-group {
+	display: grid;
+	gap: 10px;
+	min-width: 0;
+}
+
+.admin-org-diagram-group h3 {
+	width: max-content;
+	max-width: 100%;
+	margin: 0 auto;
+	padding: 6px 12px;
+	border-radius: 999px;
+	color: var(--forest);
+	background: #dcefe7;
+	font: 800 0.75rem/1.2 'Plus Jakarta Sans', sans-serif;
+	letter-spacing: 0.06em;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+.admin-org-diagram-group .org-chart-nodes {
+	align-items: stretch;
+}
+
+.admin-org-diagram-group-ketua .org-chart-node {
+	width: min(300px, 100%);
+	min-height: 88px;
+	border-color: #e9a078;
+	background: #fff8f1;
+}
+
+.admin-org-diagram-group-ketua .org-chart-node > span {
+	background: #ef7848;
+}
+
+.admin-org-diagram-group-pembina .org-chart-node,
+.admin-org-diagram-group-penasihat .org-chart-node {
+	border-color: #d7b66c;
+	background: #fffaf0;
+}
+
+.admin-org-diagram-group-pembina .org-chart-node > span,
+.admin-org-diagram-group-penasihat .org-chart-node > span {
+	color: var(--forest);
+	background: #f0cf83;
+}
+
+.admin-org-diagram-group-wilayah .org-chart-node {
+	border-color: #e6b08e;
+}
+
+.admin-org-diagram-group-unit .org-chart-node {
+	border-color: #b9cbe4;
+}
+
+.admin-org-diagram-group-mitra .org-chart-node {
+	border-style: dashed;
+	border-color: #b8c8d9;
+}
+
+@media (max-width: 800px) {
+	.admin-org-diagram-row-command,
+	.admin-org-diagram-row-core,
+	.admin-org-diagram-row-main {
+		grid-template-columns: 1fr;
+	}
+}
+
 .health-participant-filter {
 	display: grid;
 	grid-template-columns: minmax(220px, 1.4fr) minmax(180px, 0.8fr) auto;

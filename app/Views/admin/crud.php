@@ -88,19 +88,26 @@
       <a class="btn-light" href="<?= site_url('pengurus') ?>" target="_blank" rel="noopener noreferrer">Lihat Halaman Warga</a>
     </div>
     <?php if ($chartGroups): ?>
-      <div class="org-chart" aria-label="Diagram kepengurusan RW 05">
-        <?php foreach ($chartGroups as $groupKey => $group): ?>
-          <section class="org-chart-level org-chart-level-<?= rw_esc($groupKey) ?>">
-            <h3><?= rw_esc($group['label']) ?></h3>
-            <div class="org-chart-nodes">
-              <?php foreach ($group['items'] as $person): ?>
-                <article class="org-chart-node">
-                  <span><?= rw_esc(strtoupper(substr((string) ($person['nama'] ?? 'P'), 0, 1))) ?></span>
-                  <div><strong><?= rw_esc($person['nama'] ?? '') ?></strong><small><?= rw_esc($person['jabatan'] ?? '') ?><?= ! empty($person['rt']) ? ' · RT ' . rw_esc($person['rt']) : '' ?></small></div>
-                </article>
-              <?php endforeach; ?>
-            </div>
-          </section>
+      <?php $diagramRows = [['command', ['pembina', 'ketua', 'penasihat']], ['core', ['inti', 'wilayah']], ['main', ['unit', 'bidang']], ['support', ['mitra']]]; ?>
+      <div class="org-chart admin-org-diagram" aria-label="Diagram kepengurusan RW 05">
+        <?php foreach ($diagramRows as [$rowClass, $groupKeys]): ?>
+          <div class="admin-org-diagram-row admin-org-diagram-row-<?= rw_esc($rowClass) ?>">
+            <?php foreach ($groupKeys as $groupKey): ?>
+              <?php if (empty($chartGroups[$groupKey])): ?><?php continue; ?><?php endif; ?>
+              <?php $group = $chartGroups[$groupKey]; ?>
+              <section class="admin-org-diagram-group admin-org-diagram-group-<?= rw_esc($groupKey) ?>">
+                <h3><?= rw_esc($group['label']) ?></h3>
+                <div class="org-chart-nodes">
+                  <?php foreach ($group['items'] as $person): ?>
+                    <article class="org-chart-node">
+                      <span><?= rw_esc(strtoupper(substr((string) ($person['nama'] ?? 'P'), 0, 1))) ?></span>
+                      <div><strong><?= rw_esc($person['nama'] ?? '') ?></strong><small><?= rw_esc($person['jabatan'] ?? '') ?><?= ! empty($person['rt']) ? ' · RT ' . rw_esc($person['rt']) : '' ?></small></div>
+                    </article>
+                  <?php endforeach; ?>
+                </div>
+              </section>
+            <?php endforeach; ?>
+          </div>
         <?php endforeach; ?>
       </div>
     <?php else: ?>

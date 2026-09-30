@@ -3249,6 +3249,111 @@ section[id],
   gap: 22px;
 }
 
+.org-diagram {
+  display: grid;
+  gap: 28px;
+  padding: 8px 0 4px;
+}
+
+.org-diagram-row {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  align-items: start;
+}
+
+.org-diagram-row + .org-diagram-row::before {
+  content: "";
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  width: 2px;
+  height: 20px;
+  background: #9bc5b6;
+}
+
+.org-diagram-row-command {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.org-diagram-row-core {
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+}
+
+.org-diagram-row-main {
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.5fr);
+}
+
+.org-diagram-row-support {
+  grid-template-columns: 1fr;
+}
+
+.org-diagram-group {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.org-diagram-group h3 {
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 6px 12px;
+  border-radius: 999px;
+  color: var(--green-900);
+  background: #dcefe7;
+  font: 800 0.76rem/1.2 "Plus Jakarta Sans", sans-serif;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.org-diagram-group .org-chart-nodes {
+  align-items: stretch;
+}
+
+.org-diagram-group-ketua .org-chart-nodes,
+.org-diagram-group-pembina .org-chart-nodes,
+.org-diagram-group-penasihat .org-chart-nodes {
+  justify-content: center;
+}
+
+.org-diagram-group-ketua .org-chart-node {
+  width: min(300px, 100%);
+  min-height: 92px;
+  border-color: #e9a078;
+  background: #fff8f1;
+}
+
+.org-diagram-group-ketua .org-chart-node > span {
+  background: #ef7848;
+}
+
+.org-diagram-group-pembina .org-chart-node,
+.org-diagram-group-penasihat .org-chart-node {
+  border-color: #d7b66c;
+  background: #fffaf0;
+}
+
+.org-diagram-group-pembina .org-chart-node > span,
+.org-diagram-group-penasihat .org-chart-node > span {
+  color: var(--green-900);
+  background: #f0cf83;
+}
+
+.org-diagram-group-wilayah .org-chart-node {
+  border-color: #e6b08e;
+}
+
+.org-diagram-group-unit .org-chart-node {
+  border-color: #b9cbe4;
+}
+
+.org-diagram-group-mitra .org-chart-node {
+  border-style: dashed;
+  border-color: #b8c8d9;
+}
+
 .org-chart-level {
   position: relative;
   display: grid;
@@ -5363,6 +5468,12 @@ textarea:focus {
   }
 
   .education-resource-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .org-diagram-row-command,
+  .org-diagram-row-core,
+  .org-diagram-row-main {
     grid-template-columns: 1fr;
   }
 

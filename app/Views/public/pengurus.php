@@ -38,47 +38,42 @@ $summaryStats = [
 
 <section class="section white-section pengurus-section">
   <div class="container">
-    <div class="structure-showcase <?= ! empty($strukturPengurusImage) ? 'structure-showcase-official' : 'structure-showcase-auto' ?>">
-      <?php if (! empty($strukturPengurusImage)): ?>
-        <figure class="structure-frame" data-reveal>
-          <div class="structure-image-shell">
-            <img src="<?= rw_esc($strukturPengurusImage) ?>" alt="Struktur organisasi kepengurusan RW 05">
-          </div>
-          <figcaption>
-            <strong>Struktur organisasi kepengurusan RW 05</strong>
-            <span>Acuan susunan resmi pengurus</span>
-          </figcaption>
-        </figure>
-      <?php else: ?>
+    <div class="structure-showcase structure-showcase-auto">
       <section class="public-org-chart" data-reveal aria-label="Diagram struktur pengurus RW 05">
         <div class="public-org-chart-head">
           <div><p class="eyebrow">Diagram otomatis</p><h2>Struktur Pengurus RW 05</h2></div>
           <span>Terhubung dengan data admin</span>
         </div>
         <?php if ($chartGroups): ?>
-          <div class="org-chart">
-            <?php foreach ($chartGroups as $groupKey => $group): ?>
-              <section class="org-chart-level org-chart-level-<?= rw_esc($groupKey) ?>">
-                <h3><?= rw_esc($group['label']) ?></h3>
-                <div class="org-chart-nodes">
-                  <?php foreach ($group['items'] as $person): ?>
-                    <article class="org-chart-node">
-                      <span><?= rw_esc(strtoupper(substr((string) ($person['nama'] ?? 'P'), 0, 1))) ?></span>
-                      <div>
-                        <strong><?= rw_esc($person['nama'] ?? '') ?></strong>
-                        <small><?= rw_esc($person['jabatan'] ?? '') ?><?= ! empty($person['rt']) ? ' · RT ' . rw_esc($person['rt']) : '' ?></small>
-                      </div>
-                    </article>
-                  <?php endforeach; ?>
-                </div>
-              </section>
+          <?php $diagramRows = [['command', ['pembina', 'ketua', 'penasihat']], ['core', ['inti', 'wilayah']], ['main', ['unit', 'bidang']], ['support', ['mitra']]]; ?>
+          <div class="org-diagram">
+            <?php foreach ($diagramRows as [$rowClass, $groupKeys]): ?>
+              <div class="org-diagram-row org-diagram-row-<?= rw_esc($rowClass) ?>">
+                <?php foreach ($groupKeys as $groupKey): ?>
+                  <?php if (empty($chartGroups[$groupKey])): ?><?php continue; ?><?php endif; ?>
+                  <?php $group = $chartGroups[$groupKey]; ?>
+                  <section class="org-diagram-group org-diagram-group-<?= rw_esc($groupKey) ?>">
+                    <h3><?= rw_esc($group['label']) ?></h3>
+                    <div class="org-chart-nodes">
+                      <?php foreach ($group['items'] as $person): ?>
+                        <article class="org-chart-node">
+                          <span><?= rw_esc(strtoupper(substr((string) ($person['nama'] ?? 'P'), 0, 1))) ?></span>
+                          <div>
+                            <strong><?= rw_esc($person['nama'] ?? '') ?></strong>
+                            <small><?= rw_esc($person['jabatan'] ?? '') ?><?= ! empty($person['rt']) ? ' · RT ' . rw_esc($person['rt']) : '' ?></small>
+                          </div>
+                        </article>
+                      <?php endforeach; ?>
+                    </div>
+                  </section>
+                <?php endforeach; ?>
+              </div>
             <?php endforeach; ?>
           </div>
         <?php else: ?>
           <p class="empty-state">Data pengurus aktif belum tersedia.</p>
         <?php endif; ?>
       </section>
-      <?php endif; ?>
 
       <aside class="structure-summary-panel" data-reveal>
         <p class="eyebrow">Sumber data pengurus</p>
@@ -93,11 +88,14 @@ $summaryStats = [
           <?php endforeach; ?>
         </div>
         <div class="structure-path" aria-label="Urutan struktur organisasi">
-          <span>Pembina &amp; Penasihat</span>
+          <span>Pembina</span>
           <span>Ketua RW</span>
-          <span>Inti &amp; Wilayah</span>
+          <span>Penasihat</span>
+          <span>Sekretariat</span>
+          <span>Koordinator Wilayah</span>
           <span>Bidang</span>
-          <span>Unit &amp; Mitra</span>
+          <span>Unit Pelaksana</span>
+          <span>Mitra</span>
         </div>
       </aside>
     </div>

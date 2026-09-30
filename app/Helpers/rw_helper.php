@@ -2203,8 +2203,9 @@ if (! function_exists('pengurus_chart_groups')) {
     function pengurus_chart_groups(array $rows): array
     {
         $groups = [
-            'pembina' => ['label' => 'Pembina & Penasihat', 'items' => []],
+            'pembina' => ['label' => 'Pembina', 'items' => []],
             'ketua' => ['label' => 'Ketua RW 05', 'items' => []],
+            'penasihat' => ['label' => 'Penasihat', 'items' => []],
             'inti' => ['label' => 'Sekretaris & Bendahara', 'items' => []],
             'wilayah' => ['label' => 'Koordinator Wilayah', 'items' => []],
             'bidang' => ['label' => 'Bidang Utama', 'items' => []],
@@ -2219,8 +2220,10 @@ if (! function_exists('pengurus_chart_groups')) {
 
             $jabatan = strtolower(trim((string) ($row['jabatan'] ?? '')));
             $rt = trim((string) ($row['rt'] ?? ''));
-            if (preg_match('/(pembina|penasihat)/i', $jabatan)) {
+            if (preg_match('/pembina/i', $jabatan)) {
                 $key = 'pembina';
+            } elseif (preg_match('/penasihat/i', $jabatan)) {
+                $key = 'penasihat';
             } elseif (preg_match('/^(wakil\s+)?ketua\s+rw\b/i', $jabatan)) {
                 $key = 'ketua';
             } elseif (preg_match('/(sekretaris|bendahara)/i', $jabatan)) {
