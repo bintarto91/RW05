@@ -12,18 +12,20 @@ $role = (string) (session('admin_role') ?? '');
 $roleLabel = admin_role_options()[$role] ?? 'Petugas Kesehatan';
 $canReturnToRwAdmin = $role !== 'kader_kesehatan';
 $workspaceError = session()->getFlashdata('workspace_error') ?: '';
+$adminIdentity = rw_site_identity();
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title><?= rw_esc($currentLabel) ?> | Kesehatan RW 05</title>
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title><?= rw_esc($currentLabel) ?> | Kesehatan <?= rw_esc($adminIdentity['displayName']) ?></title>
   <link rel="icon" type="image/svg+xml" href="<?= base_url('favicon.svg') ?>?v=rw05-20260706">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=org-panel-20260930-2">
+  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=org-panel-20260930-3">
 </head>
 <body class="admin-body health-admin-body">
   <div class="admin-shell health-admin-shell">
@@ -31,8 +33,9 @@ $workspaceError = session()->getFlashdata('workspace_error') ?: '';
       <a href="<?= site_url('admin/kesehatan-dashboard') ?>" class="brand-admin">
         <span class="brand-mark health-brand-mark" aria-hidden="true">+</span>
         <span class="brand-copy">
-          <strong>Kesehatan RW 05</strong>
-          <span>Posyandu ILP & Posbindu</span>
+          <strong><?= rw_esc($adminIdentity['name']) ?></strong>
+          <span>Desa Citeureup</span>
+          <small>Posyandu ILP &amp; Posbindu</small>
         </span>
       </a>
 
@@ -60,7 +63,6 @@ $workspaceError = session()->getFlashdata('workspace_error') ?: '';
           <span><?= rw_esc($roleLabel) ?></span>
           <a href="<?= site_url('kesehatan') ?>" target="_blank" rel="noreferrer">Halaman warga</a>
           <?php if ($canReturnToRwAdmin): ?><a href="<?= site_url('admin') ?>">Panel RW</a><?php endif; ?>
-          <form method="post" action="<?= site_url('admin/logout') ?>"><?= csrf_field() ?><button type="submit">Logout</button></form>
         </div>
       </details>
 
@@ -79,7 +81,7 @@ $workspaceError = session()->getFlashdata('workspace_error') ?: '';
     <main class="admin-main health-admin-main">
       <header class="admin-topbar health-topbar">
         <div>
-          <p class="admin-kicker">Ruang Kerja Kesehatan RW 05</p>
+          <p class="admin-kicker">Ruang Kerja Kesehatan <?= rw_esc($adminIdentity['displayName']) ?></p>
           <strong><?= rw_esc($currentLabel) ?></strong>
           <span>Pencatatan operasional kader, pemantauan, dan tindak lanjut layanan warga.</span>
         </div>

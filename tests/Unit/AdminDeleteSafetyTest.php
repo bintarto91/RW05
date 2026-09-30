@@ -15,10 +15,21 @@ final class AdminDeleteSafetyTest extends TestCase
     public function testIrreversibleHistoryDeletesUseSuperAdminGuard(): void
     {
         $source = $this->panelSource();
-        foreach (['letter_application', 'resident_record', 'resident_aspiration', 'finance_transaction'] as $recordType) {
+        foreach (['resident_aspiration', 'finance_transaction'] as $recordType) {
             self::assertStringContainsString("canHardDelete('$recordType'", $source);
         }
         self::assertStringContainsString("session('admin_role') === 'superadmin'", $source);
+    }
+
+    public function testLettersAndResidentsAreArchivedWithoutDeletingRows(): void
+    {
+        $source = $this->panelSource();
+        self::assertStringContainsString("update(['status' => 'diarsipkan'])", $source);
+        self::assertStringContainsString("update(['status_tinggal' => 'pindah'])", $source);
+        self::assertStringContainsString("logAdminRecordAction('archive', 'letter_application'", $source);
+        self::assertStringContainsString("logAdminRecordAction('archive', 'resident_record'", $source);
+        self::assertStringNotContainsString("table('pengajuan_surat')->where('id', \$postedId)->delete()", $source);
+        self::assertStringNotContainsString("table('warga')->where('id', \$postedId)->delete()", $source);
     }
 
     public function testExistingStatusColumnsAreUsedToArchiveWhereAvailable(): void

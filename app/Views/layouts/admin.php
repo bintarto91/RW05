@@ -35,6 +35,7 @@ try {
     $notificationCounts = ['pengajuan-surat' => 0, 'aspirasi' => 0, 'akun' => 0];
 }
 $notificationTotal = array_sum($notificationCounts);
+$adminIdentity = rw_site_identity();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -42,13 +43,13 @@ $notificationTotal = array_sum($notificationCounts);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex,nofollow,noarchive">
-  <title><?= rw_esc($currentLabel) ?> | Admin RW 05</title>
+  <title><?= rw_esc($currentLabel) ?> | Admin <?= rw_esc($adminIdentity['displayName']) ?></title>
   <link rel="icon" type="image/svg+xml" href="<?= base_url('favicon.svg') ?>?v=rw05-20260706">
   <link rel="shortcut icon" href="<?= base_url('favicon.svg') ?>?v=rw05-20260706">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=org-panel-20260930-2">
+  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=org-panel-20260930-3">
 </head>
 <body class="admin-body">
   <div class="admin-shell">
@@ -56,7 +57,7 @@ $notificationTotal = array_sum($notificationCounts);
       <a href="<?= site_url('/') ?>" class="brand-admin" target="_blank" rel="noreferrer">
         <span class="brand-mark" aria-hidden="true">RW</span>
         <span class="brand-copy">
-          <strong>RW 05 Admin</strong>
+          <strong><?= rw_esc($adminIdentity['name']) ?></strong>
           <span>Desa Citeureup</span>
         </span>
       </a>
@@ -104,7 +105,7 @@ $notificationTotal = array_sum($notificationCounts);
     <main class="admin-main">
       <header class="admin-topbar">
         <div>
-          <p class="admin-kicker">Panel Pengurus RW 05</p>
+          <p class="admin-kicker">Panel Pengurus <?= rw_esc($adminIdentity['displayName']) ?></p>
           <strong><?= rw_esc($currentLabel) ?></strong>
           <span>Semua perubahan di area ini langsung terhubung ke website warga pada domain yang sama.</span>
         </div>

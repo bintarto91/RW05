@@ -1,14 +1,15 @@
+<?php $adminIdentity = rw_site_identity(); ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Login Admin RW 05</title>
+  <title>Login Admin <?= rw_esc($adminIdentity['displayName']) ?></title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=admin-refresh-20260930">
+  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=admin-refresh-20260930-2">
 </head>
 <body class="login-page">
   <div class="login-shell">
@@ -19,7 +20,8 @@
         <div class="login-brand-head">
           <span class="brand-mark login-logo-mark"><img src="<?= base_url('assets/logo-rw05.png') ?>" alt="Logo RW 05"></span>
           <div>
-            <strong>RW 05 Desa Citeureup</strong>
+            <strong><?= rw_esc($adminIdentity['name']) ?></strong>
+            <small>Desa Citeureup</small>
             <p>Panel admin ini menjadi bagian dari website yang sama, jadi pengurus bisa memperbarui konten warga dari satu tempat.</p>
           </div>
         </div>

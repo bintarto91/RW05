@@ -1021,6 +1021,7 @@ if (! function_exists('surat_status_options')) {
             'disetujui' => 'Disetujui',
             'ditolak' => 'Ditolak',
             'selesai' => 'Selesai',
+            'diarsipkan' => 'Diarsipkan',
         ];
     }
 }

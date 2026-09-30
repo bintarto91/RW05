@@ -10,7 +10,7 @@
   <div class="health-dashboard-date">
     <span>Hari ini</span>
     <strong><?= rw_esc(format_date_id(date('Y-m-d'))) ?></strong>
-    <small>RW 05 Desa Citeureup</small>
+    <small>RW 05 LAMAJANG PEUNTAS · Desa Citeureup</small>
   </div>
 </section>
 

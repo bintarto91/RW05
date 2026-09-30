@@ -131,7 +131,7 @@ class PanelController extends BaseController
                 ['label' => 'Data Warga', 'value' => $totalKeluarga, 'meta' => $totalWarga . ' jiwa tercatat', 'href' => site_url('admin/warga'), 'tone' => 'people'],
                 ['label' => 'Saldo RW', 'value' => fmt_currency($financeSummary['balance']), 'meta' => 'Masuk ' . fmt_currency($financeSummary['income']) . ' | Keluar ' . fmt_currency($financeSummary['expense']), 'href' => site_url('admin/keuangan'), 'tone' => 'program'],
                 ['label' => 'Kegiatan', 'value' => $totalKegiatan, 'meta' => $kegiatanPublish . ' publish, ' . $kegiatanDraft . ' draft', 'href' => site_url('admin/kegiatan'), 'tone' => 'agenda'],
-                ['label' => 'Program Aktif', 'value' => $programAktif, 'meta' => $layananAktif . ' layanan aktif', 'href' => site_url('admin/program'), 'tone' => 'program'],
+                ['label' => 'Program Aktif', 'value' => $programAktif, 'meta' => $programAktif . ' program aktif', 'href' => site_url('admin/program'), 'tone' => 'program'],
             ],
             'aspirasiBaru' => $aspirasiBaru,
             'aspirasiTotal' => $aspirasiTotal,
@@ -1465,13 +1465,10 @@ class PanelController extends BaseController
         if ($this->request->getMethod() === 'POST') {
             $postedId = (int) $this->request->getPost('id');
             if ((string) $this->request->getPost('action') === 'delete' && $postedId > 0) {
-                if (! $this->canHardDelete('letter_application', $postedId)) {
-                    return redirect()->to(site_url('admin/pengajuan-surat'))->with('error', 'Hard-delete pengajuan hanya dapat dilakukan Super Admin.');
-                }
-                $db->table('pengajuan_surat')->where('id', $postedId)->delete();
-                $this->logAdminRecordAction('hard_delete', 'letter_application', $postedId);
+                $db->table('pengajuan_surat')->where('id', $postedId)->update(['status' => 'diarsipkan']);
+                $this->logAdminRecordAction('archive', 'letter_application', $postedId);
 
-                return redirect()->to(site_url('admin/pengajuan-surat'))->with('success', 'Pengajuan surat berhasil dihapus.');
+                return redirect()->to(site_url('admin/pengajuan-surat'))->with('success', 'Pengajuan surat berhasil diarsipkan. Data tetap tersimpan.');
             }
 
             $status = (string) $this->request->getPost('status');
@@ -1713,13 +1710,10 @@ class PanelController extends BaseController
         if ($this->request->getMethod() === 'POST') {
             $postedId = (int) $this->request->getPost('id');
             if ((string) $this->request->getPost('action') === 'delete' && $postedId > 0) {
-                if (! $this->canHardDelete('resident_record', $postedId)) {
-                    return redirect()->to($this->wargaUrl($filters))->with('error', 'Hard-delete data warga hanya dapat dilakukan Super Admin.');
-                }
-                $db->table('warga')->where('id', $postedId)->delete();
-                $this->logAdminRecordAction('hard_delete', 'resident_record', $postedId);
+                $db->table('warga')->where('id', $postedId)->update(['status_tinggal' => 'pindah']);
+                $this->logAdminRecordAction('archive', 'resident_record', $postedId);
 
-                return redirect()->to($this->wargaUrl($filters))->with('success', 'Data warga berhasil dihapus.');
+                return redirect()->to($this->wargaUrl($filters))->with('success', 'Data warga berhasil diarsipkan sebagai Pindah. Record tetap tersimpan dan dapat diedit kembali.');
             }
 
             $redirectExtra = $postedId > 0 ? ['action' => 'edit', 'id' => $postedId] : [];

@@ -188,13 +188,13 @@ $formTitle = ! empty($edit) ? 'Edit Data Warga' : 'Tambah Data Warga';
             <td>
               <div class="table-actions">
                 <a href="<?= rw_esc($wargaUrl(['action' => 'edit', 'id' => $row['id'] ?? 0])) ?>">Edit</a>
-                <?php if ((string) session('admin_role') === 'superadmin'): ?>
+                <?php if (($row['status_tinggal'] ?? '') !== 'pindah'): ?>
                   <button
                     type="button"
                     class="btn-link-danger"
                     data-delete-id="<?= (int) ($row['id'] ?? 0) ?>"
                     data-delete-name="<?= rw_esc($row['nama_kepala_keluarga'] ?? 'data warga ini') ?>"
-                  >Hapus</button>
+                  >Arsipkan</button>
                 <?php endif; ?>
               </div>
             </td>
@@ -393,17 +393,17 @@ $formTitle = ! empty($edit) ? 'Edit Data Warga' : 'Tambah Data Warga';
     <div class="admin-modal-header">
       <div>
         <p class="admin-kicker">Konfirmasi</p>
-        <h2 id="wargaDeleteTitle">Hapus Data Warga?</h2>
+        <h2 id="wargaDeleteTitle">Arsipkan Data Warga?</h2>
       </div>
       <button type="button" class="modal-close" data-close-modal aria-label="Tutup popup">Tutup</button>
     </div>
-    <p class="muted">Data <strong id="deleteWargaName">warga ini</strong> akan dihapus dari daftar warga. Aksi ini tidak bisa dibatalkan dari halaman ini.</p>
+    <p class="muted">Data <strong id="deleteWargaName">warga ini</strong> akan ditandai berstatus <strong>Pindah</strong>. Record tetap tersimpan dan dapat diedit kembali.</p>
     <div class="form-actions modal-actions">
       <form method="post" action="<?= rw_esc($formAction) ?>" id="deleteWargaForm">
         <?= csrf_field() ?>
         <input type="hidden" name="action" value="delete">
         <input type="hidden" name="id" id="deleteWargaId" value="">
-        <button type="submit" class="btn-danger" id="confirmDeleteWarga">Ya, Hapus</button>
+        <button type="submit" class="btn-danger" id="confirmDeleteWarga">Ya, Arsipkan</button>
       </form>
       <button type="button" class="btn-light" data-close-modal>Batal</button>
     </div>

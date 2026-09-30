@@ -20,14 +20,14 @@
   </div>
 
   <form method="get" action="<?= site_url('admin/keuangan') ?>" class="grid-form finance-filter-form">
-    <label>Dari Tanggal
-      <input type="date" name="start" value="<?= rw_esc($selectedStart) ?>">
+    <label for="financeFilterStart">Dari Tanggal
+      <input id="financeFilterStart" type="date" name="start" value="<?= rw_esc($selectedStart) ?>">
     </label>
-    <label>Sampai Tanggal
-      <input type="date" name="end" value="<?= rw_esc($selectedEnd) ?>">
+    <label for="financeFilterEnd">Sampai Tanggal
+      <input id="financeFilterEnd" type="date" name="end" value="<?= rw_esc($selectedEnd) ?>">
     </label>
-    <label>Filter Unit Kas
-      <select name="unit">
+    <label for="financeFilterUnit">Unit Kas
+      <select id="financeFilterUnit" name="unit">
         <?php foreach ($unitOptions as $value => $label): ?>
           <option value="<?= rw_esc($value) ?>" <?= is_selected($selectedUnit, $value) ?>><?= rw_esc($label) ?></option>
         <?php endforeach; ?>

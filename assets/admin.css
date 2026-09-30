@@ -3078,7 +3078,11 @@ code {
 	.health-sidebar .brand-mark{width:38px;height:38px;border-radius:11px}
 	.health-sidebar .brand-copy strong{font-size:1rem}
 	.health-sidebar .brand-copy span{margin-top:2px;font-size:.62rem}
-	.health-sidebar .admin-user,.health-sidebar>.sidebar-actions,.health-sidebar .nav-caption{display:none}
+	.health-sidebar .admin-user,.health-sidebar .nav-caption{display:none}
+	.health-sidebar>.sidebar-actions{display:block;margin-top:8px}
+	.health-sidebar>.sidebar-actions>a{display:none}
+	.health-sidebar>.sidebar-actions form{margin:0}
+	.health-sidebar>.sidebar-actions button{min-height:40px;padding:8px 12px;font-size:.76rem}
 	.health-sidebar .nav-group{margin-top:9px}
 	.health-sidebar .admin-nav{display:flex;gap:7px;padding-bottom:2px;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain}
 	.health-sidebar .admin-nav::-webkit-scrollbar{display:none}
