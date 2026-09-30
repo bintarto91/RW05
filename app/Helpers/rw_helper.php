@@ -2238,7 +2238,7 @@ if (! function_exists('pengurus_chart_groups')) {
                 $key = 'unit';
             } elseif (preg_match('/(mitra|karang\s+taruna|dkm|keagamaan|linmas|siskamling|lembaga\s+pendukung)/i', $jabatan)) {
                 $key = 'mitra';
-            } elseif ($rt !== '' || preg_match('/(ketua\s*rt|koordinator\s+wilayah)/i', $jabatan)) {
+            } elseif (preg_match('/(ketua\s*rt|koordinator\s+wilayah)/i', $jabatan)) {
                 $key = 'wilayah';
             } else {
                 $key = 'bidang';
