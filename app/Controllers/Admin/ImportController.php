@@ -8,6 +8,8 @@ use Throwable;
 
 class ImportController extends BaseController
 {
+    private const MAX_CSV_UPLOAD_BYTES = 5 * 1024 * 1024;
+
     private function datasets(): array
     {
         return [
@@ -73,6 +75,18 @@ class ImportController extends BaseController
 
             if (! $file || ! $file->isValid()) {
                 $error = 'Silakan pilih file CSV yang ingin diimport.';
+            } elseif ($file->getSize() > self::MAX_CSV_UPLOAD_BYTES) {
+                $error = 'Ukuran file CSV maksimal 5 MB.';
+            } elseif (strtolower($file->getClientExtension()) !== 'csv'
+                || ! in_array(strtolower((string) $file->getMimeType()), [
+                    'text/csv',
+                    'text/plain',
+                    'application/csv',
+                    'application/vnd.ms-excel',
+                    'text/x-comma-separated-values',
+                    'text/comma-separated-values',
+                ], true)) {
+                $error = 'File import harus berupa CSV yang valid.';
             } else {
                 $result = $this->importFile($file->getTempName(), $selectedType, $datasets[$selectedType], $mode);
                 $success = $result['success'] ?? '';

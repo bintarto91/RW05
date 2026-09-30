@@ -1491,18 +1491,44 @@ class PanelController extends BaseController
         }
 
         $extension = strtolower($file->getClientExtension());
-        if (! in_array($extension, self::PENGURUS_STRUCTURE_IMAGE_EXTENSIONS, true)) {
+        $mimeType = strtolower((string) $file->getMimeType());
+        $allowedImages = [
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+        ];
+        $imageInfo = @getimagesize($file->getTempName());
+        if (! isset($allowedImages[$extension]) || $allowedImages[$extension] !== $mimeType
+            || $imageInfo === false || strtolower((string) ($imageInfo['mime'] ?? '')) !== $mimeType) {
             return redirect()->to(site_url('admin/pengurus'))->with('error', 'Format gambar harus JPG, PNG, atau WebP.');
         }
 
+        [$width, $height] = $imageInfo;
+        if ($width < 100 || $height < 100 || $width > 8000 || $height > 8000) {
+            return redirect()->to(site_url('admin/pengurus'))->with('error', 'Dimensi gambar minimal 100 x 100 dan maksimal 8000 x 8000 piksel.');
+        }
+
         $targetDirectory = rtrim(FCPATH, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'assets';
-        if (! is_dir($targetDirectory)) {
-            mkdir($targetDirectory, 0755, true);
+        if (! is_dir($targetDirectory) && ! mkdir($targetDirectory, 0755, true) && ! is_dir($targetDirectory)) {
+            return redirect()->to(site_url('admin/pengurus'))->with('error', 'Folder gambar belum dapat disiapkan.');
         }
 
         $targetExtension = $extension === 'jpeg' ? 'jpg' : $extension;
-        $this->removePengurusStructureImages();
-        $file->move($targetDirectory, self::PENGURUS_STRUCTURE_IMAGE . '.' . $targetExtension, true);
+        $temporaryName = '.struktur-' . bin2hex(random_bytes(8)) . '.' . $targetExtension;
+        $finalName = self::PENGURUS_STRUCTURE_IMAGE . '.' . $targetExtension;
+        try {
+            $file->move($targetDirectory, $temporaryName, true);
+            if (! rename($targetDirectory . DIRECTORY_SEPARATOR . $temporaryName, $targetDirectory . DIRECTORY_SEPARATOR . $finalName)) {
+                @unlink($targetDirectory . DIRECTORY_SEPARATOR . $temporaryName);
+                throw new \RuntimeException('Gagal mengaktifkan gambar struktur baru.');
+            }
+            $this->removePengurusStructureImages($targetExtension);
+        } catch (\Throwable $exception) {
+            log_message('error', 'Upload gambar struktur gagal: ' . $exception->getMessage());
+
+            return redirect()->to(site_url('admin/pengurus'))->with('error', 'Gambar belum dapat disimpan. Gambar lama tidak diubah.');
+        }
 
         return redirect()->to(site_url('admin/pengurus'))->with('success', 'Gambar struktur organisasi berhasil diupload.');
     }
@@ -2486,9 +2512,12 @@ class PanelController extends BaseController
         }
     }
 
-    private function removePengurusStructureImages(): void
+    private function removePengurusStructureImages(?string $exceptExtension = null): void
     {
         foreach (self::PENGURUS_STRUCTURE_IMAGE_EXTENSIONS as $extension) {
+            if ($extension === $exceptExtension || ($extension === 'jpeg' && $exceptExtension === 'jpg')) {
+                continue;
+            }
             $path = FCPATH . 'assets' . DIRECTORY_SEPARATOR . self::PENGURUS_STRUCTURE_IMAGE . '.' . $extension;
             if (is_file($path)) {
                 unlink($path);
