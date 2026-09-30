@@ -63,7 +63,7 @@ $quickItems = [
         <a href="<?= site_url('layanan-online') ?>#ajukan-surat" class="btn primary">Ajukan Surat</a>
         <a href="<?= site_url('layanan-online') ?>#cek-status" class="btn secondary">Cek Status</a>
         <?php if ($waLink): ?>
-          <a href="<?= rw_esc($waLink) ?>" class="btn tertiary" target="_blank" rel="noopener noreferrer">WhatsApp RW</a>
+          <a href="<?= rw_esc($waLink) ?>" class="btn secondary" target="_blank" rel="noopener noreferrer">WhatsApp RW</a>
         <?php endif; ?>
       </div>
       <div class="hero-trust-list" aria-label="Nilai layanan RW">
@@ -90,7 +90,7 @@ $quickItems = [
       <div class="citizen-metric-row" aria-label="Ringkasan portal RW">
         <a href="<?= site_url('layanan') ?>">
           <strong><?= rw_esc((string) count($layanan)) ?></strong>
-          <span>Bidang layanan</span>
+          <span>Bidang Layanan Warga</span>
         </a>
         <a href="<?= site_url('profil') ?>">
           <strong><?= rw_esc((string) $totalKK) ?></strong>
