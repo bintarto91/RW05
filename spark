@@ -83,6 +83,7 @@ chdir(FCPATH);
 
 // LOAD OUR PATHS CONFIG FILE
 // This is the line that might need to be changed, depending on your folder structure.
+require __DIR__ . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'Support' . DIRECTORY_SEPARATOR . 'IntlFallback.php';
 require $pathsConfigPath;
 // ^^^ Change this line if you move your application folder
 
