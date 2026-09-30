@@ -98,6 +98,10 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
   <meta property="og:description" content="<?= rw_esc($metaDescription) ?>">
   <meta property="og:url" content="<?= rw_esc($canonicalUrl) ?>">
   <meta property="og:image" content="<?= base_url('assets/logo-rw05.png') ?>">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="<?= rw_esc($documentTitle) ?>">
+  <meta name="twitter:description" content="<?= rw_esc($metaDescription) ?>">
+  <meta name="twitter:image" content="<?= base_url('assets/logo-rw05.png') ?>">
   <script type="application/ld+json"><?= $organizationSchemaJson ?></script>
   <meta name="theme-color" content="#12382a">
   <meta name="mobile-web-app-capable" content="yes">

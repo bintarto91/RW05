@@ -2177,7 +2177,7 @@ if (! function_exists('admin_role_options')) {
             'ketua_rw' => 'Ketua RW',
             'sekretaris' => 'Sekretaris',
             'bendahara' => 'Bendahara',
-            'operator' => 'Operator Data',
+            'operator' => 'Seksi Unit Pelayanan Data',
             'kader_kesehatan' => 'Kader Posyandu/Posbindu',
             'nakes' => 'Tenaga Kesehatan Pendamping',
         ];
@@ -2192,7 +2192,7 @@ if (! function_exists('admin_registration_role_options')) {
             'ketua_rw' => 'Ketua RW',
             'sekretaris' => 'Sekretaris',
             'bendahara' => 'Bendahara',
-            'operator' => 'Operator Data',
+            'operator' => 'Seksi Unit Pelayanan Data',
             'kader_kesehatan' => 'Kader Posyandu/Posbindu',
             'nakes' => 'Tenaga Kesehatan Pendamping',
         ];

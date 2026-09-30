@@ -68,12 +68,25 @@ class ImportController extends BaseController
         $success = session()->getFlashdata('success') ?: '';
         $error = '';
         $details = [];
+        $replaceCount = null;
+
+        try {
+            $db = db_connect();
+            $db->initialize();
+            if ($db->tableExists($datasets[$selectedType]['table'])) {
+                $replaceCount = (int) $db->table($datasets[$selectedType]['table'])->countAllResults();
+            }
+        } catch (Throwable $exception) {
+            // The count is optional; importing still performs its own connection checks.
+        }
 
         if ($this->request->getMethod() === 'POST') {
             $mode = $this->request->getPost('mode') === 'replace' ? 'replace' : 'append';
             $file = $this->request->getFile('csv_file');
 
-            if (! $file || ! $file->isValid()) {
+            if ($mode === 'replace' && $this->request->getPost('confirm_replace') !== 'yes') {
+                $error = 'Konfirmasi penggantian seluruh data pada dataset terpilih sebelum melanjutkan.';
+            } elseif (! $file || ! $file->isValid()) {
                 $error = 'Silakan pilih file CSV yang ingin diimport.';
             } elseif ($file->getSize() > self::MAX_CSV_UPLOAD_BYTES) {
                 $error = 'Ukuran file CSV maksimal 5 MB.';
@@ -119,6 +132,7 @@ class ImportController extends BaseController
             'success' => $success,
             'error' => $error,
             'details' => $details,
+            'replaceCount' => $replaceCount,
         ]);
     }
 
@@ -160,20 +174,8 @@ class ImportController extends BaseController
             return ['error' => 'File CSV tidak memiliki data untuk diimport.', 'details' => []];
         }
 
-        $db = db_connect();
-
+        $records = [];
         try {
-            if ($type === 'warga' && ! ensure_warga_table($db)) {
-                throw new RuntimeException('Tabel warga belum siap untuk menerima format data terbaru.');
-            }
-
-            $db->transBegin();
-
-            if ($mode === 'replace') {
-                $db->table($dataset['table'])->emptyTable();
-            }
-
-            $imported = 0;
             foreach ($parsed['rows'] as $index => $entry) {
                 $line = (int) ($entry['line'] ?? ($index + 2));
                 $data = $entry['data'] ?? [];
@@ -184,7 +186,31 @@ class ImportController extends BaseController
                     }
                 }
 
-                $db->table($dataset['table'])->insert($this->buildRecord($type, $data));
+                $records[] = $this->buildRecord($type, $data);
+            }
+        } catch (Throwable $exception) {
+            return [
+                'error' => 'Import dibatalkan karena ada data yang tidak valid.',
+                'details' => [$exception->getMessage()],
+            ];
+        }
+
+        $db = db_connect();
+
+        try {
+            if ($type === 'warga' && ! ensure_warga_table($db)) {
+                throw new RuntimeException('Tabel warga belum siap untuk menerima format data terbaru.');
+            }
+
+            $db->transBegin();
+
+            if ($mode === 'replace') {
+                $db->query('DELETE FROM ' . $db->protectIdentifiers($dataset['table']));
+            }
+
+            $imported = 0;
+            foreach ($records as $record) {
+                $db->table($dataset['table'])->insert($record);
                 $imported++;
             }
 
@@ -193,6 +219,12 @@ class ImportController extends BaseController
             }
 
             $db->transCommit();
+            log_message('notice', 'Import admin berhasil. Actor: {actor_id}, dataset: {dataset}, mode: {mode}, jumlah: {count}', [
+                'actor_id' => (int) session('admin_id'),
+                'dataset' => $type,
+                'mode' => $mode,
+                'count' => $imported,
+            ]);
 
             return ['success' => $dataset['label'] . ' berhasil diimport sebanyak ' . $imported . ' baris.', 'details' => []];
         } catch (Throwable $exception) {

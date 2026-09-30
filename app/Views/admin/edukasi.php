@@ -223,9 +223,9 @@ $selectedType = (string) old('jenis', $edit['jenis'] ?? 'poster');
             <td>
               <div class="education-row-actions">
                 <a href="<?= site_url('admin/edukasi?action=edit&id=' . (int) ($row['id'] ?? 0)) ?>">Edit</a>
-                <form method="post" action="<?= site_url('admin/edukasi/delete/' . (int) ($row['id'] ?? 0)) ?>" onsubmit="return confirm('Hapus materi ini? File upload terkait juga akan dihapus.')">
+                <form method="post" action="<?= site_url('admin/edukasi/delete/' . (int) ($row['id'] ?? 0)) ?>" onsubmit="return confirm('Pindahkan materi ini ke Draft? File upload tetap disimpan.')">
                   <?= csrf_field() ?>
-                  <button type="submit" class="education-delete-button">Hapus</button>
+                  <button type="submit" class="education-delete-button">Arsipkan</button>
                 </form>
               </div>
             </td>

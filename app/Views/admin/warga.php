@@ -8,6 +8,7 @@ $filterQuery = array_filter([
     'status_tinggal' => $filters['status_tinggal'] ?? '',
     'kategori_kesejahteraan' => $filters['kategori_kesejahteraan'] ?? '',
     'penerima_bantuan' => $filters['penerima_bantuan'] ?? '',
+    'q' => $filters['q'] ?? '',
 ], static fn ($value) => (string) $value !== '');
 $wargaUrl = static function (array $extra = []) use ($baseWargaUrl, $filterQuery): string {
     $query = array_merge($filterQuery, $extra);
@@ -36,7 +37,7 @@ $formTitle = ! empty($edit) ? 'Edit Data Warga' : 'Tambah Data Warga';
   <div class="section-heading compact-heading">
     <div>
       <h2>Ringkasan Cepat</h2>
-      <p class="muted">Rekap aktif: <?= rw_esc($activeRtLabel) ?>. Total warga dihitung dari penjumlahan kolom jumlah anggota pada data keluarga yang tampil.</p>
+      <p class="muted">Rekap aktif: <?= rw_esc($activeRtLabel) ?>. Ringkasan dihitung dari seluruh data yang cocok dengan filter, bukan hanya halaman yang sedang dibuka.</p>
     </div>
     <div class="page-actions warga-main-actions">
       <button type="button" class="btn-strong" data-open-modal="wargaFormModal">Tambah Warga</button>
@@ -116,6 +117,9 @@ $formTitle = ! empty($edit) ? 'Edit Data Warga' : 'Tambah Data Warga';
         <?php endforeach; ?>
       </select>
     </label>
+    <label class="full">Cari Nama Kepala Keluarga
+      <input type="search" name="q" maxlength="80" value="<?= rw_esc($filters['q'] ?? '') ?>" placeholder="Masukkan nama untuk mempersempit hasil">
+    </label>
     <div class="full finance-filter-toolbar">
       <div class="finance-filter-actions warga-filter-actions">
         <button type="submit">Tampilkan Data</button>
@@ -129,7 +133,7 @@ $formTitle = ! empty($edit) ? 'Edit Data Warga' : 'Tambah Data Warga';
   <div class="section-heading compact-heading">
     <div>
       <h2>Daftar Warga</h2>
-      <p class="muted">Data berikut sudah mengikuti filter aktif. Tambah, edit, import, dan hapus data dibuka lewat popup agar daftar tetap mudah dipantau.</p>
+      <p class="muted">Menampilkan <?= rw_esc((string) $wargaRangeStart) ?>–<?= rw_esc((string) $wargaRangeEnd) ?> dari <?= rw_esc((string) $wargaTotalRows) ?> KK setelah filter. Tambah, edit, import, dan hapus data dibuka lewat popup.</p>
     </div>
     <div class="page-actions">
       <button type="button" class="btn-light" data-open-modal="wargaDownloadModal">Download Laporan</button>
@@ -175,12 +179,14 @@ $formTitle = ! empty($edit) ? 'Edit Data Warga' : 'Tambah Data Warga';
             <td>
               <div class="table-actions">
                 <a href="<?= rw_esc($wargaUrl(['action' => 'edit', 'id' => $row['id'] ?? 0])) ?>">Edit</a>
-                <button
-                  type="button"
-                  class="btn-link-danger"
-                  data-delete-id="<?= (int) ($row['id'] ?? 0) ?>"
-                  data-delete-name="<?= rw_esc($row['nama_kepala_keluarga'] ?? 'data warga ini') ?>"
-                >Hapus</button>
+                <?php if ((string) session('admin_role') === 'superadmin'): ?>
+                  <button
+                    type="button"
+                    class="btn-link-danger"
+                    data-delete-id="<?= (int) ($row['id'] ?? 0) ?>"
+                    data-delete-name="<?= rw_esc($row['nama_kepala_keluarga'] ?? 'data warga ini') ?>"
+                  >Hapus</button>
+                <?php endif; ?>
               </div>
             </td>
           </tr>
@@ -191,6 +197,17 @@ $formTitle = ! empty($edit) ? 'Edit Data Warga' : 'Tambah Data Warga';
       </tbody>
     </table>
   </div>
+  <?php if ($wargaTotalPages > 1): ?>
+    <nav class="page-actions warga-pagination" aria-label="Halaman daftar warga">
+      <?php if ($wargaPageNumber > 1): ?>
+        <a class="btn-light" href="<?= rw_esc($wargaUrl(['page' => $wargaPageNumber - 1])) ?>">Sebelumnya</a>
+      <?php endif; ?>
+      <span>Halaman <?= rw_esc((string) $wargaPageNumber) ?> dari <?= rw_esc((string) $wargaTotalPages) ?></span>
+      <?php if ($wargaPageNumber < $wargaTotalPages): ?>
+        <a class="btn-light" href="<?= rw_esc($wargaUrl(['page' => $wargaPageNumber + 1])) ?>">Berikutnya</a>
+      <?php endif; ?>
+    </nav>
+  <?php endif; ?>
 </section>
 
 <div class="admin-modal <?= $wargaModalOpen ? 'is-open' : '' ?>" id="wargaFormModal" aria-hidden="<?= $wargaModalOpen ? 'false' : 'true' ?>">
@@ -331,10 +348,12 @@ $formTitle = ! empty($edit) ? 'Edit Data Warga' : 'Tambah Data Warga';
       <label>Mode Import
         <select name="mode" required>
           <option value="append">Tambah data baru</option>
-          <option value="replace">Hapus semua data warga lalu import</option>
+          <option value="replace">Ganti seluruh data warga</option>
         </select>
-        <span class="field-note">Mode hapus semua dipakai hanya kalau ingin mengganti seluruh data warga.</span>
+        <span class="field-note">Mode ganti akan menggantikan <?= rw_esc((string) $wargaDatasetCount) ?> record seluruh dataset setelah semua baris CSV lolos validasi.</span>
       </label>
+      <label class="full checkbox-label"><input type="checkbox" name="confirm_replace" value="yes"> Saya memahami semua data warga lama akan diganti.</label>
+      <label class="full checkbox-label"><input type="checkbox" name="confirm_replace" value="yes"> Saya memahami semua data warga lama akan diganti.</label>
 
       <label>File CSV
         <input type="file" name="csv_file" accept=".csv,text/csv" required>

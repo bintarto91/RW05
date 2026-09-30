@@ -183,6 +183,7 @@ class PanelController extends BaseController
         return $this->crud('program', [
             'title' => 'Program Kerja',
             'table' => 'program_kerja',
+            'archiveStatus' => 'nonaktif',
             'order' => ['nomor' => 'ASC', 'id' => 'ASC'],
             'fields' => [
                 'nomor' => ['label' => 'Nomor', 'type' => 'number', 'default' => 0],
@@ -199,6 +200,7 @@ class PanelController extends BaseController
         return $this->crud('kegiatan', [
             'title' => 'Kegiatan & Pengumuman',
             'table' => 'kegiatan',
+            'archiveStatus' => 'draft',
             'order' => ['tanggal' => 'DESC', 'id' => 'DESC'],
             'fields' => [
                 'judul' => ['label' => 'Judul', 'type' => 'text', 'required' => true],
@@ -216,6 +218,7 @@ class PanelController extends BaseController
         return $this->crud('layanan', [
             'title' => 'Layanan Warga',
             'table' => 'layanan',
+            'archiveStatus' => 'nonaktif',
             'order' => ['urutan' => 'ASC', 'id' => 'ASC'],
             'fields' => [
                 'urutan' => ['label' => 'Urutan', 'type' => 'number', 'default' => 0],
@@ -493,9 +496,10 @@ class PanelController extends BaseController
         if ($this->request->getMethod() === 'POST') {
             $postedId = (int) $this->request->getPost('id');
             if ((string) $this->request->getPost('action') === 'delete' && $postedId > 0) {
-                $db->table('kesehatan_jadwal')->where('id', $postedId)->delete();
+                $db->table('kesehatan_jadwal')->where('id', $postedId)->update(['status' => 'nonaktif']);
+                $this->logAdminRecordAction('archive', 'kesehatan_jadwal', $postedId);
 
-                return redirect()->to(site_url('admin/kesehatan-jadwal'))->with('success', 'Jadwal kesehatan berhasil dihapus.');
+                return redirect()->to(site_url('admin/kesehatan-jadwal'))->with('success', 'Jadwal kesehatan disembunyikan dari halaman publik.');
             }
 
             $jenis = trim((string) $this->request->getPost('jenis'));
@@ -901,14 +905,16 @@ class PanelController extends BaseController
             if ($action === 'delete_participant') {
                 $participantId = (int) $this->request->getPost('id');
                 $returnService = (string) $this->request->getPost('return_service') === 'posbindu' ? 'posbindu' : 'posyandu';
+                if (! admin_role_can_validate_kesehatan()) {
+                    return redirect()->to(site_url('admin/kesehatan-data?jenis=' . $returnService . '&tab=peserta'))
+                        ->with('error', 'Akses untuk mengarsipkan peserta ditolak.');
+                }
                 if ($participantId > 0) {
-                    $db->transStart();
-                    $db->table('kesehatan_kunjungan')->where('peserta_id', $participantId)->delete();
-                    $db->table('kesehatan_peserta')->where('id', $participantId)->delete();
-                    $db->transComplete();
+                    $db->table('kesehatan_peserta')->where('id', $participantId)->update(['status' => 'nonaktif']);
+                    $this->logAdminRecordAction('archive', 'health_participant', $participantId);
                 }
 
-                return redirect()->to(site_url('admin/kesehatan-data?jenis=' . $returnService . '&jenis_kegiatan=' . $returnService . '&tab=peserta'))->with('success', 'Data peserta dan catatan kunjungannya berhasil dihapus.');
+                return redirect()->to(site_url('admin/kesehatan-data?jenis=' . $returnService . '&jenis_kegiatan=' . $returnService . '&tab=peserta'))->with('success', 'Peserta diarsipkan. Riwayat kunjungan tetap tersimpan.');
             }
         }
 
@@ -1396,10 +1402,10 @@ class PanelController extends BaseController
             return redirect()->to(site_url('admin/edukasi'))->with('error', 'Materi edukasi tidak ditemukan.');
         }
 
-        $db->table('edukasi_materi')->where('id', $id)->delete();
-        $this->removeManagedEducationFile((string) ($row['file_path'] ?? ''));
+        $db->table('edukasi_materi')->where('id', $id)->update(['status' => 'draft']);
+        $this->logAdminRecordAction('archive', 'education_material', $id);
 
-        return redirect()->to(site_url('admin/edukasi'))->with('success', 'Materi edukasi berhasil dihapus.');
+        return redirect()->to(site_url('admin/edukasi'))->with('success', 'Materi edukasi dipindahkan ke Draft. File tetap tersimpan.');
     }
 
     public function pengajuanSurat()
@@ -1422,7 +1428,11 @@ class PanelController extends BaseController
         if ($this->request->getMethod() === 'POST') {
             $postedId = (int) $this->request->getPost('id');
             if ((string) $this->request->getPost('action') === 'delete' && $postedId > 0) {
+                if (! $this->canHardDelete('letter_application', $postedId)) {
+                    return redirect()->to(site_url('admin/pengajuan-surat'))->with('error', 'Hard-delete pengajuan hanya dapat dilakukan Super Admin.');
+                }
                 $db->table('pengajuan_surat')->where('id', $postedId)->delete();
+                $this->logAdminRecordAction('hard_delete', 'letter_application', $postedId);
 
                 return redirect()->to(site_url('admin/pengajuan-surat'))->with('success', 'Pengajuan surat berhasil dihapus.');
             }
@@ -1437,6 +1447,7 @@ class PanelController extends BaseController
                 'nomor_surat' => trim((string) $this->request->getPost('nomor_surat')),
                 'catatan_admin' => trim((string) $this->request->getPost('catatan_admin')),
             ]);
+                $this->logAdminRecordAction('status_update', 'letter_application', $postedId);
 
             return redirect()->to(site_url('admin/pengajuan-surat'))->with('success', 'Status pengajuan surat berhasil diperbarui.');
         }
@@ -1461,6 +1472,7 @@ class PanelController extends BaseController
         return $this->crud('pengurus', [
             'title' => 'Pengurus RW',
             'table' => 'pengurus',
+            'archiveStatus' => 'nonaktif',
             'order' => ['urutan' => 'ASC', 'id' => 'ASC'],
             'description' => 'Isi struktur organisasi dari Ketua RW, Sekretaris, Bendahara, seksi-seksi, hingga Ketua RT. Bisa ditambah satu per satu atau upload CSV dari template.',
             'importType' => 'pengurus',
@@ -1599,6 +1611,7 @@ class PanelController extends BaseController
             'status_tinggal' => trim((string) $this->request->getGet('status_tinggal')),
             'kategori_kesejahteraan' => trim((string) $this->request->getGet('kategori_kesejahteraan')),
             'penerima_bantuan' => trim((string) $this->request->getGet('penerima_bantuan')),
+            'q' => substr(trim((string) $this->request->getGet('q')), 0, 80),
         ];
         $statusOptions = warga_status_tinggal_options();
         $kesejahteraanOptions = warga_kesejahteraan_options();
@@ -1626,6 +1639,12 @@ class PanelController extends BaseController
                 'bantuanOptions' => $bantuanOptions,
                 'summary' => ['totalKk' => 0, 'totalWarga' => 0, 'kurangMampu' => 0, 'penerimaBantuan' => 0],
                 'bantuanBreakdown' => [],
+                'wargaDatasetCount' => 0,
+                'wargaTotalRows' => 0,
+                'wargaPageNumber' => 1,
+                'wargaTotalPages' => 1,
+                'wargaRangeStart' => 0,
+                'wargaRangeEnd' => 0,
                 'formAction' => $this->wargaUrl($filters),
                 'exportUrl' => $this->wargaUrl($filters, ['export' => 'csv']),
                 'xlsxUrl' => $this->wargaUrl($filters, ['export' => 'xlsx']),
@@ -1645,7 +1664,11 @@ class PanelController extends BaseController
         if ($this->request->getMethod() === 'POST') {
             $postedId = (int) $this->request->getPost('id');
             if ((string) $this->request->getPost('action') === 'delete' && $postedId > 0) {
+                if (! $this->canHardDelete('resident_record', $postedId)) {
+                    return redirect()->to($this->wargaUrl($filters))->with('error', 'Hard-delete data warga hanya dapat dilakukan Super Admin.');
+                }
                 $db->table('warga')->where('id', $postedId)->delete();
+                $this->logAdminRecordAction('hard_delete', 'resident_record', $postedId);
 
                 return redirect()->to($this->wargaUrl($filters))->with('success', 'Data warga berhasil dihapus.');
             }
@@ -1711,23 +1734,45 @@ class PanelController extends BaseController
             return redirect()->to($this->wargaUrl($filters))->with('success', $message);
         }
 
+        $wargaDatasetCount = (int) $db->table('warga')->countAllResults();
         $edit = null;
         if ($this->request->getGet('action') === 'edit' && $id > 0) {
             $edit = $db->table('warga')->where('id', $id)->get()->getRowArray();
         }
 
-        $rows = $this->wargaRows($db, $filters);
-        $summary = $this->wargaSummary($rows);
-        $bantuanBreakdown = $this->wargaBantuanBreakdown($rows);
-        if ($this->request->getGet('export') === 'csv') {
+        $export = (string) $this->request->getGet('export');
+        $perPage = 25;
+        if ($export !== '') {
+            $rows = $this->wargaRows($db, $filters);
+            $summary = $this->wargaSummary($rows);
+            $bantuanBreakdown = $this->wargaBantuanBreakdown($rows);
+            $wargaTotalRows = count($rows);
+            $wargaPageNumber = 1;
+            $wargaTotalPages = 1;
+            $wargaRangeStart = $wargaTotalRows > 0 ? 1 : 0;
+            $wargaRangeEnd = $wargaTotalRows;
+        } else {
+            $summary = $this->wargaSummaryForFilters($db, $filters);
+            $wargaTotalRows = $summary['totalKk'];
+            $wargaTotalPages = max(1, (int) ceil($wargaTotalRows / $perPage));
+            $wargaPageNumber = min(max(1, (int) $this->request->getGet('page')), $wargaTotalPages);
+            $offset = ($wargaPageNumber - 1) * $perPage;
+            $rows = $this->wargaRows($db, $filters, $perPage, $offset);
+            $bantuanRows = $this->wargaBantuanRowsForFilters($db, $filters);
+            $bantuanBreakdown = $this->wargaBantuanBreakdown($bantuanRows);
+            $wargaRangeStart = $wargaTotalRows > 0 ? $offset + 1 : 0;
+            $wargaRangeEnd = min($offset + count($rows), $wargaTotalRows);
+        }
+
+        if ($export === 'csv') {
             return $this->downloadWargaCsv($rows, $filters);
         }
 
-        if ($this->request->getGet('export') === 'xlsx') {
+        if ($export === 'xlsx') {
             return $this->downloadWargaExcel($rows, $filters);
         }
 
-        if ($this->request->getGet('export') === 'pdf') {
+        if ($export === 'pdf') {
             return $this->downloadWargaPdf([
                 'rows' => $rows,
                 'summary' => $summary,
@@ -1740,7 +1785,7 @@ class PanelController extends BaseController
             ]);
         }
 
-        if ($this->request->getGet('export') === 'cetak') {
+        if ($export === 'cetak') {
             return $this->response->setBody(view('admin/warga_print', [
                 'rows' => $rows,
                 'summary' => $summary,
@@ -1776,6 +1821,12 @@ class PanelController extends BaseController
             'bantuanOptions' => $bantuanOptions,
             'summary' => $summary,
             'bantuanBreakdown' => $bantuanBreakdown,
+            'wargaDatasetCount' => $wargaDatasetCount,
+            'wargaTotalRows' => $wargaTotalRows,
+            'wargaPageNumber' => $wargaPageNumber,
+            'wargaTotalPages' => $wargaTotalPages,
+            'wargaRangeStart' => $wargaRangeStart,
+            'wargaRangeEnd' => $wargaRangeEnd,
             'formAction' => $this->wargaUrl($filters),
             'exportUrl' => $this->wargaUrl($filters, ['export' => 'csv']),
             'xlsxUrl' => $this->wargaUrl($filters, ['export' => 'xlsx']),
@@ -1792,10 +1843,22 @@ class PanelController extends BaseController
         ]);
     }
 
-    private function wargaRows($db, array $filters): array
+    private function wargaRows($db, array $filters, ?int $limit = null, int $offset = 0): array
     {
         $builder = $db->table('warga');
+        $this->applyWargaFilters($builder, $filters);
 
+        $builder->orderBy('CAST(rt AS UNSIGNED)', 'ASC', false)
+            ->orderBy('nama_kepala_keluarga', 'ASC');
+        if ($limit !== null) {
+            $builder->limit(max(1, $limit), max(0, $offset));
+        }
+
+        return $builder->get()->getResultArray();
+    }
+
+    private function applyWargaFilters($builder, array $filters): void
+    {
         if (($filters['rt'] ?? '') !== '') {
             $this->applyWargaRtFilter($builder, $filters['rt']);
         }
@@ -1808,12 +1871,36 @@ class PanelController extends BaseController
         if (($filters['penerima_bantuan'] ?? '') !== '') {
             $builder->where('penerima_bantuan', $filters['penerima_bantuan']);
         }
+        if (($filters['q'] ?? '') !== '') {
+            $builder->like('nama_kepala_keluarga', $filters['q']);
+        }
+    }
 
-        return $builder
-            ->orderBy('CAST(rt AS UNSIGNED)', 'ASC', false)
-            ->orderBy('nama_kepala_keluarga', 'ASC')
+    private function wargaSummaryForFilters($db, array $filters): array
+    {
+        $builder = $db->table('warga');
+        $this->applyWargaFilters($builder, $filters);
+        $row = $builder
+            ->select("COUNT(*) AS totalKk, COALESCE(SUM(jumlah_anggota), 0) AS totalWarga, COALESCE(SUM(CASE WHEN kategori_kesejahteraan IN ('kurang_mampu', 'sangat_kurang_mampu') THEN 1 ELSE 0 END), 0) AS kurangMampu, COALESCE(SUM(CASE WHEN penerima_bantuan = 'ya' THEN 1 ELSE 0 END), 0) AS penerimaBantuan", false)
             ->get()
-            ->getResultArray();
+            ->getRowArray() ?: [];
+
+        return [
+            'totalKk' => (int) ($row['totalKk'] ?? 0),
+            'totalWarga' => (int) ($row['totalWarga'] ?? 0),
+            'kurangMampu' => (int) ($row['kurangMampu'] ?? 0),
+            'penerimaBantuan' => (int) ($row['penerimaBantuan'] ?? 0),
+        ];
+    }
+
+    private function wargaBantuanRowsForFilters($db, array $filters): array
+    {
+        $builder = $db->table('warga')
+            ->select('penerima_bantuan, jenis_bantuan')
+            ->where('penerima_bantuan', 'ya');
+        $this->applyWargaFilters($builder, $filters);
+
+        return $builder->get()->getResultArray();
     }
 
     private function applyWargaRtFilter($builder, string $rt): void
@@ -1844,7 +1931,7 @@ class PanelController extends BaseController
     private function wargaUrl(array $filters, array $extra = []): string
     {
         $query = [];
-        foreach (['rt', 'status_tinggal', 'kategori_kesejahteraan', 'penerima_bantuan'] as $key) {
+        foreach (['rt', 'status_tinggal', 'kategori_kesejahteraan', 'penerima_bantuan', 'q'] as $key) {
             $value = trim((string) ($filters[$key] ?? ''));
             if ($value !== '') {
                 $query[$key] = $value;
@@ -2031,15 +2118,26 @@ class PanelController extends BaseController
         if ($this->request->getMethod() === 'POST') {
             $postedId = (int) $this->request->getPost('id');
             if ((string) $this->request->getPost('action') === 'delete' && $postedId > 0) {
+                if (! $this->canHardDelete('resident_aspiration', $postedId)) {
+                    return redirect()->to(site_url('admin/aspirasi'))->with('error', 'Hard-delete aspirasi hanya dapat dilakukan Super Admin.');
+                }
                 $db->table('aspirasi')->where('id', $postedId)->delete();
+                $this->logAdminRecordAction('hard_delete', 'resident_aspiration', $postedId);
 
                 return redirect()->to(site_url('admin/aspirasi'));
             }
 
+            $aspirationStatuses = ['baru', 'diverifikasi', 'diproses', 'selesai', 'ditolak'];
+            $status = trim((string) $this->request->getPost('status'));
+            if (! in_array($status, $aspirationStatuses, true)) {
+                return redirect()->to(site_url('admin/aspirasi'))->with('error', 'Pilih status aspirasi yang tersedia.');
+            }
+
             $db->table('aspirasi')->where('id', (int) $this->request->getPost('id'))->update([
-                'status' => $this->request->getPost('status') ?: 'baru',
+                'status' => $status,
                 'catatan_admin' => trim((string) $this->request->getPost('catatan_admin')),
             ]);
+            $this->logAdminRecordAction('status_update', 'resident_aspiration', $postedId);
 
             return redirect()->to(site_url('admin/aspirasi'));
         }
@@ -2099,7 +2197,12 @@ class PanelController extends BaseController
         if ($this->request->getMethod() === 'POST') {
             $postedId = (int) $this->request->getPost('id');
             if ((string) $this->request->getPost('action') === 'delete' && $postedId > 0) {
+                if (! $this->canHardDelete('finance_transaction', $postedId)) {
+                    return redirect()->to($this->financeUrl($selectedStart, $selectedEnd, $selectedUnit))
+                        ->with('error', 'Hard-delete transaksi hanya dapat dilakukan Super Admin.');
+                }
                 $db->table('keuangan_transaksi')->where('id', $postedId)->delete();
+                $this->logAdminRecordAction('hard_delete', 'finance_transaction', $postedId);
 
                 return redirect()->to($this->financeUrl($selectedStart, $selectedEnd, $selectedUnit))->with('success', 'Transaksi keuangan berhasil dihapus.');
             }
@@ -2144,9 +2247,11 @@ class PanelController extends BaseController
 
             if ($postedId > 0) {
                 $db->table('keuangan_transaksi')->where('id', $postedId)->update($data);
+                $this->logAdminRecordAction('update', 'finance_transaction', $postedId);
                 $message = 'Transaksi keuangan berhasil diperbarui.';
             } else {
                 $db->table('keuangan_transaksi')->insert($data);
+                $this->logAdminRecordAction('create', 'finance_transaction', (int) $db->insertID());
                 $message = 'Transaksi keuangan berhasil ditambahkan.';
             }
 
@@ -2209,6 +2314,7 @@ class PanelController extends BaseController
                     'approved_by' => (int) $admin['id'],
                     'session_version' => ((int) ($target['session_version'] ?? 1)) + 1,
                 ]);
+                $this->logAdminRecordAction('approve_registration', 'admin_account', $userId);
 
                 return redirect()->to(site_url('admin/akun'))->with('success', 'Pendaftaran akun disetujui. Pengguna sekarang dapat login.');
             }
@@ -2234,6 +2340,7 @@ class PanelController extends BaseController
                 $db->table('admin_users')->where('id', (int) $admin['id'])->update([
                     'password_hash' => password_hash($newPassword, PASSWORD_DEFAULT),
                 ]);
+                $this->logAdminRecordAction('change_password', 'admin_account', (int) $admin['id']);
 
                 return redirect()->to(site_url('admin/akun'))->with('success', 'Password akun sendiri berhasil diperbarui.');
             }
@@ -2292,10 +2399,12 @@ class PanelController extends BaseController
 
                 if ($userId > 0) {
                     $db->table('admin_users')->where('id', $userId)->update($data);
+                    $this->logAdminRecordAction('update', 'admin_account', $userId);
                     return redirect()->to(site_url('admin/akun'))->with('success', 'Akun admin berhasil diperbarui.');
                 }
 
                 $db->table('admin_users')->insert($data);
+                $this->logAdminRecordAction('create', 'admin_account', (int) $db->insertID());
                 return redirect()->to(site_url('admin/akun'))->with('success', 'Akun admin baru berhasil dibuat.');
             }
 
@@ -2311,8 +2420,17 @@ class PanelController extends BaseController
                     return redirect()->to(site_url('admin/akun'))->with('error', 'Minimal harus ada satu akun aktif.');
                 }
 
-                $db->table('admin_users')->where('id', $userId)->delete();
-                return redirect()->to(site_url('admin/akun'))->with('success', 'Akun admin berhasil dihapus.');
+                if (! $target) {
+                    return redirect()->to(site_url('admin/akun'))->with('error', 'Akun admin tidak ditemukan.');
+                }
+
+                $db->table('admin_users')->where('id', $userId)->update([
+                    'status' => 'nonaktif',
+                    'session_version' => (int) ($target['session_version'] ?? 1) + 1,
+                ]);
+                $this->logAdminRecordAction('deactivate', 'admin_account', $userId);
+
+                return redirect()->to(site_url('admin/akun'))->with('success', 'Akun admin dinonaktifkan. Riwayat akun tetap tersimpan.');
             }
         }
 
@@ -2337,6 +2455,31 @@ class PanelController extends BaseController
         ]);
     }
 
+    private function canHardDelete(string $recordType, int $recordId): bool
+    {
+        if ((string) session('admin_role') === 'superadmin') {
+            return true;
+        }
+
+        log_message('warning', 'Admin hard-delete ditolak. Actor: {actor_id}, tipe: {record_type}, ID: {record_id}', [
+            'actor_id' => (int) session('admin_id'),
+            'record_type' => $recordType,
+            'record_id' => $recordId,
+        ]);
+
+        return false;
+    }
+
+    private function logAdminRecordAction(string $action, string $recordType, int $recordId): void
+    {
+        log_message('notice', 'Aksi data admin. Aksi: {action}, actor: {actor_id}, tipe: {record_type}, ID: {record_id}', [
+            'action' => $action,
+            'actor_id' => (int) session('admin_id'),
+            'record_type' => $recordType,
+            'record_id' => $recordId,
+        ]);
+    }
+
     private function crud(string $page, array $config)
     {
         $db = $this->db();
@@ -2347,7 +2490,21 @@ class PanelController extends BaseController
             if ((string) $this->request->getPost('action') === 'delete') {
                 $deleteId = (int) $this->request->getPost('id');
                 if ($deleteId > 0) {
+                    if (! empty($config['archiveStatus'])) {
+                        $db->table($config['table'])->where('id', $deleteId)->update([
+                            'status' => $config['archiveStatus'],
+                        ]);
+                        $this->logAdminRecordAction('archive', (string) $config['table'], $deleteId);
+
+                        return redirect()->to(site_url('admin/' . $page))->with('success', 'Data berhasil diarsipkan.');
+                    }
+
+                    if (! $this->canHardDelete((string) $config['table'], $deleteId)) {
+                        return redirect()->to(site_url('admin/' . $page))->with('error', 'Hard-delete hanya dapat dilakukan Super Admin.');
+                    }
+
                     $db->table($config['table'])->where('id', $deleteId)->delete();
+                    $this->logAdminRecordAction('hard_delete', (string) $config['table'], $deleteId);
                 }
 
                 return redirect()->to(site_url('admin/' . $page));
@@ -2367,8 +2524,10 @@ class PanelController extends BaseController
             $postedId = (int) $this->request->getPost('id');
             if ($postedId > 0) {
                 $db->table($config['table'])->where('id', $postedId)->update($data);
+                $this->logAdminRecordAction('update', (string) $config['table'], $postedId);
             } else {
                 $db->table($config['table'])->insert($data);
+                $this->logAdminRecordAction('create', (string) $config['table'], (int) $db->insertID());
             }
 
             return redirect()->to(site_url('admin/' . $page));

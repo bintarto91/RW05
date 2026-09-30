@@ -3,6 +3,8 @@
 namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
+use App\Libraries\AdminRoleAccess;
+use App\Libraries\AdminRegistrationValidator;
 
 class AuthController extends BaseController
 {
@@ -28,9 +30,9 @@ class AuthController extends BaseController
         if (strlen($password) > 1024
             || ! service('throttler')->check($ipThrottleKey, 20, 300)
             || ! service('throttler')->check($throttleKey, 5, 300)) {
-            log_message('warning', 'Login admin dibatasi karena terlalu banyak percobaan. IP: {ip}, username: {username}', [
+            log_message('warning', 'Login admin dibatasi karena terlalu banyak percobaan. IP: {ip}, username hash: {username_hash}', [
                 'ip' => $clientIp,
-                'username' => $username,
+                'username_hash' => hash('sha256', $username),
             ]);
 
             return redirect()->to(site_url('admin/login'))
@@ -89,9 +91,9 @@ class AuthController extends BaseController
             return redirect()->to(site_url('admin/login'))->with('login_error', $message);
         }
 
-        log_message('warning', 'Login admin gagal. IP: {ip}, username: {username}', [
+        log_message('warning', 'Login admin gagal. IP: {ip}, username hash: {username_hash}', [
             'ip' => $clientIp,
-            'username' => $username,
+            'username_hash' => hash('sha256', $username),
         ]);
 
         return redirect()->to(site_url('admin/login'))
@@ -124,7 +126,8 @@ class AuthController extends BaseController
 
         $nama = trim((string) $this->request->getPost('nama'));
         $username = normalize_admin_username($this->request->getPost('username'));
-        $noHp = preg_replace('/[^0-9+ -]/', '', trim((string) $this->request->getPost('no_hp')));
+        $rawPhone = trim((string) $this->request->getPost('no_hp'));
+        $noHp = preg_replace('/[^0-9+ -]/', '', $rawPhone);
         $role = trim((string) $this->request->getPost('role'));
         $catatan = trim((string) $this->request->getPost('catatan_pendaftaran'));
         $password = (string) $this->request->getPost('password');
@@ -133,6 +136,9 @@ class AuthController extends BaseController
 
         if ($nama === '' || $username === '' || $noHp === '') {
             return redirect()->to(site_url('admin/daftar'))->withInput()->with('register_error', 'Nama, username, dan nomor WhatsApp wajib diisi.');
+        }
+        if (! AdminRegistrationValidator::isValidWhatsApp($rawPhone)) {
+            return redirect()->to(site_url('admin/daftar'))->withInput()->with('register_error', 'Masukkan nomor WhatsApp dengan 8 sampai 15 angka.');
         }
         if (! preg_match('/^[a-z0-9._-]{3,40}$/', $username)) {
             return redirect()->to(site_url('admin/daftar'))->withInput()->with('register_error', 'Username minimal 3 karakter dan hanya boleh memakai huruf, angka, titik, garis, atau underscore.');
@@ -153,7 +159,7 @@ class AuthController extends BaseController
             ensure_admin_users_table($db);
             $duplicate = $db->table('admin_users')->where('username', $username)->get()->getRowArray();
             if ($duplicate) {
-                return redirect()->to(site_url('admin/daftar'))->withInput()->with('register_error', 'Username sudah digunakan. Silakan pilih username lain.');
+                return redirect()->to(site_url('admin/daftar'))->withInput()->with('register_error', 'Pendaftaran tidak dapat diproses. Periksa data Anda atau hubungi pengurus RW.');
             }
 
             $db->table('admin_users')->insert([
@@ -164,6 +170,10 @@ class AuthController extends BaseController
                 'status' => 'menunggu',
                 'no_hp' => substr($noHp, 0, 30),
                 'catatan_pendaftaran' => substr($catatan, 0, 500),
+            ]);
+            log_message('notice', 'Pendaftaran admin menunggu persetujuan. ID: {id}, IP: {ip}', [
+                'id' => (int) $db->insertID(),
+                'ip' => $clientIp,
             ]);
         } catch (\Throwable $exception) {
             log_message('error', 'Pendaftaran admin gagal: ' . $exception->getMessage());
@@ -183,8 +193,6 @@ class AuthController extends BaseController
 
     private function landingUrl(string $role): string
     {
-        return $role === 'kader_kesehatan'
-            ? site_url('admin/kesehatan-dashboard')
-            : site_url('admin');
+        return site_url(AdminRoleAccess::landingPath($role));
     }
 }

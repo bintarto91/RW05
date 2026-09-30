@@ -53,7 +53,12 @@
     <form method="post" action="<?= site_url('aspirasi') ?>" class="aspirasi-form" data-reveal>
       <?= csrf_field() ?>
       <?php if ($success ?? false): ?>
-        <div class="alert success">Terima kasih. Aspirasi sudah terkirim dan akan ditinjau pengurus.</div>
+        <div class="alert success">
+          Terima kasih. Aspirasi sudah terkirim dan akan ditinjau pengurus.
+          <?php if (! empty($successTicket)): ?>
+            <br>Simpan kode tiket untuk melacak status: <strong><?= rw_esc($successTicket) ?></strong>
+          <?php endif; ?>
+        </div>
       <?php endif; ?>
       <?php if (! empty($error)): ?>
         <div class="alert error"><?= rw_esc($error) ?></div>
@@ -82,6 +87,37 @@
       <p class="form-note">Data yang Anda kirim digunakan untuk memproses layanan RW 05 dan tidak ditampilkan kepada publik. Pesan akan dibaca pengurus RW; sertakan detail seperlunya agar tindak lanjut lebih cepat.</p>
       <button type="submit" class="btn primary full-button">Kirim Aspirasi</button>
     </form>
+  </div>
+</section>
+
+<section class="section white-section" id="status-tiket" aria-labelledby="aspirasi-ticket-title">
+  <div class="container content-block">
+    <h2 id="aspirasi-ticket-title">Lacak Aspirasi</h2>
+    <?php if (! empty($ticketLookupAvailable)): ?>
+      <p>Masukkan kode tiket yang diberikan setelah aspirasi terkirim. Hasil hanya menampilkan kategori, status, dan tanggal, tanpa identitas atau isi pesan.</p>
+      <?php if (! empty($ticketLookupError)): ?>
+        <div class="alert error"><?= rw_esc($ticketLookupError) ?></div>
+      <?php endif; ?>
+      <form method="post" action="<?= site_url('aspirasi/status') ?>" class="online-check-form">
+        <?= csrf_field() ?>
+        <label>Kode tiket aspirasi
+          <input type="text" name="kode_tiket" inputmode="text" pattern="ASP-[0-9]{8}-[A-Fa-f0-9]{24}" maxlength="37" placeholder="ASP-20260930-A1B2C3D4..." autocomplete="off" required>
+        </label>
+        <button type="submit" class="btn secondary">Cek Status Aspirasi</button>
+      </form>
+      <?php if (! empty($ticketResult)): ?>
+        <?php $ticketStatusLabels = ['baru' => 'Diterima', 'diverifikasi' => 'Diverifikasi', 'diproses' => 'Diproses', 'selesai' => 'Selesai', 'ditolak' => 'Ditolak']; ?>
+        <div class="content-block" aria-live="polite">
+          <h3>Status Tiket</h3>
+          <p><strong>Kode:</strong> <?= rw_esc($ticketResult['kode_tiket']) ?></p>
+          <p><strong>Kategori:</strong> <?= rw_esc($ticketResult['kategori'] ?? 'Aspirasi') ?></p>
+          <p><strong>Status:</strong> <?= rw_esc($ticketStatusLabels[$ticketResult['status'] ?? ''] ?? 'Diterima') ?></p>
+          <p><strong>Tanggal diterima:</strong> <?= rw_esc(format_date_id($ticketResult['created_at'] ?? '')) ?></p>
+        </div>
+      <?php endif; ?>
+    <?php else: ?>
+      <p>Pelacakan kode tiket sedang disiapkan. Aspirasi tetap dapat dikirim melalui form; hubungi pengurus RW untuk menanyakan tindak lanjut.</p>
+    <?php endif; ?>
   </div>
 </section>
 <?= $this->endSection() ?>

@@ -116,11 +116,11 @@ $selectedStatus = old('status', $edit['status'] ?? 'aktif');
             <td>
               <div class="table-actions">
                 <a href="<?= site_url('admin/kesehatan-jadwal?action=edit&id=' . (int) ($row['id'] ?? 0)) ?>">Edit</a>
-                <form method="post" action="<?= site_url('admin/kesehatan-jadwal') ?>" onsubmit="return confirm('Hapus jadwal ini?')">
+                <form method="post" action="<?= site_url('admin/kesehatan-jadwal') ?>" onsubmit="return confirm('Sembunyikan jadwal ini dari halaman publik?')">
                   <?= csrf_field() ?>
                   <input type="hidden" name="action" value="delete">
                   <input type="hidden" name="id" value="<?= (int) ($row['id'] ?? 0) ?>">
-                  <button type="submit" class="btn-link-danger">Hapus</button>
+                  <button type="submit" class="btn-link-danger">Sembunyikan</button>
                 </form>
               </div>
             </td>

@@ -22,21 +22,25 @@
             <?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= rw_esc($row['id']) ?>">
             <select name="status">
-              <option value="baru" <?= is_selected($row['status'], 'baru') ?>>Baru</option>
+              <option value="baru" <?= is_selected($row['status'], 'baru') ?>>Diterima</option>
+              <option value="diverifikasi" <?= is_selected($row['status'], 'diverifikasi') ?>>Diverifikasi</option>
               <option value="diproses" <?= is_selected($row['status'], 'diproses') ?>>Diproses</option>
               <option value="selesai" <?= is_selected($row['status'], 'selesai') ?>>Selesai</option>
+              <option value="ditolak" <?= is_selected($row['status'], 'ditolak') ?>>Ditolak</option>
             </select>
             <textarea name="catatan_admin" rows="2" placeholder="Catatan admin"><?= rw_esc($row['catatan_admin']) ?></textarea>
             <button type="submit">Update</button>
           </form>
         </td>
         <td>
+          <?php if ((string) session('admin_role') === 'superadmin'): ?>
           <form method="post" action="<?= site_url('admin/aspirasi') ?>" onsubmit="return confirm('Hapus aspirasi ini?')">
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="delete">
             <input type="hidden" name="id" value="<?= (int) $row['id'] ?>">
             <button type="submit" class="btn-link-danger">Hapus</button>
           </form>
+          <?php endif; ?>
         </td>
       </tr>
     <?php endforeach; ?>

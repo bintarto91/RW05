@@ -6,6 +6,8 @@ use CodeIgniter\Database\BaseConnection;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use Dompdf\Dompdf;
 use Dompdf\Options;
+use App\Libraries\SuratStatusVerifier;
+use App\Libraries\AspirasiTicketCode;
 
 class PublicController extends BaseController
 {
@@ -331,17 +333,15 @@ class PublicController extends BaseController
 
         $db = $this->publicDatabase();
         $tableReady = $db !== null && ensure_pengajuan_surat_table($db);
-        $lookupCode = strtoupper(trim((string) $this->request->getGet('kode')));
+        $lookupCode = strtoupper(trim((string) session()->getFlashdata('surat_lookup_code')));
         $lookupRow = null;
         $lookupError = session()->getFlashdata('surat_lookup_error') ?: '';
 
         if ($tableReady && $lookupCode !== '' && $this->hasSuratAccess($lookupCode)) {
             $lookupRow = $db->table('pengajuan_surat')
-                    ->where('kode_pengajuan', $lookupCode)
-                    ->get()
-                    ->getRowArray();
-        } elseif ($lookupCode !== '' && $lookupError === '') {
-            $lookupError = 'Verifikasi diperlukan untuk membuka status pengajuan.';
+            ->where('kode_pengajuan', $lookupCode)
+            ->get()
+            ->getRowArray();
         }
 
         return $this->renderPublic('public/layanan_online', [
@@ -361,7 +361,7 @@ class PublicController extends BaseController
     public function cekStatusLayananOnline()
     {
         $lookupCode = strtoupper(trim((string) $this->request->getPost('kode')));
-        $lookupVerifier = preg_replace('/\D+/', '', (string) $this->request->getPost('verifikasi'));
+        $lookupVerifier = trim((string) $this->request->getPost('verifikasi'));
         $clientIp = (string) $this->request->getIPAddress();
         $throttleKey = 'surat-status-' . hash('sha256', $clientIp);
 
@@ -369,7 +369,7 @@ class PublicController extends BaseController
             return redirect()->to(site_url('layanan-online#cek-status'))
                 ->with('surat_lookup_error', 'Terlalu banyak percobaan. Tunggu 5 menit lalu coba kembali.');
         }
-        if ($lookupCode === '' || strlen($lookupVerifier) !== 4) {
+        if (! SuratStatusVerifier::hasValidLookupInput($lookupCode, $lookupVerifier)) {
             return redirect()->to(site_url('layanan-online#cek-status'))
                 ->with('surat_lookup_error', 'Masukkan kode pengajuan dan 4 angka terakhir nomor WhatsApp.');
         }
@@ -378,14 +378,15 @@ class PublicController extends BaseController
         $candidate = $db !== null && ensure_pengajuan_surat_table($db)
             ? $db->table('pengajuan_surat')->where('kode_pengajuan', $lookupCode)->get()->getRowArray()
             : null;
-        if (! $candidate || ! $this->phoneVerificationMatches((string) ($candidate['no_hp'] ?? ''), $lookupVerifier)) {
+        if (! $candidate || ! SuratStatusVerifier::matchesPhoneLastFour((string) ($candidate['no_hp'] ?? ''), $lookupVerifier)) {
             return redirect()->to(site_url('layanan-online#cek-status'))
                 ->with('surat_lookup_error', 'Data verifikasi tidak cocok. Periksa kembali kode dan 4 angka terakhir nomor WhatsApp.');
         }
 
         $this->authorizeSuratAccess($lookupCode);
 
-        return redirect()->to(site_url('layanan-online?kode=' . rawurlencode($lookupCode) . '#cek-status'));
+        return redirect()->to(site_url('layanan-online#cek-status'))
+            ->with('surat_lookup_code', $lookupCode);
     }
 
     public function submitLayananOnline()
@@ -560,11 +561,76 @@ class PublicController extends BaseController
 
     public function aspirasi(): string
     {
+        $ticketCode = (string) (session()->getFlashdata('aspirasi_lookup_code') ?: '');
+        $lookupRequested = (bool) session()->getFlashdata('aspirasi_lookup_requested');
+        $lookupError = session()->getFlashdata('aspirasi_lookup_error') ?: '';
+        $successTicket = (string) (session()->getFlashdata('aspirasi_success_ticket') ?: '');
+        $db = $this->publicDatabase();
+        $ticketLookupAvailable = $this->hasAspirasiTicketCodeColumn($db);
+        $ticketResult = null;
+
+        if ($lookupRequested) {
+            response()->setHeader('Cache-Control', 'private, no-store, no-cache, must-revalidate, max-age=0');
+            response()->setHeader('X-Robots-Tag', 'noindex, noarchive');
+        }
+
+        if ($ticketLookupAvailable && $ticketCode !== '' && AspirasiTicketCode::isValid($ticketCode)) {
+            $ticketResult = $db->table('aspirasi')
+                ->select('kode_tiket, kategori, status, created_at')
+                ->where('kode_tiket', $ticketCode)
+                ->get()
+                ->getRowArray();
+        }
+
         return $this->renderPublic('public/aspirasi', [
             'currentPage' => 'aspirasi',
             'success' => (bool) session()->getFlashdata('aspirasi_success'),
             'error' => session()->getFlashdata('aspirasi_error') ?: '',
+            'successTicket' => $successTicket,
+            'ticketLookupAvailable' => $ticketLookupAvailable,
+            'ticketResult' => $ticketResult,
+            'ticketLookupError' => $lookupError,
         ]);
+    }
+
+    public function cekStatusAspirasi()
+    {
+        $clientIp = (string) $this->request->getIPAddress();
+        $throttleKey = 'aspirasi-status-' . hash('sha256', $clientIp);
+        if (! service('throttler')->check($throttleKey, 10, 300)) {
+            return redirect()->to(site_url('aspirasi#status-tiket'))
+                ->with('aspirasi_lookup_requested', true)
+                ->with('aspirasi_lookup_error', 'Terlalu banyak percobaan. Tunggu beberapa menit sebelum mencoba lagi.');
+        }
+
+        $ticketCode = strtoupper(trim((string) $this->request->getPost('kode_tiket')));
+        if (! AspirasiTicketCode::isValid($ticketCode)) {
+            return redirect()->to(site_url('aspirasi#status-tiket'))
+                ->with('aspirasi_lookup_requested', true)
+                ->with('aspirasi_lookup_error', 'Kode tiket tidak ditemukan. Periksa kembali kode yang diberikan.');
+        }
+
+        $db = $this->publicDatabase();
+        if (! $this->hasAspirasiTicketCodeColumn($db)) {
+            return redirect()->to(site_url('aspirasi#status-tiket'))
+                ->with('aspirasi_lookup_requested', true)
+                ->with('aspirasi_lookup_error', 'Pelacakan tiket belum tersedia. Hubungi pengurus RW untuk bantuan.');
+        }
+
+        $ticketExists = $db->table('aspirasi')
+            ->select('id')
+            ->where('kode_tiket', $ticketCode)
+            ->get()
+            ->getRowArray();
+        if (! $ticketExists) {
+            return redirect()->to(site_url('aspirasi#status-tiket'))
+                ->with('aspirasi_lookup_requested', true)
+                ->with('aspirasi_lookup_error', 'Kode tiket tidak ditemukan. Periksa kembali kode yang diberikan.');
+        }
+
+        return redirect()->to(site_url('aspirasi#status-tiket'))
+            ->with('aspirasi_lookup_requested', true)
+            ->with('aspirasi_lookup_code', $ticketCode);
     }
 
     public function kebijakanPrivasi(): string
@@ -580,11 +646,23 @@ class PublicController extends BaseController
     {
         $nama = trim((string) $this->request->getPost('nama'));
         $pesan = trim((string) $this->request->getPost('pesan'));
+        $noHp = trim((string) $this->request->getPost('no_hp'));
+        $rt = trim((string) $this->request->getPost('rt'));
+        $kategori = trim((string) ($this->request->getPost('kategori') ?: 'Aspirasi'));
+        $clientIp = (string) $this->request->getIPAddress();
+        $throttleKey = 'aspirasi-submit-' . hash('sha256', $clientIp);
 
-        if ($nama === '' || $pesan === '') {
+        if (! service('throttler')->check($throttleKey, 10, 300)) {
             return redirect()->to(site_url('aspirasi'))
                 ->withInput()
-                ->with('aspirasi_error', 'Nama dan pesan wajib diisi.');
+                ->with('aspirasi_error', 'Terlalu banyak pengiriman. Tunggu beberapa menit sebelum mencoba lagi.');
+        }
+
+        if ($nama === '' || $pesan === '' || strlen($nama) > 120 || strlen($pesan) > 4000
+            || strlen($noHp) > 40 || strlen($rt) > 20 || strlen($kategori) > 60) {
+            return redirect()->to(site_url('aspirasi'))
+                ->withInput()
+                ->with('aspirasi_error', 'Nama dan pesan wajib diisi serta panjang data harus sesuai batas form.');
         }
 
         $db = $this->publicDatabase();
@@ -594,16 +672,39 @@ class PublicController extends BaseController
                 ->with('aspirasi_error', 'Layanan aspirasi sedang tidak terhubung ke database. Silakan coba lagi nanti.');
         }
 
-        $db->table('aspirasi')->insert([
+        $data = [
             'nama' => $nama,
-            'no_hp' => trim((string) $this->request->getPost('no_hp')),
-            'rt' => trim((string) $this->request->getPost('rt')),
-            'kategori' => trim((string) ($this->request->getPost('kategori') ?: 'Aspirasi')),
+            'no_hp' => $noHp,
+            'rt' => $rt,
+            'kategori' => $kategori,
             'pesan' => $pesan,
+        ];
+        $ticketEnabled = $this->hasAspirasiTicketCodeColumn($db);
+        if ($ticketEnabled) {
+            $data['kode_tiket'] = AspirasiTicketCode::generate();
+        }
+
+        $db->table('aspirasi')->insert($data);
+        $aspirationId = (int) $db->insertID();
+        log_message('notice', 'Aspirasi warga diterima. ID: {id}, tiket diterbitkan: {ticket_enabled}', [
+            'id' => $aspirationId,
+            'ticket_enabled' => $ticketEnabled ? 'yes' : 'no',
         ]);
 
-        return redirect()->to(site_url('aspirasi'))
+        $redirect = redirect()->to(site_url('aspirasi'))
             ->with('aspirasi_success', true);
+        if ($ticketEnabled) {
+            $redirect = $redirect->with('aspirasi_success_ticket', $data['kode_tiket']);
+        }
+
+        return $redirect;
+    }
+
+    private function hasAspirasiTicketCodeColumn(?BaseConnection $db): bool
+    {
+        return $db !== null
+            && $db->tableExists('aspirasi')
+            && $db->fieldExists('kode_tiket', 'aspirasi');
     }
 
     private function renderPublic(string $view, array $data = []): string
@@ -839,13 +940,6 @@ class PublicController extends BaseController
         }
 
         return 'RW05-' . date('YmdHis');
-    }
-
-    private function phoneVerificationMatches(string $phoneNumber, string $verifier): bool
-    {
-        $digits = preg_replace('/\D+/', '', $phoneNumber);
-
-        return strlen($digits) >= 4 && hash_equals(substr($digits, -4), $verifier);
     }
 
     private function authorizeSuratAccess(string $code): void

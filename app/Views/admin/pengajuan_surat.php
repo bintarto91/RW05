@@ -90,12 +90,14 @@
             <?php if (in_array($row['status'], ['disetujui', 'selesai'], true)): ?>
               <a href="<?= site_url('layanan-online/surat/' . rawurlencode($row['kode_pengajuan'])) ?>" target="_blank" rel="noopener noreferrer">Download PDF</a><br>
             <?php endif; ?>
-            <form method="post" action="<?= site_url('admin/pengajuan-surat') ?>" onsubmit="return confirm('Hapus pengajuan surat ini?')">
-              <?= csrf_field() ?>
-              <input type="hidden" name="action" value="delete">
-              <input type="hidden" name="id" value="<?= (int) $row['id'] ?>">
-              <button type="submit" class="btn-link-danger">Hapus</button>
-            </form>
+            <?php if ((string) session('admin_role') === 'superadmin'): ?>
+              <form method="post" action="<?= site_url('admin/pengajuan-surat') ?>" onsubmit="return confirm('Hapus pengajuan surat ini?')">
+                <?= csrf_field() ?>
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="id" value="<?= (int) $row['id'] ?>">
+                <button type="submit" class="btn-link-danger">Hapus</button>
+              </form>
+            <?php endif; ?>
           </td>
         </tr>
       <?php endforeach; ?>

@@ -50,10 +50,21 @@
     <label>Mode Import
       <select name="mode" required>
         <option value="append">Tambah data baru</option>
-        <option value="replace">Hapus data lama lalu import</option>
+        <option value="replace" <?= old('mode') === 'replace' ? 'selected' : '' ?>>Ganti seluruh data dataset</option>
       </select>
-      <span class="field-note">Mode replace akan menghapus semua data di jenis data terpilih.</span>
+      <span class="field-note">Mode ganti seluruh data akan menggantikan isi dataset yang dipilih.</span>
     </label>
+
+    <div class="full alert warning">
+      <strong>Konfirmasi penggantian data</strong>
+      <?php if ($replaceCount !== null): ?>
+        <p>Dataset <?= rw_esc($currentDataset['label']) ?> saat ini berisi <?= rw_esc((string) $replaceCount) ?> baris. Gunakan mode ganti hanya jika seluruh isi memang akan digantikan.</p>
+      <?php else: ?>
+        <p>Jumlah baris lama belum dapat dihitung. Mode ganti akan menggantikan seluruh isi dataset terpilih.</p>
+      <?php endif; ?>
+      <label class="checkbox-label"><input type="checkbox" name="confirm_replace" value="yes"> Saya memahami semua data lama pada dataset ini akan diganti.</label>
+      <p class="field-note">File CSV divalidasi sepenuhnya sebelum data lama disentuh.</p>
+    </div>
 
     <label class="full">File CSV
       <input type="file" name="csv_file" accept=".csv,text/csv" required>

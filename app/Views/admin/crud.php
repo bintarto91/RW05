@@ -166,11 +166,12 @@
           <?php endforeach; ?>
           <td><div class="table-actions">
             <a class="btn-table-edit" href="<?= site_url('admin/' . $page . '?action=edit&id=' . ($row['id'] ?? 0)) ?>">Edit</a>
-            <form method="post" action="<?= site_url('admin/' . $page) ?>" class="inline-form" onsubmit="return confirm('Hapus data ini?')">
+            <?php $archiveLabel = empty($config['archiveStatus']) ? 'Hapus' : 'Arsipkan'; ?>
+            <form method="post" action="<?= site_url('admin/' . $page) ?>" class="inline-form" onsubmit="return confirm('<?= rw_esc($archiveLabel) ?> data ini?')">
               <?= csrf_field() ?>
               <input type="hidden" name="action" value="delete">
               <input type="hidden" name="id" value="<?= (int) ($row['id'] ?? 0) ?>">
-              <button type="submit" class="btn-link-danger">Hapus</button>
+              <button type="submit" class="btn-link-danger"><?= rw_esc($archiveLabel) ?></button>
             </form>
           </div></td>
         </tr>

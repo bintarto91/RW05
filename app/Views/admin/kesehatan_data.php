@@ -313,7 +313,21 @@ foreach ($attendanceParticipants as $dayParticipant) {
             <td data-label="Siklus hidup"><?= rw_esc($lifecycleOptions[$participant['kelompok_siklus'] ?? ''] ?? 'Belum ditentukan') ?></td>
             <td data-label="Kontak">RT <?= rw_esc($participant['rt'] ?? '-') ?><br><small><?= rw_esc($participant['no_hp'] ?? '') ?></small></td>
             <td data-label="Status"><?= rw_esc($statusOptions[$participant['status'] ?? ''] ?? ucfirst((string) ($participant['status'] ?? '-'))) ?></td>
-            <td data-label="Aksi"><div class="table-actions"><a href="<?= site_url('admin/kesehatan-data?jenis=' . rawurlencode($workspaceService) . '&jenis_kegiatan=' . rawurlencode($workspaceService) . '&tab=pemeriksaan&peserta_id=' . (int) $participant['id']) ?>">Isi hasil</a><a href="<?= site_url('admin/kesehatan-data?jenis=' . rawurlencode($workspaceService) . '&jenis_kegiatan=' . rawurlencode($workspaceService) . '&tab=peserta&action=edit&id=' . (int) $participant['id']) ?>">Edit peserta</a><form method="post" action="<?= site_url('admin/kesehatan-data') ?>" onsubmit="return confirm('Hapus peserta dan seluruh catatan kunjungannya?')"><?= csrf_field() ?><input type="hidden" name="action" value="delete_participant"><input type="hidden" name="return_service" value="<?= rw_esc($workspaceService) ?>"><input type="hidden" name="id" value="<?= (int) $participant['id'] ?>"><button type="submit" class="btn-link-danger">Hapus</button></form></div></td>
+            <td data-label="Aksi">
+              <div class="table-actions">
+                <a href="<?= site_url('admin/kesehatan-data?jenis=' . rawurlencode($workspaceService) . '&jenis_kegiatan=' . rawurlencode($workspaceService) . '&tab=pemeriksaan&peserta_id=' . (int) $participant['id']) ?>">Isi hasil</a>
+                <a href="<?= site_url('admin/kesehatan-data?jenis=' . rawurlencode($workspaceService) . '&jenis_kegiatan=' . rawurlencode($workspaceService) . '&tab=peserta&action=edit&id=' . (int) $participant['id']) ?>">Edit peserta</a>
+                <?php if (admin_role_can_validate_kesehatan()): ?>
+                  <form method="post" action="<?= site_url('admin/kesehatan-data') ?>" onsubmit="return confirm('Arsipkan peserta ini? Riwayat kunjungan tetap tersimpan.')">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="action" value="delete_participant">
+                    <input type="hidden" name="return_service" value="<?= rw_esc($workspaceService) ?>">
+                    <input type="hidden" name="id" value="<?= (int) $participant['id'] ?>">
+                    <button type="submit" class="btn-link-danger">Arsipkan</button>
+                  </form>
+                <?php endif; ?>
+              </div>
+            </td>
           </tr>
         <?php endforeach; ?>
         <?php if (empty($participants)): ?><tr><td colspan="5" class="table-empty">Belum ada peserta.</td></tr><?php endif; ?>

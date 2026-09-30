@@ -124,11 +124,11 @@ $pendingCount = count(array_filter($users ?? [], static fn (array $user): bool =
             <?php endif; ?>
             <a class="btn-table-edit" href="<?= site_url('admin/akun?edit_user=' . (int) $user['id']) ?>">Edit</a>
             <?php if ((int) $user['id'] !== (int) $admin['id']): ?>
-              <form method="post" action="<?= site_url('admin/akun') ?>" class="inline-form" onsubmit="return confirm('Hapus akun admin ini?')">
+              <form method="post" action="<?= site_url('admin/akun') ?>" class="inline-form" onsubmit="return confirm('Nonaktifkan akun admin ini? Riwayat akun akan tetap tersimpan.')">
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="delete_user">
                 <input type="hidden" name="user_id" value="<?= rw_esc((string) $user['id']) ?>">
-                <button type="submit" class="btn-link-danger">Hapus</button>
+                <button type="submit" class="btn-link-danger">Nonaktifkan</button>
               </form>
             <?php endif; ?>
           </div></td>

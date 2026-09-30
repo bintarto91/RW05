@@ -2,6 +2,7 @@
 
 namespace App\Filters;
 
+use App\Libraries\AdminRoleAccess;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -36,24 +37,18 @@ class AdminAuthFilter implements FilterInterface
 
         session()->set('admin_role', (string) ($admin['role'] ?? session()->get('admin_role')));
 
-        if ((string) session()->get('admin_role') === 'kader_kesehatan') {
-            $pathSegments = explode('/', trim($request->getUri()->getPath(), '/'));
-            $adminSegment = array_search('admin', $pathSegments, true);
-            $path = $adminSegment === false
-                ? implode('/', $pathSegments)
-                : implode('/', array_slice($pathSegments, $adminSegment));
-            $healthWorkspacePaths = [
-                'admin/kesehatan-dashboard',
-                'admin/kesehatan-data',
-                'admin/posbindu-laporan',
-                'admin/kesehatan-tindak-lanjut',
-                'admin/kesehatan-jadwal',
-            ];
+        $role = (string) session()->get('admin_role');
+        $requestPath = $request->getUri()->getPath();
+        if (! AdminRoleAccess::allows($role, $requestPath)) {
+            $landingPath = AdminRoleAccess::landingPath($role);
+            if ($landingPath === 'admin/login') {
+                session()->destroy();
 
-            if (! in_array($path, $healthWorkspacePaths, true)) {
-                return redirect()->to(site_url('admin/kesehatan-dashboard'))
-                    ->with('workspace_error', 'Akun kader hanya dapat mengakses ruang kerja kesehatan.');
+                return redirect()->to(site_url('admin/login'));
             }
+
+            return redirect()->to(site_url($landingPath))
+                ->with('workspace_error', 'Akun Anda tidak memiliki akses ke modul tersebut.');
         }
 
         return null;
