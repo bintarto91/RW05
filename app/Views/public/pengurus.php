@@ -60,7 +60,6 @@ $summaryStats = [
                           <div>
                             <strong><?= rw_esc($person['nama'] ?? '') ?></strong>
                             <small><?= rw_esc($person['jabatan'] ?? '') ?><?= ! empty($person['rt']) ? ' · RT ' . rw_esc($person['rt']) : '' ?></small>
-                            <?php if (! empty($person['tugas'])): ?><em class="org-chart-task"><?= rw_esc($person['tugas']) ?></em><?php endif; ?>
                           </div>
                         </article>
                       <?php endforeach; ?>

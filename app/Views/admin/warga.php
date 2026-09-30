@@ -136,6 +136,15 @@ $formTitle = ! empty($edit) ? 'Edit Data Warga' : 'Tambah Data Warga';
       <p class="muted">Menampilkan <?= rw_esc((string) $wargaRangeStart) ?>–<?= rw_esc((string) $wargaRangeEnd) ?> dari <?= rw_esc((string) $wargaTotalRows) ?> KK setelah filter. Tambah, edit, import, dan hapus data dibuka lewat popup.</p>
     </div>
     <div class="page-actions">
+      <form method="get" action="<?= site_url('admin/warga') ?>" class="list-search-inline">
+        <?php foreach ($filterQuery as $filterName => $filterValue): ?>
+          <?php if ($filterName !== 'q'): ?><input type="hidden" name="<?= rw_esc($filterName) ?>" value="<?= rw_esc($filterValue) ?>">
+          <?php endif; ?>
+        <?php endforeach; ?>
+        <label class="sr-only" for="wargaListSearch">Cari warga</label>
+        <input id="wargaListSearch" type="search" name="q" maxlength="80" value="<?= rw_esc($filters['q'] ?? '') ?>" placeholder="Cari nama warga">
+        <button type="submit">Cari</button>
+      </form>
       <button type="button" class="btn-light" data-open-modal="wargaDownloadModal">Download Laporan</button>
       <button type="button" class="btn-light" data-open-modal="wargaFormModal">Tambah Warga</button>
     </div>

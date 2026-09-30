@@ -1268,6 +1268,20 @@ h2 {
 	background: #f7fbf9;
 }
 
+.list-search-inline {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.list-search-inline input {
+	width: min(220px, 28vw);
+}
+
+.list-search-inline button {
+	white-space: nowrap;
+}
+
 .list-search-form label {
 	display: grid;
 	flex: 1;
@@ -1283,6 +1297,14 @@ h2 {
 	.list-search-form {
 		align-items: stretch;
 		flex-direction: column;
+	}
+
+	.list-search-inline {
+		width: 100%;
+	}
+
+	.list-search-inline input {
+		width: 100%;
 	}
 }
 

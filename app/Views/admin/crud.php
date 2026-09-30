@@ -100,7 +100,7 @@
                   <?php foreach ($group['items'] as $person): ?>
                     <article class="org-chart-node">
                       <span><?= rw_esc(strtoupper(substr((string) ($person['nama'] ?? 'P'), 0, 1))) ?></span>
-                      <div><strong><?= rw_esc($person['nama'] ?? '') ?></strong><small><?= rw_esc($person['jabatan'] ?? '') ?><?= ! empty($person['rt']) ? ' · RT ' . rw_esc($person['rt']) : '' ?></small><?php if (! empty($person['tugas'])): ?><em class="admin-org-chart-task"><?= rw_esc($person['tugas']) ?></em><?php endif; ?></div>
+                      <div><strong><?= rw_esc($person['nama'] ?? '') ?></strong><small><?= rw_esc($person['jabatan'] ?? '') ?><?= ! empty($person['rt']) ? ' · RT ' . rw_esc($person['rt']) : '' ?></small></div>
                     </article>
                   <?php endforeach; ?>
                   <?php if (empty($group['items'])): ?><span class="admin-org-diagram-empty">Belum diisi</span><?php endif; ?>
@@ -154,16 +154,12 @@
       <h2>Daftar Data</h2>
       <p class="muted">Cari berdasarkan informasi teks pada daftar ini.</p>
     </div>
-  </div>
-  <form method="get" action="<?= site_url('admin/' . $page) ?>" class="list-search-form">
-    <label>Cari data
-      <input type="search" name="q" maxlength="80" value="<?= rw_esc($filterSearch ?? '') ?>" placeholder="Ketik nama, judul, jabatan, atau keterangan">
-    </label>
-    <div class="form-actions">
+    <form method="get" action="<?= site_url('admin/' . $page) ?>" class="list-search-inline">
+      <label class="sr-only" for="crudListSearch">Cari data</label>
+      <input id="crudListSearch" type="search" name="q" maxlength="80" value="<?= rw_esc($filterSearch ?? '') ?>" placeholder="Cari data">
       <button type="submit">Cari</button>
-      <a class="btn-light" href="<?= site_url('admin/' . $page) ?>">Reset</a>
-    </div>
-  </form>
+    </form>
+  </div>
   <table>
     <thead>
       <tr>
