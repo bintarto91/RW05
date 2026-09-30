@@ -1,12 +1,62 @@
 <?php
 $currentPage = $currentPage ?? 'home';
 $siteDisplayName = $siteDisplayName ?? 'RW 05 Lamajang Peuntas';
-$pageTitle = $pageTitle ?? $siteDisplayName;
+$pageMetadata = [
+  'home' => [
+    'title' => $siteDisplayName . ', Citeureup Dayeuhkolot',
+    'description' => 'Portal resmi RW 05 Lamajang Peuntas, Desa Citeureup, Kecamatan Dayeuhkolot untuk layanan warga, informasi, kegiatan, kesehatan, transparansi, dan aspirasi.',
+  ],
+  'profil' => [
+    'title' => 'Profil ' . $siteDisplayName . ', Desa Citeureup',
+    'description' => 'Kenali wilayah, arah pelayanan, dan informasi profil RW 05 Lamajang Peuntas di Desa Citeureup.',
+  ],
+  'layanan' => [
+    'title' => 'Layanan & Surat Online ' . $siteDisplayName,
+    'description' => 'Informasi bidang layanan warga dan jenis surat administrasi RW 05 Lamajang Peuntas, termasuk syarat dan alur pengajuan.',
+  ],
+  'kesehatan' => [
+    'title' => 'Posyandu & Posbindu ' . $siteDisplayName,
+    'description' => 'Informasi program, jadwal, sasaran, dan persiapan layanan Posyandu serta Posbindu RW 05 Lamajang Peuntas.',
+  ],
+  'keuangan' => [
+    'title' => 'Transparansi Keuangan ' . $siteDisplayName,
+    'description' => 'Lihat ringkasan pemasukan, pengeluaran, dan saldo RW 05 Lamajang Peuntas berdasarkan periode dan unit kas.',
+  ],
+  'kegiatan' => [
+    'title' => 'Kegiatan & Pengumuman ' . $siteDisplayName,
+    'description' => 'Baca kegiatan, pengumuman, dan program kerja yang dipublikasikan untuk warga RW 05 Lamajang Peuntas.',
+  ],
+  'pengurus' => [
+    'title' => 'Pengurus ' . $siteDisplayName . ', Desa Citeureup',
+    'description' => 'Kenali pengurus RW 05 Lamajang Peuntas, tugas, dan informasi kontak resmi yang tersedia.',
+  ],
+  'aspirasi' => [
+    'title' => 'Aspirasi Warga ' . $siteDisplayName,
+    'description' => 'Sampaikan saran atau laporan lingkungan kepada pengurus RW 05 Lamajang Peuntas melalui kanal aspirasi.',
+  ],
+  'kebijakan-privasi' => [
+    'title' => 'Kebijakan Privasi ' . $siteDisplayName,
+    'description' => 'Ketahui data yang digunakan, tujuan pemrosesan, akses, penyimpanan, dan perlindungan data layanan warga RW 05 Lamajang Peuntas.',
+  ],
+];
+$pageTitle = $pageTitle ?? ($pageMetadata[$currentPage]['title'] ?? $siteDisplayName);
 $documentTitle = stripos($pageTitle, $siteDisplayName) === false
   ? $pageTitle . ' | ' . $siteDisplayName . ' | Portal Warga'
   : $pageTitle . ' | Portal Warga';
-$metaDescription = $metaDescription ?? ($identity['metaDescription'] ?? 'Portal resmi RW 05 Lamajang Peuntas untuk layanan dan informasi warga.');
+$metaDescription = $pageMetaDescription ?? $pageMetadata[$currentPage]['description'] ?? $metaDescription ?? ($identity['metaDescription'] ?? 'Portal resmi RW 05 Lamajang Peuntas untuk layanan dan informasi warga.');
 $canonicalUrl = current_url();
+$organizationSchema = [
+    '@context' => 'https://schema.org',
+    '@type' => 'Organization',
+    'name' => $siteDisplayName,
+    'url' => base_url('/'),
+    'logo' => base_url('assets/logo-rw05.png'),
+    'areaServed' => [
+        '@type' => 'AdministrativeArea',
+        'name' => $siteSubtitle ?? 'Desa Citeureup, Kecamatan Dayeuhkolot, Kabupaten Bandung',
+    ],
+];
+$organizationSchemaJson = json_encode($organizationSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 $primaryNavItems = [
     'home' => ['label' => 'Beranda', 'href' => site_url('/')],
     'layanan' => ['label' => 'Layanan', 'href' => site_url('layanan')],
@@ -18,6 +68,7 @@ $secondaryNavItems = [
     'profil' => ['label' => 'Profil RW', 'href' => site_url('profil')],
     'pengurus' => ['label' => 'Pengurus', 'href' => site_url('pengurus')],
     'aspirasi' => ['label' => 'Aspirasi', 'href' => site_url('aspirasi')],
+    'kebijakan-privasi' => ['label' => 'Kebijakan Privasi', 'href' => site_url('kebijakan-privasi')],
 ];
 $navItems = $primaryNavItems + $secondaryNavItems;
 $popularServices = [
@@ -47,6 +98,7 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
   <meta property="og:description" content="<?= rw_esc($metaDescription) ?>">
   <meta property="og:url" content="<?= rw_esc($canonicalUrl) ?>">
   <meta property="og:image" content="<?= base_url('assets/logo-rw05.png') ?>">
+  <script type="application/ld+json"><?= $organizationSchemaJson ?></script>
   <meta name="theme-color" content="#12382a">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">

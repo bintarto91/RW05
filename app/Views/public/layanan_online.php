@@ -71,15 +71,8 @@ $oldSuratData = is_array($oldSuratData) ? $oldSuratData : [];
           <span class="letter-status-pill status-<?= rw_esc($lookupRow['status']) ?>"><?= rw_esc(surat_status_label($lookupRow['status'])) ?></span>
           <h2><?= rw_esc($lookupRow['jenis_surat']) ?></h2>
           <p><strong>Kode:</strong> <?= rw_esc($lookupRow['kode_pengajuan']) ?></p>
-          <p><strong>Pemohon:</strong> <?= rw_esc($lookupRow['nama']) ?>, RT <?= rw_esc($lookupRow['rt']) ?></p>
-          <?php foreach ($lookupStructuredEntries as $entry): ?>
-            <p><strong><?= rw_esc($entry['label']) ?>:</strong> <?= nl2br(rw_esc($entry['value'])) ?></p>
-          <?php endforeach; ?>
-          <?php if (! empty($lookupRow['nomor_surat'])): ?>
-            <p><strong>Nomor surat:</strong> <?= rw_esc($lookupRow['nomor_surat']) ?></p>
-          <?php endif; ?>
-          <?php if (! empty($lookupRow['catatan_admin'])): ?>
-            <p><strong>Catatan admin:</strong> <?= nl2br(rw_esc($lookupRow['catatan_admin'])) ?></p>
+          <?php if (! empty($lookupRow['created_at'])): ?>
+            <p><strong>Tanggal pengajuan:</strong> <?= rw_esc(format_date_id($lookupRow['created_at'])) ?></p>
           <?php endif; ?>
           <?php if ($canPrint): ?>
             <a href="<?= site_url('layanan-online/surat/' . rawurlencode($lookupRow['kode_pengajuan'])) ?>" class="btn primary full-button" target="_blank" rel="noopener noreferrer">Download PDF Surat</a>
@@ -146,6 +139,7 @@ $oldSuratData = is_array($oldSuratData) ? $oldSuratData : [];
       </div>
 
       <p class="form-note">Pengajuan akan masuk ke dashboard admin. Pengurus dapat mengubah status menjadi diproses, disetujui, ditolak, atau selesai.</p>
+      <p class="form-note">Data yang Anda kirim digunakan untuk memproses layanan RW 05 dan tidak ditampilkan kepada publik.</p>
       <button type="submit" class="btn primary full-button" <?= empty($tableReady) ? 'disabled' : '' ?>>Kirim Pengajuan</button>
     </form>
   </div>

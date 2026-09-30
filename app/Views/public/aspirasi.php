@@ -79,7 +79,7 @@
           <textarea name="pesan" rows="5" placeholder="Tulis pesan singkat dan jelas..." required><?= field_value('pesan') ?></textarea>
         </label>
       </div>
-      <p class="form-note">Pesan akan dibaca pengurus RW. Sertakan detail seperlunya agar tindak lanjut lebih cepat.</p>
+      <p class="form-note">Data yang Anda kirim digunakan untuk memproses layanan RW 05 dan tidak ditampilkan kepada publik. Pesan akan dibaca pengurus RW; sertakan detail seperlunya agar tindak lanjut lebih cepat.</p>
       <button type="submit" class="btn primary full-button">Kirim Aspirasi</button>
     </form>
   </div>

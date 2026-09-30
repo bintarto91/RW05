@@ -107,7 +107,8 @@ class PublicController extends BaseController
 
         return $this->renderPublic('public/kesehatan', [
             'currentPage' => 'kesehatan',
-            'pageTitle' => 'Kesehatan Warga',
+            'pageTitle' => 'Posyandu & Posbindu RW 05 Lamajang Peuntas',
+            'pageMetaDescription' => 'Informasi jadwal, sasaran, dan persiapan Posyandu serta Posbindu RW 05 Lamajang Peuntas.',
             'healthSchedules' => $healthSchedules,
         ]);
     }
@@ -168,6 +169,7 @@ class PublicController extends BaseController
         return $this->renderPublic('public/kesehatan_layanan', [
             'currentPage' => 'kesehatan',
             'pageTitle' => $services[$jenis]['title'],
+            'pageMetaDescription' => $services[$jenis]['description'] . ' Lihat informasi layanan RW 05 Lamajang Peuntas.',
             'serviceType' => $jenis,
             'service' => $services[$jenis],
             'healthSchedules' => $schedules,
@@ -197,7 +199,8 @@ class PublicController extends BaseController
 
         return $this->renderPublic('public/edukasi_kesehatan', [
             'currentPage' => 'kesehatan',
-            'pageTitle' => 'Edukasi Kesehatan',
+            'pageTitle' => 'Edukasi Kesehatan RW 05 Lamajang Peuntas',
+            'pageMetaDescription' => 'Materi edukasi kesehatan keluarga yang dipublikasikan untuk warga RW 05 Lamajang Peuntas.',
             'educationTopics' => $topics,
             'materialsByCategory' => $materialsByCategory,
         ]);
@@ -234,6 +237,7 @@ class PublicController extends BaseController
         return $this->renderPublic('public/edukasi_topik', [
             'currentPage' => 'kesehatan',
             'pageTitle' => $topics[$category]['title'],
+            'pageMetaDescription' => ($topics[$category]['description'] ?? 'Informasi kesehatan warga') . ' Materi untuk warga RW 05 Lamajang Peuntas.',
             'category' => $category,
             'topic' => $topics[$category],
             'materials' => $materials,
@@ -341,7 +345,9 @@ class PublicController extends BaseController
         }
 
         return $this->renderPublic('public/layanan_online', [
-                'currentPage' => 'layanan',
+            'currentPage' => 'layanan',
+            'pageTitle' => 'Pengajuan Surat Online RW 05 Lamajang Peuntas',
+            'pageMetaDescription' => 'Ajukan surat administrasi RW 05 Lamajang Peuntas secara online dan cek status menggunakan kode pengajuan serta verifikasi WhatsApp.',
             'suratTypes' => surat_type_options(),
             'tableReady' => $tableReady,
             'lookupCode' => $lookupCode,
@@ -558,6 +564,15 @@ class PublicController extends BaseController
             'currentPage' => 'aspirasi',
             'success' => (bool) session()->getFlashdata('aspirasi_success'),
             'error' => session()->getFlashdata('aspirasi_error') ?: '',
+        ]);
+    }
+
+    public function kebijakanPrivasi(): string
+    {
+        return $this->renderPublic('public/privasi', [
+            'currentPage' => 'kebijakan-privasi',
+            'pageTitle' => 'Kebijakan Privasi RW 05 Lamajang Peuntas',
+            'pageMetaDescription' => 'Penjelasan penggunaan, akses, penyimpanan, dan perlindungan data pada layanan publik RW 05 Lamajang Peuntas.',
         ]);
     }
 

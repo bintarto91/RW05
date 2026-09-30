@@ -20,6 +20,7 @@ $routes->get('kegiatan', 'PublicController::kegiatan');
 $routes->get('pengurus', 'PublicController::pengurus');
 $routes->get('aspirasi', 'PublicController::aspirasi');
 $routes->post('aspirasi', 'PublicController::submitAspirasi');
+$routes->get('kebijakan-privasi', 'PublicController::kebijakanPrivasi');
 
 $routes->get('admin/login', 'Admin\AuthController::login');
 $routes->post('admin/login', 'Admin\AuthController::attemptLogin');
