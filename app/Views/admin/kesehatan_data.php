@@ -24,7 +24,7 @@ if ($selectedParticipant) {
 } elseif (! in_array($activeStep, ['kegiatan', 'peserta', 'pemeriksaan'], true)) {
     $activeStep = 'kegiatan';
 }
-$workspaceUrl = static fn (string $tab): string => site_url('admin/kesehatan-data?jenis=' . rawurlencode($workspaceService) . '&jenis_kegiatan=' . rawurlencode($workspaceService) . '&tab=' . rawurlencode($tab) . '&tanggal_kegiatan=' . rawurlencode($activityDate));
+$workspaceUrl = static fn (string $tab): string => site_url('admin/kesehatan-data?jenis=' . rawurlencode($workspaceService) . '&jenis_kegiatan=' . rawurlencode($workspaceService) . '&tab=' . rawurlencode($tab) . '&tanggal_kegiatan=' . rawurlencode($activityDate) . ($filterSearch !== '' ? '&q=' . rawurlencode($filterSearch) : ''));
 $visitLifecycle = (string) ($selectedParticipant['kelompok_siklus'] ?? '');
 $yesNoUnknownOptions = ['belum_diperiksa' => 'Belum diperiksa', 'ya' => 'Ya', 'tidak' => 'Tidak', 'tidak_berlaku' => 'Tidak berlaku'];
 $visitDetailLabels = [
@@ -303,6 +303,26 @@ foreach ($attendanceParticipants as $dayParticipant) {
       <p class="muted">Gunakan tombol Isi hasil untuk mencatat pengukuran peserta.</p>
     </div>
   </div>
+  <form method="get" action="<?= site_url('admin/kesehatan-data') ?>" class="health-participant-filter">
+    <input type="hidden" name="jenis" value="<?= rw_esc($workspaceService) ?>">
+    <input type="hidden" name="jenis_kegiatan" value="<?= rw_esc($workspaceService) ?>">
+    <input type="hidden" name="tab" value="peserta">
+    <label class="health-search-field">Cari warga
+      <input type="search" name="q" value="<?= rw_esc($filterSearch) ?>" maxlength="80" placeholder="Nama, NIK, RT, atau nama wali">
+    </label>
+    <label>Kelompok usia
+      <select name="kelompok_siklus">
+        <option value="">Semua kelompok</option>
+        <?php foreach ($lifecycleOptions as $value => $label): ?>
+          <option value="<?= rw_esc($value) ?>" <?= is_selected($filterLifecycle, $value) ?>><?= rw_esc($label) ?></option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+    <div class="form-actions">
+      <button type="submit">Cari warga</button>
+      <a class="btn-light" href="<?= site_url('admin/kesehatan-data?jenis=' . rawurlencode($workspaceService) . '&jenis_kegiatan=' . rawurlencode($workspaceService) . '&tab=peserta') ?>">Reset</a>
+    </div>
+  </form>
   <div class="table-scroll health-mobile-table">
     <table>
       <thead><tr><th>Peserta</th><th>Siklus Hidup</th><th>Kontak Lingkungan</th><th>Status</th><th>Aksi</th></tr></thead>

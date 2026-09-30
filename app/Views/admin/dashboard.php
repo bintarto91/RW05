@@ -68,6 +68,7 @@
       <a href="<?= site_url('admin/warga') ?>"><strong>Input Warga</strong><span>Data keluarga ringkas</span></a>
       <a href="<?= site_url('admin/keuangan') ?>"><strong>Keuangan</strong><span>Kas RT dan pemasukan RW</span></a>
       <a href="<?= site_url('admin/aspirasi') ?>"><strong>Kelola Aspirasi</strong><span>Respon laporan warga</span></a>
+      <a href="<?= site_url('admin/kesehatan-dashboard') ?>"><strong>Kesehatan Warga</strong><span>Jadwal, peserta, dan tindak lanjut</span></a>
       <a href="<?= site_url('admin/import') ?>"><strong>Import Massal</strong><span>Upload data dari template CSV</span></a>
     </div>
   </section>

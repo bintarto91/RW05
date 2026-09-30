@@ -984,7 +984,12 @@ class PanelController extends BaseController
             $participantsBuilder->where('kelompok_siklus', $filterLifecycle);
         }
         if ($filterSearch !== '') {
-            $participantsBuilder->groupStart()->like('nama', $filterSearch)->orLike('nama_wali', $filterSearch)->groupEnd();
+            $participantsBuilder->groupStart()
+                ->like('nama', $filterSearch)
+                ->orLike('nama_wali', $filterSearch)
+                ->orLike('nik', $filterSearch)
+                ->orLike('rt', $filterSearch)
+                ->groupEnd();
         }
         $participants = $participantsBuilder->orderBy('status', 'ASC')->orderBy('nama', 'ASC')->get()->getResultArray();
         $attendanceBuilder = $db->table('kesehatan_peserta')

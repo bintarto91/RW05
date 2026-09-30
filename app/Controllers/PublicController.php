@@ -740,6 +740,43 @@ class PublicController extends BaseController
                 ->limit(8)
                 ->get()
                 ->getResultArray();
+            if ($db->tableExists('kesehatan_jadwal')) {
+                $healthActivities = $db->table('kesehatan_jadwal')
+                    ->where('status', 'aktif')
+                    ->where('tanggal >=', date('Y-m-d'))
+                    ->orderBy('tanggal', 'DESC')
+                    ->orderBy('id', 'DESC')
+                    ->limit(8)
+                    ->get()
+                    ->getResultArray();
+                foreach ($healthActivities as $healthActivity) {
+                    $jenisLabel = ($healthActivity['jenis'] ?? '') === 'posbindu' ? 'Posbindu' : 'Posyandu';
+                    $details = array_filter([
+                        trim((string) ($healthActivity['lokasi'] ?? '')),
+                        trim((string) ($healthActivity['waktu'] ?? '')),
+                        trim((string) ($healthActivity['penanggung_jawab'] ?? '')) !== ''
+                            ? 'Penanggung jawab: ' . trim((string) $healthActivity['penanggung_jawab'])
+                            : '',
+                        trim((string) ($healthActivity['deskripsi'] ?? '')),
+                    ]);
+                    $kegiatan[] = [
+                        'id' => 'health-' . (int) ($healthActivity['id'] ?? 0),
+                        'judul' => trim((string) ($healthActivity['judul'] ?? '')),
+                        'kategori' => $jenisLabel,
+                        'tanggal' => $healthActivity['tanggal'] ?? '',
+                        'isi' => implode(' · ', $details),
+                        'sumber' => 'kesehatan',
+                    ];
+                }
+                usort($kegiatan, static function (array $left, array $right): int {
+                    $dateComparison = strcmp((string) ($right['tanggal'] ?? ''), (string) ($left['tanggal'] ?? ''));
+
+                    return $dateComparison !== 0
+                        ? $dateComparison
+                        : ((int) ($right['id'] ?? 0) <=> (int) ($left['id'] ?? 0));
+                });
+                $kegiatan = array_slice($kegiatan, 0, 8);
+            }
             $kegiatan = array_map(static function (array $item): array {
                 $item['judul'] = rw_public_content_cleanup($item['judul'] ?? '');
                 $item['isi'] = rw_public_content_cleanup($item['isi'] ?? '');

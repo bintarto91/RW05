@@ -28,6 +28,7 @@
           <?php foreach ($kegiatan as $item): ?>
             <article class="news-item">
               <time><?= rw_esc(format_date_id($item['tanggal'])) ?></time>
+              <?php if (! empty($item['kategori'])): ?><span class="news-item-category<?= ($item['sumber'] ?? '') === 'kesehatan' ? ' is-health' : '' ?>"><?= rw_esc($item['kategori']) ?></span><?php endif; ?>
               <h3><?= rw_esc($item['judul']) ?></h3>
               <p><?= rw_esc($item['isi']) ?></p>
             </article>

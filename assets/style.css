@@ -3395,6 +3395,22 @@ section[id],
   border-color: #b8c8d9;
 }
 
+.news-item-category {
+  display: inline-flex;
+  margin-top: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: var(--green-900);
+  background: #e7f3ed;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.news-item-category.is-health {
+  color: #8a3d17;
+  background: #fff0e3;
+}
+
 .structure-frame {
   display: grid;
   gap: 14px;

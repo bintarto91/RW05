@@ -1100,6 +1100,28 @@ h2 {
 	border-color: #b8c8d9;
 }
 
+.health-participant-filter {
+	display: grid;
+	grid-template-columns: minmax(220px, 1.4fr) minmax(180px, 0.8fr) auto;
+	gap: 12px;
+	align-items: end;
+	margin-bottom: 18px;
+	padding: 14px;
+	border: 1px solid #dbe9e2;
+	border-radius: 14px;
+	background: #f7fbf9;
+}
+
+.health-participant-filter label {
+	display: grid;
+	gap: 6px;
+	font-weight: 700;
+}
+
+.health-participant-filter .form-actions {
+	margin: 0;
+}
+
 .copy-feedback {
 	font-size: 0.9rem;
 	font-weight: 700;
