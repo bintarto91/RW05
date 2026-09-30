@@ -3277,7 +3277,7 @@ section[id],
 }
 
 .org-diagram-row-core {
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .org-diagram-row-main {
@@ -3285,6 +3285,10 @@ section[id],
 }
 
 .org-diagram-row-support {
+  grid-template-columns: 1fr;
+}
+
+.org-diagram-row-unit {
   grid-template-columns: 1fr;
 }
 
@@ -3310,6 +3314,17 @@ section[id],
 
 .org-diagram-group .org-chart-nodes {
   align-items: stretch;
+}
+
+.org-diagram-empty {
+  display: block;
+  padding: 16px 10px;
+  border: 1px dashed #cbded6;
+  border-radius: 14px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.55);
+  font-size: 0.75rem;
+  text-align: center;
 }
 
 .org-diagram-group-ketua .org-chart-nodes,

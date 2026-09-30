@@ -2206,8 +2206,10 @@ if (! function_exists('pengurus_chart_groups')) {
             'pembina' => ['label' => 'Pembina', 'items' => []],
             'ketua' => ['label' => 'Ketua RW 05', 'items' => []],
             'penasihat' => ['label' => 'Penasihat', 'items' => []],
-            'inti' => ['label' => 'Sekretaris & Bendahara', 'items' => []],
+            'sekretaris' => ['label' => 'Sekretaris', 'items' => []],
+            'bendahara' => ['label' => 'Bendahara', 'items' => []],
             'wilayah' => ['label' => 'Koordinator Wilayah', 'items' => []],
+            'pelayanan' => ['label' => 'Unit Pelayanan Digital & Data Warga', 'items' => []],
             'bidang' => ['label' => 'Bidang Utama', 'items' => []],
             'unit' => ['label' => 'Unit Pelaksana', 'items' => []],
             'mitra' => ['label' => 'Mitra / Lembaga Pendukung RW', 'items' => []],
@@ -2226,14 +2228,18 @@ if (! function_exists('pengurus_chart_groups')) {
                 $key = 'penasihat';
             } elseif (preg_match('/^(wakil\s+)?ketua\s+rw\b/i', $jabatan)) {
                 $key = 'ketua';
-            } elseif (preg_match('/(sekretaris|bendahara)/i', $jabatan)) {
-                $key = 'inti';
-            } elseif ($rt !== '' || preg_match('/(ketua\s*rt|koordinator\s+wilayah)/i', $jabatan)) {
-                $key = 'wilayah';
-            } elseif (preg_match('/(unit|pkk|posyandu|posbindu)/i', $jabatan)) {
+            } elseif (preg_match('/sekretaris/i', $jabatan)) {
+                $key = 'sekretaris';
+            } elseif (preg_match('/bendahara/i', $jabatan)) {
+                $key = 'bendahara';
+            } elseif (preg_match('/(unit\s+pelayanan|pelayanan\s+data|operator|digital|data\s+warga)/i', $jabatan)) {
+                $key = 'pelayanan';
+            } elseif (preg_match('/(pkk|posyandu|posbindu|unit\s+pelaksana)/i', $jabatan)) {
                 $key = 'unit';
             } elseif (preg_match('/(mitra|karang\s+taruna|dkm|keagamaan|linmas|siskamling|lembaga\s+pendukung)/i', $jabatan)) {
                 $key = 'mitra';
+            } elseif ($rt !== '' || preg_match('/(ketua\s*rt|koordinator\s+wilayah)/i', $jabatan)) {
+                $key = 'wilayah';
             } else {
                 $key = 'bidang';
             }

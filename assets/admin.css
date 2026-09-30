@@ -1126,7 +1126,7 @@ h2 {
 }
 
 .admin-org-diagram-row-core {
-	grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+	grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .admin-org-diagram-row-main {
@@ -1134,6 +1134,10 @@ h2 {
 }
 
 .admin-org-diagram-row-support {
+	grid-template-columns: 1fr;
+}
+
+.admin-org-diagram-row-unit {
 	grid-template-columns: 1fr;
 }
 
@@ -1159,6 +1163,17 @@ h2 {
 
 .admin-org-diagram-group .org-chart-nodes {
 	align-items: stretch;
+}
+
+.admin-org-diagram-empty {
+	display: block;
+	padding: 14px 10px;
+	border: 1px dashed #cbded6;
+	border-radius: 14px;
+	color: var(--muted);
+	background: rgba(255, 255, 255, 0.55);
+	font-size: 0.72rem;
+	text-align: center;
 }
 
 .admin-org-diagram-group-ketua .org-chart-node {

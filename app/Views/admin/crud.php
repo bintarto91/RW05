@@ -88,14 +88,13 @@
       <a class="btn-light" href="<?= site_url('pengurus') ?>" target="_blank" rel="noopener noreferrer">Lihat Halaman Warga</a>
     </div>
     <?php if ($chartGroups): ?>
-      <?php $diagramRows = [['command', ['pembina', 'ketua', 'penasihat']], ['core', ['inti', 'wilayah']], ['main', ['unit', 'bidang']], ['support', ['mitra']]]; ?>
+      <?php $diagramRows = [['command', ['pembina', 'ketua', 'penasihat']], ['core', ['sekretaris', 'bendahara', 'wilayah']], ['main', ['pelayanan', 'bidang']], ['unit', ['unit']], ['support', ['mitra']]]; ?>
       <div class="org-chart admin-org-diagram" aria-label="Diagram kepengurusan RW 05">
         <?php foreach ($diagramRows as [$rowClass, $groupKeys]): ?>
           <div class="admin-org-diagram-row admin-org-diagram-row-<?= rw_esc($rowClass) ?>">
             <?php foreach ($groupKeys as $groupKey): ?>
-              <?php if (empty($chartGroups[$groupKey])): ?><?php continue; ?><?php endif; ?>
-              <?php $group = $chartGroups[$groupKey]; ?>
-              <section class="admin-org-diagram-group admin-org-diagram-group-<?= rw_esc($groupKey) ?>">
+              <?php $group = $chartGroups[$groupKey] ?? ['label' => ucfirst($groupKey), 'items' => []]; ?>
+              <section class="admin-org-diagram-group admin-org-diagram-group-<?= rw_esc($groupKey) ?><?= empty($group['items']) ? ' is-empty' : '' ?>">
                 <h3><?= rw_esc($group['label']) ?></h3>
                 <div class="org-chart-nodes">
                   <?php foreach ($group['items'] as $person): ?>
@@ -104,6 +103,7 @@
                       <div><strong><?= rw_esc($person['nama'] ?? '') ?></strong><small><?= rw_esc($person['jabatan'] ?? '') ?><?= ! empty($person['rt']) ? ' · RT ' . rw_esc($person['rt']) : '' ?></small></div>
                     </article>
                   <?php endforeach; ?>
+                  <?php if (empty($group['items'])): ?><span class="admin-org-diagram-empty">Belum diisi</span><?php endif; ?>
                 </div>
               </section>
             <?php endforeach; ?>
