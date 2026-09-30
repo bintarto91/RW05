@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Login Admin RW 05</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow,noarchive">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -40,10 +41,10 @@
       <?php if ($error): ?><div class="alert error"><?= rw_esc($error) ?></div><?php endif; ?>
 
       <label>Username
-        <input type="text" name="username" value="<?= field_value('username') ?>" required autofocus>
+        <input type="text" name="username" value="<?= field_value('username') ?>" maxlength="40" autocomplete="username" autocapitalize="none" spellcheck="false" required autofocus>
       </label>
       <label>Password
-        <input type="password" name="password" required>
+        <input type="password" name="password" maxlength="1024" autocomplete="current-password" required>
       </label>
       <button type="submit">Masuk ke Dashboard</button>
       <div class="login-register-callout">

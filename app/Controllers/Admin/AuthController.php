@@ -23,8 +23,11 @@ class AuthController extends BaseController
         $password = (string) $this->request->getPost('password');
         $clientIp = (string) $this->request->getIPAddress();
         $throttleKey = 'admin-login-' . hash('sha256', $clientIp . '|' . $username);
+        $ipThrottleKey = 'admin-login-ip-' . hash('sha256', $clientIp);
 
-        if (! service('throttler')->check($throttleKey, 5, 300)) {
+        if (strlen($password) > 1024
+            || ! service('throttler')->check($ipThrottleKey, 20, 300)
+            || ! service('throttler')->check($throttleKey, 5, 300)) {
             log_message('warning', 'Login admin dibatasi karena terlalu banyak percobaan. IP: {ip}, username: {username}', [
                 'ip' => $clientIp,
                 'username' => $username,
@@ -42,7 +45,6 @@ class AuthController extends BaseController
 
             $admin = $db->table('admin_users')
                 ->where('username', $username)
-                ->where('status', 'aktif')
                 ->limit(1)
                 ->get()
                 ->getRowArray();
@@ -54,7 +56,15 @@ class AuthController extends BaseController
                 ->with('login_error', 'Database belum dapat dijangkau. Periksa koneksi lokal lalu coba lagi.');
         }
 
-        if ($admin && password_verify($password, $admin['password_hash'])) {
+        $passwordHash = $admin['password_hash'] ?? '$2y$10$C6UzMDM.H6dfI/f/IKcEe.ogMWp7LhG9Q7xR7VqP6E4v4XQ1iJ2yK';
+        $passwordValid = password_verify($password, $passwordHash);
+
+        if ($admin && $passwordValid && ($admin['status'] ?? '') === 'aktif') {
+            if (password_needs_rehash((string) $admin['password_hash'], PASSWORD_DEFAULT)) {
+                $db->table('admin_users')->where('id', (int) $admin['id'])->update([
+                    'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+                ]);
+            }
             session()->regenerate(true);
             session()->set([
                 'admin_id' => (int) $admin['id'],
@@ -71,15 +81,8 @@ class AuthController extends BaseController
             return redirect()->to($this->landingUrl((string) ($admin['role'] ?? 'admin')));
         }
 
-        $pending = $db->table('admin_users')
-            ->select('id, password_hash, status')
-            ->where('username', $username)
-            ->whereIn('status', ['menunggu', 'nonaktif'])
-            ->limit(1)
-            ->get()
-            ->getRowArray();
-        if ($pending && password_verify($password, (string) $pending['password_hash'])) {
-            $message = ($pending['status'] ?? '') === 'menunggu'
+        if ($admin && $passwordValid && in_array(($admin['status'] ?? ''), ['menunggu', 'nonaktif'], true)) {
+            $message = ($admin['status'] ?? '') === 'menunggu'
                 ? 'Pendaftaran akun masih menunggu persetujuan Super Admin.'
                 : 'Akun ini sedang dinonaktifkan. Hubungi Super Admin.';
 

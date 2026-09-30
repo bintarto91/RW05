@@ -41,6 +41,7 @@ $notificationTotal = array_sum($notificationCounts);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow,noarchive">
   <title><?= rw_esc($currentLabel) ?> | Admin RW 05</title>
   <link rel="icon" type="image/svg+xml" href="<?= base_url('favicon.svg') ?>?v=rw05-20260706">
   <link rel="shortcut icon" href="<?= base_url('favicon.svg') ?>?v=rw05-20260706">

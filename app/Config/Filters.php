@@ -13,6 +13,7 @@ use CodeIgniter\Filters\PageCache;
 use CodeIgniter\Filters\PerformanceMetrics;
 use CodeIgniter\Filters\SecureHeaders;
 use App\Filters\AdminAuthFilter;
+use App\Filters\PrivateResponseFilter;
 use App\Filters\SuperAdminFilter;
 
 class Filters extends BaseFilters
@@ -37,6 +38,7 @@ class Filters extends BaseFilters
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
         'adminauth'     => AdminAuthFilter::class,
+        'private'       => PrivateResponseFilter::class,
         'superadmin'    => SuperAdminFilter::class,
     ];
 
@@ -111,5 +113,9 @@ class Filters extends BaseFilters
      *
      * @var array<string, array<string, list<string>>>
      */
-    public array $filters = [];
+    public array $filters = [
+        'private' => [
+            'after' => ['admin', 'admin/*'],
+        ],
+    ];
 }
