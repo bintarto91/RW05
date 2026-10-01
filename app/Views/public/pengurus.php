@@ -3,6 +3,11 @@
 <?= $this->section('content') ?>
 <?php
 $pengurusAktif = is_array($pengurus ?? null) ? $pengurus : [];
+$pengurusAktif = array_values(array_filter($pengurusAktif, static function (array $row): bool {
+    $jabatan = strtolower(trim((string) ($row['jabatan'] ?? '')));
+
+    return ! in_array($jabatan, ['pembina', 'penasihat', 'penasehat'], true);
+}));
 $chartGroups = pengurus_chart_groups($pengurusAktif);
 $uniquePeopleCount = pengurus_unique_people_count($pengurusAktif);
 $rtList = array_values(array_unique(array_filter(array_map(static fn (array $row): string => trim((string) ($row['rt'] ?? '')), $pengurusAktif))));
@@ -65,9 +70,7 @@ $summaryStats = [
           <?php endforeach; ?>
         </div>
         <div class="structure-path" aria-label="Urutan struktur organisasi">
-          <span>Pembina</span>
           <span>Ketua RW</span>
-          <span>Penasihat</span>
           <span>Sekretariat</span>
           <span>Koordinator Wilayah</span>
           <span>Bidang</span>

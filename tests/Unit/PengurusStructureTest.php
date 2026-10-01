@@ -73,8 +73,8 @@ final class PengurusStructureTest extends TestCase
         self::assertStringContainsString('Struktur / Komando', $component);
         self::assertStringContainsString('Koordinasi / Kemitraan', $component);
         self::assertStringNotContainsString('rw-org-card-icon', $component);
-        self::assertStringContainsString('rw-org-advisory-left', $component);
-        self::assertStringContainsString('rw-org-advisory-right', $component);
+        self::assertStringNotContainsString("['command', ['pembina', 'ketua', 'penasihat']]", $component);
+        self::assertStringContainsString("['command', ['ketua']]", $component);
         self::assertStringContainsString("\$groupKey === 'pelayanan'", $component);
         self::assertStringContainsString('rw-org-link-after-', $component);
         self::assertStringContainsString('branch-service', $component);

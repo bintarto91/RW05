@@ -729,15 +729,11 @@
 .rw-org-group-unit .rw-org-person,
 .rw-org-group-mitra .rw-org-person { min-width: 0; }
 
-.rw-org-advisory {
-  position: absolute;
-  z-index: 0;
-  top: 50%;
-  width: 10%;
-  border-top: 3px dashed var(--org-line);
+.rw-org-row-command { grid-template-columns: 1fr; }
+.rw-org-group-ketua {
+  width: min(46%, 680px);
+  margin: 0 auto;
 }
-.rw-org-advisory-left { left: 24.5%; }
-.rw-org-advisory-right { right: 24.5%; }
 
 .rw-org-main-trunk,
 .rw-org-link-after-command::before,
@@ -773,7 +769,7 @@
 
 @media (max-width: 680px) {
   .rw-org-diagram { gap: 10px; padding: 14px 10px; }
-  .rw-org-advisory { display: none; }
+  .rw-org-group-ketua { width: 100%; }
   .rw-org-card-body,
   .rw-org-group-bidang .rw-org-card-body,
   .rw-org-group-unit .rw-org-card-body,

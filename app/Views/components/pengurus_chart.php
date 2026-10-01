@@ -2,7 +2,7 @@
 $chartGroups = is_array($chartGroups ?? null) ? $chartGroups : [];
 $chartVariant = ($chartVariant ?? 'public') === 'admin' ? 'admin' : 'public';
 $diagramRows = [
-    ['command', ['pembina', 'ketua', 'penasihat']],
+    ['command', ['ketua']],
     ['core', ['sekretaris', 'bendahara', 'wilayah']],
     ['service', ['pelayanan']],
     ['bidang', ['bidang']],
@@ -52,10 +52,6 @@ $diagramRows = [
       <?php endforeach; ?>
       <?php if ($rowClass === 'service'): ?>
         <i class="rw-org-main-trunk" aria-hidden="true"></i>
-      <?php endif; ?>
-      <?php if ($rowClass === 'command'): ?>
-        <i class="rw-org-advisory rw-org-advisory-left" aria-hidden="true"></i>
-        <i class="rw-org-advisory rw-org-advisory-right" aria-hidden="true"></i>
       <?php endif; ?>
     </div>
     <?php if ($rowClass !== 'support'): ?>
