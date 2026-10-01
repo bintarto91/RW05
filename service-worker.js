@@ -1,8 +1,8 @@
-const CACHE_NAME = 'rw05-pwa-v23';
+const CACHE_NAME = 'rw05-pwa-v24';
 const APP_SHELL = [
   '/',
   '/assets/style.css?v=pwa-20261001-23',
-  '/assets/org-chart.css?v=official-poster-20261001-4',
+  '/assets/org-chart.css?v=compact-chart-20261001-5',
   '/assets/script.js?v=pwa-20261001-23',
   '/assets/logo-rw05.png',
   '/manifest.webmanifest'

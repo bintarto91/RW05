@@ -635,3 +635,129 @@
     border-left-style: dashed;
   }
 }
+
+/* Compact, text-first chart: keep the hierarchy readable without decorative icons. */
+.rw-org-diagram {
+  gap: 12px;
+  padding: 18px 16px 16px;
+  border-width: 3px;
+  border-radius: 18px;
+}
+
+.rw-org-official-head { padding-bottom: 2px; }
+.rw-org-official-head h2 { font-size: clamp(1.25rem, 2.6vw, 2.25rem); }
+.rw-org-official-head p { margin: 6px 0 3px; }
+.rw-org-official-head strong { font-size: clamp(.88rem, 1.55vw, 1.25rem); }
+
+.rw-org-row { gap: 16px; }
+.rw-org-group { gap: 7px; }
+.rw-org-group > h3 {
+  padding: 6px 16px;
+  border-width: 2px;
+  font-size: clamp(.68rem, 1vw, .86rem);
+}
+
+.rw-org-group-bidang > h3::before,
+.rw-org-group-bidang > h3::after,
+.rw-org-group-mitra > h3::before,
+.rw-org-group-mitra > h3::after { content: none; }
+
+.rw-org-cards { gap: 8px; }
+.rw-org-card {
+  border-width: 2px;
+  border-radius: 9px;
+  box-shadow: 0 3px 9px rgba(7, 28, 86, .06);
+}
+
+.rw-org-card-title {
+  padding: 7px 6px 3px;
+  font-size: clamp(.62rem, .88vw, .8rem);
+  line-height: 1.12;
+}
+
+.rw-org-card-body,
+.rw-org-group-wilayah .rw-org-card-body,
+.rw-org-group-bidang .rw-org-card-body,
+.rw-org-group-unit .rw-org-card-body,
+.rw-org-group-mitra .rw-org-card-body,
+.rw-org-group-ketua .rw-org-card-body {
+  display: block;
+  padding: 3px 7px 8px;
+}
+
+.rw-org-person {
+  gap: 1px;
+  padding: 4px 6px;
+  border-radius: 5px;
+}
+
+.rw-org-person strong,
+.rw-org-person > .rw-org-person-role,
+.rw-org-person-role { font-size: clamp(.6rem, .8vw, .76rem); }
+
+.rw-org-group-ketua .rw-org-card { border-width: 2px; }
+.rw-org-group-ketua .rw-org-card-title {
+  padding-top: 9px;
+  font-size: clamp(.9rem, 1.55vw, 1.35rem);
+}
+.rw-org-group-ketua .rw-org-person strong { font-size: clamp(.7rem, 1vw, .9rem); }
+.rw-org-group-wilayah .rw-org-person strong { padding: 3px 7px; }
+.rw-org-service-task {
+  margin: -1px 8px 7px;
+  font-size: clamp(.58rem, .74vw, .7rem);
+  line-height: 1.25;
+}
+.rw-org-group-bidang .rw-org-person,
+.rw-org-group-unit .rw-org-person,
+.rw-org-group-mitra .rw-org-person { min-width: 0; }
+
+.rw-org-advisory {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  width: 10%;
+  border-top: 3px dashed var(--org-line);
+}
+.rw-org-advisory-left { left: 24.5%; }
+.rw-org-advisory-right { right: 24.5%; }
+
+.rw-org-main-trunk,
+.rw-org-link-after-command::before,
+.rw-org-link-after-command .branch,
+.rw-org-link-after-core .branch,
+.rw-org-link-after-service::before,
+.rw-org-link-after-bidang::before,
+.rw-org-link-after-unit::before { border-left-width: 3px; }
+.rw-org-link-after-command::after { border-top-width: 3px; }
+
+.rw-org-link {
+  height: 24px;
+  margin: -12px 0;
+}
+.rw-org-link-after-command { height: 34px; margin: -12px 0; }
+.rw-org-link-after-command::before { height: 17px; }
+.rw-org-link-after-command::after { top: 16px; }
+.rw-org-link-after-command .branch { top: 16px; height: 18px; }
+.rw-org-link-after-core { height: 28px; margin: -12px 0; }
+.rw-org-link-after-core .branch { height: 28px; }
+.rw-org-link-after-service::before,
+.rw-org-link-after-bidang::before,
+.rw-org-link-after-unit::before { height: 24px; }
+
+.rw-org-legend {
+  gap: 6px 18px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: .68rem;
+}
+.rw-org-legend::before { padding: 4px 8px; }
+.rw-org-legend i { border-top-width: 3px; }
+
+@media (max-width: 680px) {
+  .rw-org-diagram { gap: 10px; padding: 14px 10px; }
+  .rw-org-advisory { display: none; }
+  .rw-org-card-body,
+  .rw-org-group-bidang .rw-org-card-body,
+  .rw-org-group-unit .rw-org-card-body,
+  .rw-org-group-mitra .rw-org-card-body { display: block; }
+}
