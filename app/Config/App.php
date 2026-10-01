@@ -16,7 +16,10 @@ class App extends BaseConfig
      *
      * E.g., http://example.com/
      */
-    public string $baseURL = 'http://localhost:8080/';
+    // Production-safe default. Local development overrides this value through
+    // the ignored .env file, so generated asset URLs never point visitors to
+    // their own localhost when a production .env is missing or incomplete.
+    public string $baseURL = 'https://rw05citeureup.my.id/';
 
     /**
      * Allowed Hostnames in the Site URL other than the hostname in the baseURL.

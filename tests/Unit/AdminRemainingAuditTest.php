@@ -47,6 +47,20 @@ final class AdminRemainingAuditTest extends TestCase
         self::assertStringNotContainsString("\$layananAktif . ' layanan aktif'", $controller);
     }
 
+    public function testProductionBaseUrlHasSafeHttpsDefault(): void
+    {
+        $config = file_get_contents($this->root . '/app/Config/App.php');
+        self::assertIsString($config);
+        self::assertStringContainsString(
+            "public string \$baseURL = 'https://rw05citeureup.my.id/';",
+            $config
+        );
+        self::assertStringNotContainsString(
+            "public string \$baseURL = 'http://localhost:8080/';",
+            $config
+        );
+    }
+
     public function testFinanceFiltersHaveExplicitLabels(): void
     {
         $view = file_get_contents($this->root . '/app/Views/admin/keuangan.php');
