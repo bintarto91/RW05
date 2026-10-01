@@ -1333,6 +1333,10 @@ h2 {
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.admin-org-chart-panel .rw-org-row-core {
+	align-items: stretch;
+}
+
 .admin-org-chart-panel .rw-org-row-service {
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -1368,6 +1372,17 @@ h2 {
 	top: -14px;
 	left: 50%;
 	height: 15px;
+	border-left: 2px solid var(--forest-soft);
+}
+
+.admin-org-chart-panel .rw-org-row-core .rw-org-group-sekretaris::after,
+.admin-org-chart-panel .rw-org-row-core .rw-org-group-bendahara::after {
+	content: "";
+	position: absolute;
+	z-index: -1;
+	top: 0;
+	bottom: -29px;
+	left: 50%;
 	border-left: 2px solid var(--forest-soft);
 }
 
@@ -1626,7 +1641,9 @@ h2 {
 
 	.admin-org-chart-panel .rw-org-row-core::after,
 	.admin-org-chart-panel .rw-org-row-service::after,
-	.admin-org-chart-panel .rw-org-row-core .rw-org-group::before {
+	.admin-org-chart-panel .rw-org-row-core .rw-org-group::before,
+	.admin-org-chart-panel .rw-org-row-core .rw-org-group-sekretaris::after,
+	.admin-org-chart-panel .rw-org-row-core .rw-org-group-bendahara::after {
 		display: none;
 	}
 }

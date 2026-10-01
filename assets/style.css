@@ -3495,6 +3495,10 @@ section[id],
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.rw-org-row-core {
+  align-items: stretch;
+}
+
 .rw-org-row-service {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -3530,6 +3534,17 @@ section[id],
   top: -15px;
   left: 50%;
   height: 16px;
+  border-left: 2px solid var(--green-800);
+}
+
+.rw-org-row-core .rw-org-group-sekretaris::after,
+.rw-org-row-core .rw-org-group-bendahara::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: -31px;
+  left: 50%;
   border-left: 2px solid var(--green-800);
 }
 
@@ -3797,7 +3812,9 @@ section[id],
 
   .rw-org-row-core::after,
   .rw-org-row-service::after,
-  .rw-org-row-core .rw-org-group::before {
+  .rw-org-row-core .rw-org-group::before,
+  .rw-org-row-core .rw-org-group-sekretaris::after,
+  .rw-org-row-core .rw-org-group-bendahara::after {
     display: none;
   }
 }
