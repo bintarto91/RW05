@@ -59,6 +59,12 @@ final class AdminRemainingAuditTest extends TestCase
             "public string \$baseURL = 'http://localhost:8080/';",
             $config
         );
+        self::assertStringContainsString("['rw05citeureup.my.id', 'www.rw05citeureup.my.id']", $config);
+        self::assertStringContainsString("\$this->baseURL = 'https://rw05citeureup.my.id/';", $config);
+
+        $deployment = file_get_contents($this->root . '/.cpanel.yml');
+        self::assertIsString($deployment);
+        self::assertStringContainsString("app.baseURL = 'https://rw05citeureup.my.id/'", $deployment);
     }
 
     public function testFinanceFiltersHaveExplicitLabels(): void

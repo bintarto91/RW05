@@ -21,6 +21,18 @@ class App extends BaseConfig
     // their own localhost when a production .env is missing or incomplete.
     public string $baseURL = 'https://rw05citeureup.my.id/';
 
+    public function __construct()
+    {
+        parent::__construct();
+
+        // Never allow a stale local .env value to leak into generated links on
+        // the official host. Local development remains free to use localhost.
+        $host = strtolower(explode(':', (string) ($_SERVER['HTTP_HOST'] ?? ''))[0]);
+        if (in_array($host, ['rw05citeureup.my.id', 'www.rw05citeureup.my.id'], true)) {
+            $this->baseURL = 'https://rw05citeureup.my.id/';
+        }
+    }
+
     /**
      * Allowed Hostnames in the Site URL other than the hostname in the baseURL.
      * If you want to accept multiple Hostnames, set this.
