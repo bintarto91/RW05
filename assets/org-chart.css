@@ -1,0 +1,490 @@
+/* RW 05 organization chart — poster layout based on the official reference. */
+:root {
+  --org-navy: #071c56;
+  --org-orange: #ff4f0b;
+  --org-cream: #fff0dc;
+  --org-line: #10245c;
+}
+
+.rw-org-diagram {
+  display: grid;
+  gap: 22px;
+  padding: 28px 24px 24px;
+  border: 4px double var(--org-orange);
+  border-radius: 28px;
+  color: var(--org-navy);
+  background: #fff;
+  box-shadow: 0 16px 36px rgba(7, 28, 86, .08);
+}
+
+.rw-org-official-head {
+  padding: 0 12px 8px;
+  border: 0;
+  color: var(--org-navy);
+  background: transparent;
+  box-shadow: none;
+  text-align: center;
+}
+
+.rw-org-official-head h2 {
+  margin: 0;
+  color: var(--org-navy);
+  font: 900 clamp(1.55rem, 3.3vw, 3rem)/1.05 "Arial Narrow", "Plus Jakarta Sans", sans-serif;
+  letter-spacing: -.025em;
+  text-transform: uppercase;
+}
+
+.rw-org-official-head p {
+  margin: 10px 0 5px;
+  color: var(--org-navy);
+  font-size: clamp(.76rem, 1.5vw, 1.15rem);
+  font-weight: 800;
+}
+
+.rw-org-official-head strong {
+  color: var(--org-orange);
+  font-size: clamp(1rem, 2vw, 1.65rem);
+  font-weight: 900;
+}
+
+.rw-org-row,
+.rw-org-group,
+.rw-org-cards,
+.rw-org-card {
+  min-width: 0;
+}
+
+.rw-org-row {
+  position: relative;
+  display: grid;
+  gap: 26px;
+  align-items: center;
+}
+
+.rw-org-row-command,
+.rw-org-row-core,
+.rw-org-row-service {
+  grid-template-columns: 1fr 1.55fr 1fr;
+}
+
+.rw-org-row-bidang,
+.rw-org-row-unit,
+.rw-org-row-support {
+  grid-template-columns: 1fr;
+}
+
+.rw-org-group {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 12px;
+}
+
+.rw-org-row-command .rw-org-group > h3,
+.rw-org-row-core .rw-org-group > h3,
+.rw-org-row-service .rw-org-group > h3 {
+  display: none;
+}
+
+.rw-org-group > h3 {
+  position: relative;
+  z-index: 4;
+  width: max-content;
+  max-width: 94%;
+  margin: 0 auto;
+  padding: 8px 28px;
+  border: 2px solid var(--org-orange);
+  border-radius: 8px;
+  color: #fff;
+  background: var(--org-navy);
+  box-shadow: none;
+  font: 900 clamp(.72rem, 1.2vw, 1rem)/1.1 "Arial Narrow", "Plus Jakarta Sans", sans-serif;
+  letter-spacing: .02em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.rw-org-group-bidang > h3::before,
+.rw-org-group-bidang > h3::after,
+.rw-org-group-mitra > h3::before,
+.rw-org-group-mitra > h3::after {
+  content: "✿";
+  position: absolute;
+  top: 50%;
+  color: var(--org-orange);
+  transform: translateY(-52%);
+}
+
+.rw-org-group-bidang > h3::before,
+.rw-org-group-mitra > h3::before { left: 10px; }
+.rw-org-group-bidang > h3::after,
+.rw-org-group-mitra > h3::after { right: 10px; }
+
+.rw-org-cards {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.rw-org-group-pembina .rw-org-cards,
+.rw-org-group-ketua .rw-org-cards,
+.rw-org-group-penasihat .rw-org-cards,
+.rw-org-group-sekretaris .rw-org-cards,
+.rw-org-group-bendahara .rw-org-cards,
+.rw-org-group-wilayah .rw-org-cards,
+.rw-org-group-pelayanan .rw-org-cards {
+  grid-template-columns: 1fr;
+}
+
+.rw-org-group-bidang .rw-org-cards {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.rw-org-group-unit {
+  width: 48%;
+  margin-left: 3%;
+}
+
+.rw-org-group-unit .rw-org-cards,
+.rw-org-group-mitra .rw-org-cards {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rw-org-card {
+  position: relative;
+  z-index: 2;
+  overflow: visible;
+  border: 2px solid var(--org-navy);
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 7px 16px rgba(7, 28, 86, .07);
+}
+
+.rw-org-card-title {
+  padding: 11px 8px 7px;
+  border: 0;
+  color: var(--org-navy);
+  background: transparent;
+  font: 900 clamp(.67rem, 1vw, .95rem)/1.15 "Arial Narrow", "Plus Jakarta Sans", sans-serif;
+  letter-spacing: -.01em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.rw-org-card-body {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 5px 11px 13px;
+}
+
+.rw-org-card-icon {
+  display: grid;
+  place-items: center;
+  color: var(--org-navy);
+}
+
+.rw-org-card-icon.is-accent { color: var(--org-orange); }
+
+.rw-org-card-icon svg {
+  width: 48px;
+  height: 48px;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3.2;
+}
+
+.rw-org-people {
+  display: grid;
+  gap: 6px;
+  padding: 0;
+}
+
+.rw-org-person {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 5px 8px;
+  border-radius: 7px;
+  background: var(--org-cream);
+  text-align: center;
+}
+
+.rw-org-person strong {
+  display: block;
+  color: var(--org-navy);
+  font-size: clamp(.64rem, .92vw, .84rem);
+  font-weight: 900;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.rw-org-person-role {
+  color: var(--org-navy);
+  font: 900 clamp(.64rem, .92vw, .84rem)/1.1 "Arial Narrow", "Plus Jakarta Sans", sans-serif;
+  text-transform: uppercase;
+}
+
+.rw-org-group-ketua .rw-org-card {
+  border: 3px solid var(--org-orange);
+  background: #fff;
+}
+
+.rw-org-group-ketua .rw-org-card-title {
+  padding-top: 18px;
+  font-size: clamp(1.15rem, 2.25vw, 2rem);
+}
+
+.rw-org-group-ketua .rw-org-card-body {
+  grid-template-columns: 78px minmax(0, 1fr);
+  padding: 4px 18px 18px;
+}
+
+.rw-org-group-ketua .rw-org-card-icon svg {
+  width: 70px;
+  height: 70px;
+  fill: var(--org-navy);
+  stroke-width: 2;
+}
+
+.rw-org-group-ketua .rw-org-person strong {
+  font-size: clamp(.78rem, 1.25vw, 1.05rem);
+}
+
+.rw-org-group-wilayah .rw-org-card-body {
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: start;
+}
+
+.rw-org-group-wilayah .rw-org-person {
+  border-bottom: 1px solid rgba(7, 28, 86, .25);
+  border-radius: 0;
+  background: transparent;
+}
+
+.rw-org-group-wilayah .rw-org-person strong {
+  width: fit-content;
+  margin: 2px auto 0;
+  padding: 4px 9px;
+  border-radius: 7px;
+  background: var(--org-cream);
+}
+
+.rw-org-group-pelayanan {
+  grid-column: 1;
+  width: 100%;
+}
+
+.rw-org-service-task {
+  margin: -2px 12px 9px;
+  color: var(--org-navy);
+  font-size: clamp(.62rem, .85vw, .78rem);
+  font-weight: 700;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.rw-org-group-bidang .rw-org-card-body,
+.rw-org-group-unit .rw-org-card-body,
+.rw-org-group-mitra .rw-org-card-body {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  padding: 5px 7px 12px;
+}
+
+.rw-org-group-bidang .rw-org-card-icon svg { width: 54px; height: 54px; }
+.rw-org-group-unit .rw-org-card-icon svg,
+.rw-org-group-mitra .rw-org-card-icon svg { width: 36px; height: 36px; }
+
+.rw-org-group-bidang .rw-org-person,
+.rw-org-group-unit .rw-org-person,
+.rw-org-group-mitra .rw-org-person {
+  min-width: 82%;
+}
+
+.rw-org-group-mitra .rw-org-card {
+  border-style: solid;
+}
+
+/* Organizational connectors. */
+.rw-org-row::before,
+.rw-org-row::after,
+.rw-org-group::before,
+.rw-org-group::after { pointer-events: none; }
+
+.rw-org-row-command::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  left: 12%;
+  width: 76%;
+  border-top: 2px dashed var(--org-line);
+}
+
+.rw-org-row-core::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: -12px;
+  left: 16.6%;
+  width: 66.8%;
+  border-top: 2px solid var(--org-line);
+}
+
+.rw-org-row-core::after {
+  content: "";
+  position: absolute;
+  top: -34px;
+  left: 50%;
+  height: 22px;
+  border-left: 2px solid var(--org-line);
+}
+
+.rw-org-row-core .rw-org-group::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  height: 12px;
+  border-left: 2px solid var(--org-line);
+}
+
+.rw-org-row-service::before {
+  content: "";
+  position: absolute;
+  top: -22px;
+  left: 16.65%;
+  height: 22px;
+  border-left: 2px solid var(--org-line);
+}
+
+.rw-org-row-bidang::before {
+  content: "";
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  height: 22px;
+  border-left: 2px solid var(--org-line);
+}
+
+.rw-org-group-bidang .rw-org-cards::before,
+.rw-org-group-unit .rw-org-cards::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 8.3%;
+  right: 8.3%;
+  border-top: 2px solid var(--org-line);
+}
+
+.rw-org-group-bidang .rw-org-card::before,
+.rw-org-group-unit .rw-org-card::before {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  height: 12px;
+  border-left: 2px solid var(--org-line);
+}
+
+.rw-org-row-unit::before {
+  content: "";
+  position: absolute;
+  top: -22px;
+  left: 27%;
+  height: 22px;
+  border-left: 2px solid var(--org-line);
+}
+
+.rw-org-row-support::before {
+  content: "";
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  height: 22px;
+  border-left: 2px dashed var(--org-line);
+}
+
+.rw-org-group-mitra .rw-org-cards::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 15%;
+  right: 15%;
+  border-top: 2px dashed var(--org-line);
+}
+
+.rw-org-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 24px;
+  width: min(610px, 100%);
+  margin: 0 auto;
+  padding: 12px 18px;
+  border: 2px solid var(--org-navy);
+  border-radius: 12px;
+  color: var(--org-navy);
+  background: #fff;
+  font-size: .75rem;
+  font-weight: 900;
+}
+
+.rw-org-legend::before {
+  content: "KETERANGAN:";
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: #fff;
+  background: var(--org-navy);
+}
+
+.rw-org-legend span { display: inline-flex; align-items: center; gap: 8px; }
+.rw-org-legend i { width: 42px; border-top: 2px solid var(--org-navy); }
+.rw-org-legend i.dashed { border-top-style: dashed; }
+
+@media (max-width: 900px) {
+  .rw-org-diagram { gap: 18px; padding: 20px 14px; border-radius: 20px; }
+  .rw-org-row-command,
+  .rw-org-row-core,
+  .rw-org-row-service { gap: 12px; }
+  .rw-org-group-bidang .rw-org-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .rw-org-group-bidang .rw-org-cards::before,
+  .rw-org-group-bidang .rw-org-card::before { display: none; }
+  .rw-org-group-unit { width: 70%; margin-left: 0; margin-right: auto; }
+  .rw-org-row-unit::before { left: 35%; }
+}
+
+@media (max-width: 680px) {
+  .rw-org-row-command,
+  .rw-org-row-core,
+  .rw-org-row-service { grid-template-columns: 1fr; }
+  .rw-org-row-command::before,
+  .rw-org-row-core::before,
+  .rw-org-row-core::after,
+  .rw-org-row-core .rw-org-group::before,
+  .rw-org-row-service::before,
+  .rw-org-row-bidang::before,
+  .rw-org-row-unit::before,
+  .rw-org-row-support::before { display: none; }
+  .rw-org-group-unit { width: 100%; }
+  .rw-org-group-bidang .rw-org-cards,
+  .rw-org-group-unit .rw-org-cards,
+  .rw-org-group-mitra .rw-org-cards { grid-template-columns: 1fr; }
+  .rw-org-group-unit .rw-org-cards::before,
+  .rw-org-group-unit .rw-org-card::before,
+  .rw-org-group-mitra .rw-org-cards::before { display: none; }
+  .rw-org-card-body { grid-template-columns: 58px minmax(0, 1fr); }
+  .rw-org-group-bidang .rw-org-card-body,
+  .rw-org-group-unit .rw-org-card-body,
+  .rw-org-group-mitra .rw-org-card-body { grid-template-columns: 58px minmax(0, 1fr); justify-items: stretch; }
+  .rw-org-group-bidang .rw-org-person,
+  .rw-org-group-unit .rw-org-person,
+  .rw-org-group-mitra .rw-org-person { min-width: 0; }
+  .rw-org-legend { align-items: stretch; flex-direction: column; }
+}

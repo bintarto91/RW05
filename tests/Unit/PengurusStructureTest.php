@@ -45,13 +45,19 @@ final class PengurusStructureTest extends TestCase
     {
         $adminView = file_get_contents($this->root . '/app/Views/admin/crud.php');
         $publicView = file_get_contents($this->root . '/app/Views/public/pengurus.php');
+        $adminLayout = file_get_contents($this->root . '/app/Views/layouts/admin.php');
+        $publicLayout = file_get_contents($this->root . '/app/Views/layouts/public.php');
         $controller = file_get_contents($this->root . '/app/Controllers/Admin/PanelController.php');
         self::assertIsString($adminView);
         self::assertIsString($publicView);
+        self::assertIsString($adminLayout);
+        self::assertIsString($publicLayout);
         self::assertIsString($controller);
 
         self::assertStringContainsString("view('components/pengurus_chart'", $adminView);
         self::assertStringContainsString("view('components/pengurus_chart'", $publicView);
+        self::assertStringContainsString("assets/org-chart.css", $adminLayout);
+        self::assertStringContainsString("assets/org-chart.css", $publicLayout);
         self::assertStringContainsString('pengurus_structure_role_options()', $controller);
         self::assertStringContainsString('Kelompok / Jabatan Struktur', $controller);
     }
@@ -64,9 +70,10 @@ final class PengurusStructureTest extends TestCase
         self::assertStringContainsString('Desa Citeureup', $component);
         self::assertStringContainsString('Kecamatan Dayeuhkolot', $component);
         self::assertStringContainsString('Kabupaten Bandung', $component);
-        self::assertStringContainsString('Periode 2026–2028', $component);
         self::assertStringContainsString('Struktur / Komando', $component);
         self::assertStringContainsString('Koordinasi / Kemitraan', $component);
+        self::assertStringContainsString('rw-org-card-icon', $component);
+        self::assertStringContainsString("\$groupKey === 'pelayanan'", $component);
     }
 
     public function testSummarySeparatesUniquePeopleFromRolePositions(): void

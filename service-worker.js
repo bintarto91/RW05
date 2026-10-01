@@ -1,13 +1,15 @@
-const CACHE_NAME = 'rw05-pwa-v19';
+const CACHE_NAME = 'rw05-pwa-v20';
 const APP_SHELL = [
   '/',
-  '/assets/style.css?v=pwa-20261001-19',
-  '/assets/script.js?v=pwa-20261001-19',
+  '/assets/style.css?v=pwa-20261001-20',
+  '/assets/org-chart.css?v=official-poster-20261001-1',
+  '/assets/script.js?v=pwa-20261001-20',
   '/assets/logo-rw05.png',
   '/manifest.webmanifest'
 ];
 const PUBLIC_CACHE_PATHS = new Set([
   '/assets/style.css',
+  '/assets/org-chart.css',
   '/assets/script.js',
   '/assets/logo-rw05.png',
   '/favicon.svg',
