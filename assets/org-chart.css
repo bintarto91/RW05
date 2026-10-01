@@ -650,6 +650,7 @@
 .rw-org-official-head strong { font-size: clamp(.88rem, 1.55vw, 1.25rem); }
 
 .rw-org-row { gap: 16px; }
+.rw-org-row-core { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .rw-org-group { gap: 7px; }
 .rw-org-group > h3 {
   padding: 6px 16px;
@@ -731,7 +732,7 @@
 
 .rw-org-row-command { grid-template-columns: 1fr; }
 .rw-org-group-ketua {
-  width: min(46%, 680px);
+  width: min(40%, 600px);
   margin: 0 auto;
 }
 
@@ -770,6 +771,7 @@
 @media (max-width: 680px) {
   .rw-org-diagram { gap: 10px; padding: 14px 10px; }
   .rw-org-group-ketua { width: 100%; }
+  .rw-org-row-core { grid-template-columns: 1fr; }
   .rw-org-card-body,
   .rw-org-group-bidang .rw-org-card-body,
   .rw-org-group-unit .rw-org-card-body,
