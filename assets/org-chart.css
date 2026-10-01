@@ -207,12 +207,24 @@
 
 .rw-org-person {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 2px;
   min-width: 0;
   padding: 5px 8px;
   border-radius: 7px;
   background: var(--org-cream);
   text-align: center;
+}
+
+.rw-org-person > .rw-org-person-role {
+  display: block;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  color: var(--org-navy);
+  background: transparent;
+  font-size: clamp(.64rem, .92vw, .84rem);
+  line-height: 1.1;
 }
 
 .rw-org-person strong {
