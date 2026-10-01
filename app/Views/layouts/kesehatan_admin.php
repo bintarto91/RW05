@@ -25,7 +25,7 @@ $adminIdentity = rw_site_identity();
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=org-panel-20260930-4">
+  <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=org-panel-20261001-5">
 </head>
 <body class="admin-body health-admin-body">
   <div class="admin-shell health-admin-shell">
