@@ -74,6 +74,9 @@ final class PengurusStructureTest extends TestCase
         self::assertStringContainsString('Koordinasi / Kemitraan', $component);
         self::assertStringContainsString('rw-org-card-icon', $component);
         self::assertStringContainsString("\$groupKey === 'pelayanan'", $component);
+        self::assertStringContainsString('rw-org-link-after-', $component);
+        self::assertStringContainsString('branch-service', $component);
+        self::assertStringContainsString('branch-main', $component);
     }
 
     public function testSummarySeparatesUniquePeopleFromRolePositions(): void

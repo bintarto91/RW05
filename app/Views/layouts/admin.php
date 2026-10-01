@@ -50,7 +50,7 @@ $adminIdentity = rw_site_identity();
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="<?= base_url('assets/admin.css') ?>?v=org-panel-20261001-7">
-  <link rel="stylesheet" href="<?= base_url('assets/org-chart.css') ?>?v=official-poster-20261001-2">
+  <link rel="stylesheet" href="<?= base_url('assets/org-chart.css') ?>?v=official-poster-20261001-3">
 </head>
 <body class="admin-body">
   <div class="admin-shell">

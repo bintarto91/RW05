@@ -97,6 +97,18 @@ $iconFor = static function (string $groupKey, string $title = ''): string {
         </section>
       <?php endforeach; ?>
     </div>
+    <?php if ($rowClass !== 'support'): ?>
+      <div class="rw-org-link rw-org-link-after-<?= rw_esc($rowClass) ?>" aria-hidden="true">
+        <?php if ($rowClass === 'command'): ?>
+          <i class="branch branch-left"></i>
+          <i class="branch branch-center"></i>
+          <i class="branch branch-right"></i>
+        <?php elseif ($rowClass === 'core'): ?>
+          <i class="branch branch-service"></i>
+          <i class="branch branch-main"></i>
+        <?php endif; ?>
+      </div>
+    <?php endif; ?>
   <?php endforeach; ?>
   <div class="rw-org-legend" aria-label="Keterangan garis diagram">
     <span><i class="solid"></i> Struktur / Komando</span>
