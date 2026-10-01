@@ -41,16 +41,6 @@ $diagramRows = [
                     </div>
                   <?php endforeach; ?>
                 </div>
-                <?php if ($card['task'] !== ''): ?>
-                  <?php $taskLines = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) $card['task']) ?: []))); ?>
-                  <div class="rw-org-task"><b>Tugas:</b>
-                    <?php if (count($taskLines) > 1): ?>
-                      <ul><?php foreach ($taskLines as $taskLine): ?><li><?= rw_esc($taskLine) ?></li><?php endforeach; ?></ul>
-                    <?php else: ?>
-                      <p><?= rw_esc($taskLines[0] ?? $card['task']) ?></p>
-                    <?php endif; ?>
-                  </div>
-                <?php endif; ?>
               </article>
             <?php endforeach; ?>
             <?php if ($cards === []): ?><span class="rw-org-empty">Belum diisi</span><?php endif; ?>
