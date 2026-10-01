@@ -53,16 +53,21 @@ $diagramRows = [
       <?php if ($rowClass === 'service'): ?>
         <i class="rw-org-main-trunk" aria-hidden="true"></i>
       <?php endif; ?>
+      <?php if ($rowClass === 'core'): ?>
+        <i class="rw-org-core-main-trunk" aria-hidden="true"></i>
+      <?php endif; ?>
     </div>
     <?php if ($rowClass !== 'support'): ?>
       <div class="rw-org-link rw-org-link-after-<?= rw_esc($rowClass) ?>" aria-hidden="true">
         <?php if ($rowClass === 'command'): ?>
           <i class="branch branch-left"></i>
           <i class="branch branch-center"></i>
+          <i class="branch branch-direct"></i>
           <i class="branch branch-right"></i>
         <?php elseif ($rowClass === 'core'): ?>
           <i class="branch branch-service"></i>
-          <i class="branch branch-main"></i>
+        <?php elseif ($rowClass === 'service'): ?>
+          <i class="branch branch-center"></i>
         <?php endif; ?>
       </div>
     <?php endif; ?>
