@@ -96,6 +96,9 @@ $iconFor = static function (string $groupKey, string $title = ''): string {
           </div>
         </section>
       <?php endforeach; ?>
+      <?php if ($rowClass === 'service'): ?>
+        <i class="rw-org-main-trunk" aria-hidden="true"></i>
+      <?php endif; ?>
     </div>
     <?php if ($rowClass !== 'support'): ?>
       <div class="rw-org-link rw-org-link-after-<?= rw_esc($rowClass) ?>" aria-hidden="true">

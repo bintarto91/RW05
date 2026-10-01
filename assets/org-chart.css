@@ -521,6 +521,15 @@
   height: 100%;
 }
 
+.rw-org-main-trunk {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  border-left: 2px solid var(--org-line);
+}
+
 .rw-org-link {
   position: relative;
   z-index: 0;
@@ -597,6 +606,8 @@
 }
 
 @media (max-width: 680px) {
+  .rw-org-main-trunk { display: none; }
+
   .rw-org-link {
     height: 22px;
     margin: -18px 0;

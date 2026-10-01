@@ -77,6 +77,7 @@ final class PengurusStructureTest extends TestCase
         self::assertStringContainsString('rw-org-link-after-', $component);
         self::assertStringContainsString('branch-service', $component);
         self::assertStringContainsString('branch-main', $component);
+        self::assertStringContainsString('rw-org-main-trunk', $component);
     }
 
     public function testSummarySeparatesUniquePeopleFromRolePositions(): void
