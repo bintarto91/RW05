@@ -702,6 +702,24 @@
 }
 .rw-org-group-ketua .rw-org-person strong { font-size: clamp(.7rem, 1vw, .9rem); }
 .rw-org-group-wilayah .rw-org-person strong { padding: 3px 7px; }
+.rw-org-group-wilayah .rw-org-people,
+.rw-org-group-penasihat .rw-org-people {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+.rw-org-group-wilayah .rw-org-person,
+.rw-org-group-penasihat .rw-org-person {
+  align-content: center;
+  border: 0;
+  border-radius: 5px;
+  background: var(--org-cream);
+}
+.rw-org-group-wilayah .rw-org-person strong {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
 .rw-org-service-task {
   margin: -1px 8px 7px;
   font-size: clamp(.58rem, .74vw, .7rem);
@@ -760,4 +778,6 @@
   .rw-org-group-bidang .rw-org-card-body,
   .rw-org-group-unit .rw-org-card-body,
   .rw-org-group-mitra .rw-org-card-body { display: block; }
+  .rw-org-group-wilayah .rw-org-people,
+  .rw-org-group-penasihat .rw-org-people { grid-template-columns: 1fr; }
 }
