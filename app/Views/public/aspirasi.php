@@ -85,12 +85,18 @@
         <div class="alert error"><?= rw_esc($error) ?></div>
       <?php endif; ?>
       <div class="form-grid">
-        <div class="full anonim-option-box">
-          <label class="checkbox-container">
+        <div class="full anonim-toggle-card">
+          <div class="anonim-toggle-info">
+            <span class="anonim-badge-icon" aria-hidden="true">🛡️</span>
+            <div>
+              <strong>Kirim sebagai Warga Anonim</strong>
+              <small>Nama & kontak dirahasiakan, namun kode tiket pelacakan tetap diterbitkan.</small>
+            </div>
+          </div>
+          <label class="toggle-switch" for="isAnonimCheckbox" title="Aktifkan mode anonim">
             <input type="checkbox" name="is_anonim" id="isAnonimCheckbox" value="1">
-            <span><strong>Kirim sebagai Warga Anonim</strong> (Rahasiakan identitas saya)</span>
+            <span class="toggle-slider"></span>
           </label>
-          <small class="form-help-text">Jika dicentang, nama Anda otomatis dicatat sebagai <em>'Warga RW 05 (Anonim)'</em> dan nomor HP tidak wajib diisi.</small>
         </div>
         <label id="labelNama">Nama
           <input type="text" name="nama" id="aspirasiNamaInput" placeholder="Nama warga" value="<?= field_value('nama') ?>" required>

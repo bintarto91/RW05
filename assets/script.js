@@ -261,6 +261,10 @@ const aspirasiNoHpInput = document.getElementById('aspirasiNoHpInput');
 
 if (isAnonimCheckbox && aspirasiNamaInput) {
 	isAnonimCheckbox.addEventListener('change', () => {
+		const toggleCard = document.querySelector('.anonim-toggle-card');
+		if (toggleCard) {
+			toggleCard.classList.toggle('is-active', isAnonimCheckbox.checked);
+		}
 		if (isAnonimCheckbox.checked) {
 			aspirasiNamaInput.dataset.originalVal = aspirasiNamaInput.value;
 			aspirasiNamaInput.value = 'Warga RW 05 (Anonim)';

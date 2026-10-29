@@ -6830,43 +6830,148 @@ textarea:focus {
   color: var(--muted);
 }
 
-/* Opsi Anonim pada Form Aspirasi */
-.anonim-option-box {
-  padding: 12px 14px;
-  border-radius: 8px;
-  background: var(--soft-green);
-  border: 1px solid #cce8dd;
-  margin-bottom: 6px;
+/* Ensure any .full in .form-grid spans across both columns */
+.form-grid .full,
+.form-grid div.full,
+.form-grid label.full {
+  grid-column: 1 / -1 !important;
+  width: 100% !important;
 }
 
-.checkbox-container {
-  display: inline-flex;
+/* Reset generic input styling for checkbox and radio */
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+/* Sleek Anonim Toggle Card */
+.anonim-toggle-card {
+  display: flex !important;
   align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  color: var(--green-900);
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f4f9f6 0%, #edf6f1 100%);
+  border: 1px solid #c8e5d6;
+  transition: all 0.25s ease;
+  grid-column: 1 / -1 !important;
+  box-sizing: border-box;
+  margin-bottom: 4px;
 }
 
-.checkbox-container input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--green-800);
-  cursor: pointer;
+.anonim-toggle-card:hover {
+  border-color: var(--green-800);
 }
 
-.form-help-text {
+.anonim-toggle-card.is-active {
+  background: linear-gradient(135deg, #e7f5ee 0%, #dcf0e6 100%);
+  border-color: var(--green-800);
+  box-shadow: 0 4px 14px rgba(17, 100, 83, 0.12);
+}
+
+.anonim-toggle-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.anonim-badge-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #d4e8de;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(8, 47, 42, 0.06);
+}
+
+.anonim-toggle-info strong {
   display: block;
-  margin-top: 4px;
+  font-size: 0.96rem;
+  color: var(--green-900);
+  line-height: 1.25;
+}
+
+.anonim-toggle-info small {
+  display: block;
+  margin-top: 3px;
   font-size: 0.82rem;
   color: var(--muted);
   line-height: 1.35;
+}
+
+/* Custom Modern Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block !important;
+  width: 50px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  flex-shrink: 0;
+  cursor: pointer;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.toggle-switch input[type="checkbox"] {
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: absolute;
+  pointer-events: none;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e1;
+  transition: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 28px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #ffffff;
+  transition: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: var(--green-800);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(22px);
 }
 
 .input-muted {
   background-color: #f2f5f4 !important;
   color: #556660 !important;
   cursor: not-allowed;
+  opacity: 0.85;
 }
 
 /* Tombol Simpan ke Google Calendar */
