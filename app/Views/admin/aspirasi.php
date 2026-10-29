@@ -13,16 +13,47 @@
     </label>
     <div class="form-actions"><button type="submit">Cari</button><a class="btn-light" href="<?= site_url('admin/aspirasi') ?>">Reset</a></div>
   </form>
+  <div class="admin-quick-filter-pills" id="aspirasiFilterPills">
+    <button type="button" class="filter-pill is-active" data-filter="all">Semua (<?= count($rows) ?>)</button>
+    <button type="button" class="filter-pill" data-filter="baru"><span class="status-dot status-baru"></span> Diterima</button>
+    <button type="button" class="filter-pill" data-filter="diverifikasi"><span class="status-dot status-diverifikasi"></span> Diverifikasi</button>
+    <button type="button" class="filter-pill" data-filter="diproses"><span class="status-dot status-diproses"></span> Diproses</button>
+    <button type="button" class="filter-pill" data-filter="selesai"><span class="status-dot status-selesai"></span> Selesai</button>
+    <button type="button" class="filter-pill" data-filter="ditolak"><span class="status-dot status-ditolak"></span> Ditolak</button>
+  </div>
   <table>
     <thead>
       <tr><th>Tanggal</th><th>Nama</th><th>Kontak</th><th>Kategori</th><th>Pesan</th><th>Status</th><th>Aksi</th></tr>
     </thead>
     <tbody>
     <?php foreach ($rows as $row): ?>
-      <tr>
+      <tr data-row-status="<?= rw_esc($row['status']) ?>">
         <td><?= rw_esc(date('d/m/Y H:i', strtotime($row['created_at']))) ?></td>
-        <td><?= rw_esc($row['nama']) ?><br><small>RT <?= rw_esc($row['rt']) ?></small></td>
-        <td><?= rw_esc($row['no_hp']) ?></td>
+        <td>
+          <strong><?= rw_esc($row['nama']) ?></strong><br>
+          <small>RT <?= rw_esc($row['rt']) ?></small>
+          <?php if (! empty($row['kode_tiket'])): ?>
+            <br><small class="muted"><?= rw_esc($row['kode_tiket']) ?></small>
+          <?php endif; ?>
+        </td>
+        <td>
+          <?= rw_esc($row['no_hp'] ?: '-') ?>
+          <?php
+          $cleanPhone = preg_replace('/[^0-9]/', '', (string) $row['no_hp']);
+          if (str_starts_with($cleanPhone, '0')) {
+              $cleanPhone = '62' . substr($cleanPhone, 1);
+          }
+          if (! empty($cleanPhone)):
+              $waAspirasiMsg = rawurlencode("Halo Bapak/Ibu " . ($row['nama'] ?? '') . ", mengenai aspirasi yang Anda sampaikan ke RW 05...");
+          ?>
+            <br>
+            <a href="https://wa.me/<?= rw_esc($cleanPhone) ?>?text=<?= rw_esc($waAspirasiMsg) ?>" class="btn-wa-sm" target="_blank" rel="noopener noreferrer" title="Chat pelapor via WhatsApp">
+              <span>💬 Chat WA</span>
+            </a>
+          <?php elseif (str_contains((string) ($row['nama'] ?? ''), 'Anonim')): ?>
+            <br><span class="badge status-anonim">Anonim</span>
+          <?php endif; ?>
+        </td>
         <td><?= rw_esc($row['kategori']) ?></td>
         <td><?= nl2br(rw_esc($row['pesan'])) ?></td>
         <td>
@@ -58,4 +89,20 @@
     </tbody>
   </table>
 </section>
+<script>
+(() => {
+  const pills = document.querySelectorAll('#aspirasiFilterPills .filter-pill');
+  const rows = document.querySelectorAll('tbody tr[data-row-status]');
+  pills.forEach((pill) => {
+    pill.addEventListener('click', () => {
+      pills.forEach((p) => p.classList.remove('is-active'));
+      pill.classList.add('is-active');
+      const filter = pill.getAttribute('data-filter');
+      rows.forEach((tr) => {
+        tr.style.display = (filter === 'all' || tr.getAttribute('data-row-status') === filter) ? '' : 'none';
+      });
+    });
+  });
+})();
+</script>
 <?= $this->endSection() ?>

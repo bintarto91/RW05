@@ -39,6 +39,16 @@
     </label>
     <div class="form-actions"><button type="submit">Cari</button><a class="btn-light" href="<?= site_url('admin/pengajuan-surat') ?>">Reset</a></div>
   </form>
+  <div class="admin-quick-filter-pills" id="suratFilterPills">
+    <button type="button" class="filter-pill is-active" data-filter="all">Semua (<?= count($rows) ?>)</button>
+    <?php foreach ($statusOptions as $status => $label): ?>
+      <?php $cnt = (int) ($statusCounts[$status] ?? 0); ?>
+      <button type="button" class="filter-pill" data-filter="<?= rw_esc($status) ?>">
+        <span class="status-dot status-<?= rw_esc($status) ?>"></span>
+        <?= rw_esc($label) ?> (<?= $cnt ?>)
+      </button>
+    <?php endforeach; ?>
+  </div>
   <table>
     <thead>
       <tr>
@@ -54,13 +64,26 @@
     <tbody>
       <?php foreach ($rows as $row): ?>
         <?php $structuredEntries = surat_request_data_entries($row['jenis_surat'] ?? '', $row['detail_json'] ?? ''); ?>
-        <tr>
+        <tr data-row-status="<?= rw_esc($row['status']) ?>">
           <td><?= rw_esc(date('d/m/Y H:i', strtotime($row['created_at']))) ?></td>
           <td><strong><?= rw_esc($row['kode_pengajuan']) ?></strong></td>
           <td>
-            <?= rw_esc($row['nama']) ?><br>
-            <small>RT <?= rw_esc($row['rt']) ?> | <?= rw_esc($row['no_hp']) ?></small><br>
-            <small><?= rw_esc($row['alamat']) ?></small>
+            <strong><?= rw_esc($row['nama']) ?></strong><br>
+            <small>RT <?= rw_esc($row['rt']) ?> | <?= rw_esc($row['no_hp']) ?></small>
+            <?php
+            $cleanPhone = preg_replace('/[^0-9]/', '', (string) $row['no_hp']);
+            if (str_starts_with($cleanPhone, '0')) {
+                $cleanPhone = '62' . substr($cleanPhone, 1);
+            }
+            if (! empty($cleanPhone)):
+                $waMsg = rawurlencode("Halo Bapak/Ibu " . ($row['nama'] ?? '') . ", mengenai pengajuan surat " . ($row['jenis_surat'] ?? '') . " (Kode: " . ($row['kode_pengajuan'] ?? '') . ") di RW 05...");
+            ?>
+              <br>
+              <a href="https://wa.me/<?= rw_esc($cleanPhone) ?>?text=<?= rw_esc($waMsg) ?>" class="btn-wa-sm" target="_blank" rel="noopener noreferrer" title="Chat pemohon via WhatsApp">
+                <span>💬 Chat WA</span>
+              </a>
+            <?php endif; ?>
+            <br><small><?= rw_esc($row['alamat']) ?></small>
           </td>
           <td>
             <strong><?= rw_esc($row['jenis_surat']) ?></strong><br>
@@ -115,4 +138,20 @@
     </tbody>
   </table>
 </section>
+<script>
+(() => {
+  const pills = document.querySelectorAll('#suratFilterPills .filter-pill');
+  const rows = document.querySelectorAll('tbody tr[data-row-status]');
+  pills.forEach((pill) => {
+    pill.addEventListener('click', () => {
+      pills.forEach((p) => p.classList.remove('is-active'));
+      pill.classList.add('is-active');
+      const filter = pill.getAttribute('data-filter');
+      rows.forEach((tr) => {
+        tr.style.display = (filter === 'all' || tr.getAttribute('data-row-status') === filter) ? '' : 'none';
+      });
+    });
+  });
+})();
+</script>
 <?= $this->endSection() ?>
