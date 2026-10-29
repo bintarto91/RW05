@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rw05-pwa-v29';
+const CACHE_NAME = 'rw05-pwa-v30';
 const APP_SHELL = [
   '/',
   '/assets/style.css?v=pwa-20261001-23',

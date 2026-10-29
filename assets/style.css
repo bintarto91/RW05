@@ -6616,3 +6616,281 @@ textarea:focus {
     min-height: 0;
   }
 }
+
+
+/* ==========================================================================
+   Fitur Ekstensi Warga: PWA Install Prompt, Copy Tiket, Mode Anonim, Kalender
+   ========================================================================== */
+
+/* PWA Install Banner */
+.pwa-install-banner {
+  position: fixed;
+  bottom: 74px;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  padding: 10px 16px;
+  animation: slideUpPwa 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpPwa {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pwa-install-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 12px 18px;
+  border: 1px solid rgba(17, 100, 83, 0.2);
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(8, 47, 42, 0.16);
+}
+
+.pwa-install-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.pwa-install-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 9px;
+  flex-shrink: 0;
+  object-fit: contain;
+  background: var(--soft-green);
+  padding: 2px;
+}
+
+.pwa-install-text {
+  min-width: 0;
+}
+
+.pwa-install-text strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--green-900);
+  line-height: 1.25;
+}
+
+.pwa-install-text p {
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+.pwa-install-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.pwa-install-actions .btn-sm {
+  min-height: 38px;
+  padding: 6px 16px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  border-radius: 8px;
+}
+
+.btn-dismiss {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-dismiss:hover {
+  background: #f1f5f3;
+  color: var(--ink);
+}
+
+@media (min-width: 901px) {
+  .pwa-install-banner {
+    bottom: 24px;
+  }
+}
+
+@media (max-width: 580px) {
+  .pwa-install-text p {
+    display: none;
+  }
+}
+
+/* Kotak Aksi Tiket & Salin */
+.ticket-action-box {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px dashed rgba(17, 100, 83, 0.35);
+}
+
+.ticket-label {
+  display: block;
+  font-size: 0.88rem;
+  color: var(--green-900);
+  margin-bottom: 6px;
+}
+
+.ticket-copy-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.ticket-code {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  font-family: monospace, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--green-900);
+  letter-spacing: 0.5px;
+}
+
+.btn-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--green-800);
+  background: #ffffff;
+  color: var(--green-800);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-copy:hover {
+  background: var(--soft-green);
+}
+
+.btn-copy.is-copied {
+  background: var(--green-800);
+  color: #ffffff;
+  border-color: var(--green-800);
+}
+
+.btn-wa-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: #25d366;
+  color: #ffffff !important;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.btn-wa-confirm:hover {
+  background: #1eb956;
+  transform: translateY(-1px);
+}
+
+.ticket-note {
+  margin: 6px 0 8px;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+/* Opsi Anonim pada Form Aspirasi */
+.anonim-option-box {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--soft-green);
+  border: 1px solid #cce8dd;
+  margin-bottom: 6px;
+}
+
+.checkbox-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--green-900);
+}
+
+.checkbox-container input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--green-800);
+  cursor: pointer;
+}
+
+.form-help-text {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.input-muted {
+  background-color: #f2f5f4 !important;
+  color: #556660 !important;
+  cursor: not-allowed;
+}
+
+/* Tombol Simpan ke Google Calendar */
+.btn-calendar-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  color: var(--blue-700);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-calendar-add:hover {
+  border-color: var(--blue-700);
+  background: var(--soft-blue);
+}
+
+.calendar-action-row {
+  margin-top: 8px;
+}

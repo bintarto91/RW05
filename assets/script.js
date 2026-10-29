@@ -165,6 +165,117 @@ if (serviceSearchClear && serviceSearch) {
 if (window.location.hash) {
 	const hashTarget = document.querySelector(window.location.hash);
 	if (hashTarget instanceof HTMLDetailsElement) {
-		hashTarget.open = true;
+			hashTarget.open = true;
 	}
+}
+
+
+// PWA Install Prompt handling
+let deferredPrompt = null;
+const pwaBanner = document.getElementById('pwaInstallBanner');
+const pwaInstallBtn = document.getElementById('pwaInstallBtn');
+const pwaDismissBtn = document.getElementById('pwaDismissBtn');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+	e.preventDefault();
+	deferredPrompt = e;
+
+	const dismissedAt = localStorage.getItem('pwa_dismissed');
+	const now = Date.now();
+	if (dismissedAt && (now - Number(dismissedAt)) < 7 * 24 * 60 * 60 * 1000) {
+		return;
+	}
+
+	if (pwaBanner) {
+		pwaBanner.hidden = false;
+	}
+});
+
+if (pwaInstallBtn) {
+	pwaInstallBtn.addEventListener('click', async () => {
+		if (!deferredPrompt) return;
+		pwaInstallBtn.disabled = true;
+		await deferredPrompt.prompt();
+		const { outcome } = await deferredPrompt.userChoice;
+		if (outcome === 'accepted' && pwaBanner) {
+			pwaBanner.hidden = true;
+		}
+		deferredPrompt = null;
+		pwaInstallBtn.disabled = false;
+	});
+}
+
+if (pwaDismissBtn && pwaBanner) {
+	pwaDismissBtn.addEventListener('click', () => {
+		pwaBanner.hidden = true;
+		localStorage.setItem('pwa_dismissed', String(Date.now()));
+	});
+}
+
+window.addEventListener('appinstalled', () => {
+	if (pwaBanner) pwaBanner.hidden = true;
+	deferredPrompt = null;
+});
+
+// Copy to Clipboard Utility
+document.querySelectorAll('[data-copy-target]').forEach((btn) => {
+	btn.addEventListener('click', async () => {
+		const targetSelector = btn.getAttribute('data-copy-target');
+		const targetEl = targetSelector ? document.querySelector(targetSelector) : null;
+		if (!targetEl) return;
+
+		const textToCopy = targetEl.textContent.trim();
+		const originalHtml = btn.innerHTML;
+
+		try {
+			if (navigator.clipboard && window.isSecureContext) {
+				await navigator.clipboard.writeText(textToCopy);
+			} else {
+				const tempInput = document.createElement('textarea');
+				tempInput.value = textToCopy;
+				tempInput.style.position = 'fixed';
+				tempInput.style.opacity = '0';
+				document.body.appendChild(tempInput);
+				tempInput.select();
+				document.execCommand('copy');
+				document.body.removeChild(tempInput);
+			}
+
+			btn.innerHTML = '<span>✓</span> Tersalin!';
+			btn.classList.add('is-copied');
+			setTimeout(() => {
+				btn.innerHTML = originalHtml;
+				btn.classList.remove('is-copied');
+			}, 2500);
+		} catch (err) {
+			btn.textContent = 'Gagal salin';
+			setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
+		}
+	});
+});
+
+// Mode Anonim pada Form Aspirasi
+const isAnonimCheckbox = document.getElementById('isAnonimCheckbox');
+const aspirasiNamaInput = document.getElementById('aspirasiNamaInput');
+const aspirasiNoHpInput = document.getElementById('aspirasiNoHpInput');
+
+if (isAnonimCheckbox && aspirasiNamaInput) {
+	isAnonimCheckbox.addEventListener('change', () => {
+		if (isAnonimCheckbox.checked) {
+			aspirasiNamaInput.dataset.originalVal = aspirasiNamaInput.value;
+			aspirasiNamaInput.value = 'Warga RW 05 (Anonim)';
+			aspirasiNamaInput.readOnly = true;
+			aspirasiNamaInput.classList.add('input-muted');
+			if (aspirasiNoHpInput) {
+				aspirasiNoHpInput.placeholder = 'Boleh dikosongkan jika anonim';
+			}
+		} else {
+			aspirasiNamaInput.value = aspirasiNamaInput.dataset.originalVal || '';
+			aspirasiNamaInput.readOnly = false;
+			aspirasiNamaInput.classList.remove('input-muted');
+			if (aspirasiNoHpInput) {
+				aspirasiNoHpInput.placeholder = '08xx';
+			}
+		}
+	});
 }

@@ -24,5 +24,28 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ajukan Surat",
+      "short_name": "Surat",
+      "description": "Ajukan surat administrasi warga RW 05",
+      "url": "/layanan-online#ajukan-surat",
+      "icons": [{ "src": "/assets/logo-rw05.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Cek Status Surat",
+      "short_name": "Status",
+      "description": "Lacak proses pengajuan surat",
+      "url": "/layanan-online#cek-status",
+      "icons": [{ "src": "/assets/logo-rw05.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Kirim Aspirasi",
+      "short_name": "Aspirasi",
+      "description": "Kirim aspirasi atau laporan ke RW 05",
+      "url": "/aspirasi",
+      "icons": [{ "src": "/assets/logo-rw05.png", "sizes": "192x192" }]
+    }
   ]
 }

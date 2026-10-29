@@ -644,9 +644,10 @@ class PublicController extends BaseController
 
     public function submitAspirasi()
     {
-        $nama = trim((string) $this->request->getPost('nama'));
+        $isAnonim = ! empty($this->request->getPost('is_anonim'));
+        $nama = $isAnonim ? 'Warga RW 05 (Anonim)' : trim((string) $this->request->getPost('nama'));
         $pesan = trim((string) $this->request->getPost('pesan'));
-        $noHp = trim((string) $this->request->getPost('no_hp'));
+        $noHp = $isAnonim ? '' : trim((string) $this->request->getPost('no_hp'));
         $rt = trim((string) $this->request->getPost('rt'));
         $kategori = trim((string) ($this->request->getPost('kategori') ?: 'Aspirasi'));
         $clientIp = (string) $this->request->getIPAddress();

@@ -8,3 +8,4 @@ deployment:
     - /bin/cp .htaccess .user.ini composer.json composer.lock favicon.svg index.php LICENSE manifest.webmanifest preload.php service-worker.js spark "$DEPLOYPATH"
     - /bin/sed -i "s|^app.baseURL.*|app.baseURL = 'https://rw05citeureup.my.id/'|" "$DEPLOYPATH.env"
     - /bin/sed -i "s|^CI_ENVIRONMENT.*|CI_ENVIRONMENT = production|" "$DEPLOYPATH.env"
+    - /bin/sed -i "s|^database.default.hostname.*|database.default.hostname = localhost|" "$DEPLOYPATH.env"

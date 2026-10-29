@@ -141,6 +141,19 @@ $quickItems = [
             <?php if ($schedule): ?>
               <strong><?= rw_esc(format_date_id($schedule['tanggal'] ?? '')) ?></strong>
               <small><?= rw_esc(trim((string) ($schedule['waktu'] ?? '')) ?: 'Waktu mengikuti informasi kader') ?> · <?= rw_esc(trim((string) ($schedule['lokasi'] ?? '')) ?: 'Lokasi akan diumumkan') ?></small>
+              <?php
+              $calDate = preg_replace('/[^0-9]/', '', (string) ($schedule['tanggal'] ?? ''));
+              if (strlen($calDate) === 8) {
+                  $calTitle = rawurlencode("Jadwal {$label} - RW 05 Lamajang Peuntas");
+                  $calLocation = rawurlencode((string) ($schedule['lokasi'] ?? 'RW 05 Lamajang Peuntas'));
+                  $calDetails = rawurlencode("Jadwal {$label} RW 05 Lamajang Peuntas. Waktu: " . ($schedule['waktu'] ?? 'Sesuai info kader') . ". Lokasi: " . ($schedule['lokasi'] ?? 'RW 05'));
+                  $calDates = "{$calDate}T080000/{$calDate}T120000";
+                  $gCalUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE&text={$calTitle}&dates={$calDates}&details={$calDetails}&location={$calLocation}";
+              ?>
+                <a href="<?= rw_esc($gCalUrl) ?>" target="_blank" rel="noopener noreferrer" class="btn-calendar-add" title="Simpan jadwal ke Google Calendar">
+                  <span>📅</span> Simpan ke Google Calendar
+                </a>
+              <?php } ?>
             <?php else: ?>
               <strong>Belum ada jadwal aktif</strong>
               <small>Jadwal akan tampil setelah diterbitkan oleh pengurus.</small>

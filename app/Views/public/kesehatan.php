@@ -170,6 +170,21 @@ $healthContactExternal = ! empty($waLink);
               <p><?= rw_esc($schedule['lokasi'] ?? '') ?><?= ! empty($schedule['waktu']) ? ' · ' . rw_esc($schedule['waktu']) : '' ?></p>
               <?php if (! empty($schedule['deskripsi'])): ?><p class="muted"><?= nl2br(rw_esc($schedule['deskripsi'])) ?></p><?php endif; ?>
               <?php if (! empty($schedule['penanggung_jawab'])): ?><small>Penanggung jawab: <?= rw_esc($schedule['penanggung_jawab']) ?></small><?php endif; ?>
+              <?php
+              $calDate = preg_replace('/[^0-9]/', '', (string) ($schedule['tanggal'] ?? ''));
+              if (strlen($calDate) === 8) {
+                  $calTitle = rawurlencode(($schedule['judul'] ?? "Jadwal {$scheduleType}") . " - RW 05");
+                  $calLocation = rawurlencode((string) ($schedule['lokasi'] ?? 'RW 05 Lamajang Peuntas'));
+                  $calDetails = rawurlencode("Jadwal {$scheduleType} RW 05 Lamajang Peuntas. Waktu: " . ($schedule['waktu'] ?? 'Sesuai info kader') . ". Keterangan: " . ($schedule['deskripsi'] ?? ''));
+                  $calDates = "{$calDate}T080000/{$calDate}T120000";
+                  $gCalUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE&text={$calTitle}&dates={$calDates}&details={$calDetails}&location={$calLocation}";
+              ?>
+                <div class="calendar-action-row">
+                  <a href="<?= rw_esc($gCalUrl) ?>" target="_blank" rel="noopener noreferrer" class="btn-calendar-add">
+                    <span>📅</span> Simpan ke Google Calendar
+                  </a>
+                </div>
+              <?php } ?>
             </div>
           </article>
         <?php endforeach; ?>

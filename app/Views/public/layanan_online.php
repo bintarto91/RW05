@@ -54,8 +54,30 @@ $oldSuratData = is_array($oldSuratData) ? $oldSuratData : [];
       <?= csrf_field() ?>
       <?php if (! empty($successCode)): ?>
         <div class="alert success">
-          Pengajuan berhasil dikirim. Simpan kode ini untuk cek status: <strong><?= rw_esc($successCode) ?></strong><br>
-          <span>Untuk mengecek status, masukkan kode tersebut bersama 4 angka terakhir nomor WhatsApp Anda.</span>
+          <strong>Pengajuan berhasil dikirim!</strong>
+          <div class="ticket-action-box">
+            <span class="ticket-label">Simpan kode pengajuan untuk melacak status surat:</span>
+            <div class="ticket-copy-row">
+              <strong class="ticket-code" id="suratSuccessCode"><?= rw_esc($successCode) ?></strong>
+              <button type="button" class="btn-copy" data-copy-target="#suratSuccessCode" aria-label="Salin kode pengajuan">
+                <span class="copy-icon">📋</span> Salin
+              </button>
+            </div>
+            <p class="ticket-note">Untuk mengecek status di panel kiri, masukkan kode tersebut bersama 4 angka terakhir nomor WhatsApp Anda.</p>
+            <?php if (! empty($profil['whatsapp'])): ?>
+              <?php
+              $cleanWa = preg_replace('/[^0-9]/', '', (string) $profil['whatsapp']);
+              if (str_starts_with($cleanWa, '0')) {
+                  $cleanWa = '62' . substr($cleanWa, 1);
+              }
+              $waSuratText = rawurlencode("Halo Pengurus RW 05, saya telah mengajukan surat dengan kode: {$successCode}. Mohon bantuan untuk diverifikasi. Terima kasih.");
+              $waSuratConfirmUrl = "https://wa.me/{$cleanWa}?text={$waSuratText}";
+              ?>
+              <a href="<?= rw_esc($waSuratConfirmUrl) ?>" class="btn-wa-confirm" target="_blank" rel="noopener noreferrer">
+                <span>💬</span> Konfirmasi Pengajuan ke WhatsApp RW
+              </a>
+            <?php endif; ?>
+          </div>
         </div>
       <?php endif; ?>
       <?php if (! empty($error)): ?>

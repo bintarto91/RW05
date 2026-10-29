@@ -56,7 +56,28 @@
         <div class="alert success">
           Terima kasih. Aspirasi sudah terkirim dan akan ditinjau pengurus.
           <?php if (! empty($successTicket)): ?>
-            <br>Simpan kode tiket untuk melacak status: <strong><?= rw_esc($successTicket) ?></strong>
+            <div class="ticket-action-box">
+              <span class="ticket-label">Simpan kode tiket untuk melacak status:</span>
+              <div class="ticket-copy-row">
+                <strong class="ticket-code" id="aspirasiSuccessCode"><?= rw_esc($successTicket) ?></strong>
+                <button type="button" class="btn-copy" data-copy-target="#aspirasiSuccessCode" aria-label="Salin kode tiket">
+                  <span class="copy-icon">📋</span> Salin
+                </button>
+              </div>
+              <?php if (! empty($profil['whatsapp'])): ?>
+                <?php
+                $cleanWa = preg_replace('/[^0-9]/', '', (string) $profil['whatsapp']);
+                if (str_starts_with($cleanWa, '0')) {
+                    $cleanWa = '62' . substr($cleanWa, 1);
+                }
+                $waText = rawurlencode("Halo Pengurus RW 05, saya telah mengirim aspirasi/laporan dengan kode tiket: {$successTicket}. Mohon bantuan untuk ditinjau. Terima kasih.");
+                $waConfirmUrl = "https://wa.me/{$cleanWa}?text={$waText}";
+                ?>
+                <a href="<?= rw_esc($waConfirmUrl) ?>" class="btn-wa-confirm" target="_blank" rel="noopener noreferrer">
+                  <span>💬</span> Konfirmasi via WhatsApp RW
+                </a>
+              <?php endif; ?>
+            </div>
           <?php endif; ?>
         </div>
       <?php endif; ?>
@@ -64,11 +85,18 @@
         <div class="alert error"><?= rw_esc($error) ?></div>
       <?php endif; ?>
       <div class="form-grid">
-        <label>Nama
-          <input type="text" name="nama" placeholder="Nama warga" value="<?= field_value('nama') ?>" required>
+        <div class="full anonim-option-box">
+          <label class="checkbox-container">
+            <input type="checkbox" name="is_anonim" id="isAnonimCheckbox" value="1">
+            <span><strong>Kirim sebagai Warga Anonim</strong> (Rahasiakan identitas saya)</span>
+          </label>
+          <small class="form-help-text">Jika dicentang, nama Anda otomatis dicatat sebagai <em>'Warga RW 05 (Anonim)'</em> dan nomor HP tidak wajib diisi.</small>
+        </div>
+        <label id="labelNama">Nama
+          <input type="text" name="nama" id="aspirasiNamaInput" placeholder="Nama warga" value="<?= field_value('nama') ?>" required>
         </label>
-        <label>No HP / WhatsApp
-          <input type="text" name="no_hp" placeholder="08xx" value="<?= field_value('no_hp') ?>">
+        <label id="labelNoHp">No HP / WhatsApp
+          <input type="text" name="no_hp" id="aspirasiNoHpInput" placeholder="08xx" value="<?= field_value('no_hp') ?>">
         </label>
         <label>RT
           <input type="text" name="rt" placeholder="Contoh: 01" value="<?= field_value('rt') ?>">

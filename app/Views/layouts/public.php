@@ -114,7 +114,7 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="<?= base_url('assets/style.css') ?>?v=org-chart-20261001-9">
+  <link rel="stylesheet" href="<?= base_url('assets/style.css') ?>?v=enhancement-20261029-01">
   <link rel="stylesheet" href="<?= base_url('assets/org-chart.css') ?>?v=balanced-chart-20261001-10">
 </head>
 <body>
@@ -215,6 +215,21 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
     </div>
   </div>
 </footer>
+<div id="pwaInstallBanner" class="pwa-install-banner" hidden>
+  <div class="container pwa-install-inner">
+    <div class="pwa-install-content">
+      <img src="<?= base_url('assets/logo-rw05.png') ?>" alt="Logo RW 05" class="pwa-install-logo">
+      <div class="pwa-install-text">
+        <strong>Pasang Aplikasi RW 05</strong>
+        <p>Akses cepat surat & informasi langsung di layar HP Anda.</p>
+      </div>
+    </div>
+    <div class="pwa-install-actions">
+      <button type="button" id="pwaInstallBtn" class="btn primary btn-sm">Pasang</button>
+      <button type="button" id="pwaDismissBtn" class="btn-dismiss" aria-label="Tutup notifikasi">✕</button>
+    </div>
+  </div>
+</div>
 <nav class="mobile-quick-nav" aria-label="Akses cepat dari ponsel">
   <a href="<?= site_url('/') ?>" class="<?= $currentPage === 'home' ? 'is-active' : '' ?>"><span aria-hidden="true">⌂</span>Beranda</a>
   <a href="<?= site_url('layanan-online') ?>#ajukan-surat"><span aria-hidden="true">＋</span>Surat</a>
@@ -226,6 +241,6 @@ $footerEmail = rw_official_email($profil['email'] ?? '');
   <?php endif; ?>
   <button type="button" data-mobile-menu-trigger aria-label="Buka menu utama" aria-expanded="false" aria-controls="menu"><span aria-hidden="true">☰</span>Menu</button>
 </nav>
-<script src="<?= base_url('assets/script.js') ?>?v=pwa-20260930-15"></script>
+<script src="<?= base_url('assets/script.js') ?>?v=enhancement-20261029-01"></script>
 </body>
 </html>
